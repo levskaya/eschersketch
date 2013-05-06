@@ -35,12 +35,27 @@ a:hover, a.enabled { color: #000; }
 }
 #sketch-UI {
     position: absolute;
-    bottom: 0;
+    top: 0px;
     left: 0;
+    width: 200px;
+    height: 100%;
+    background: rgba(245,245,245,0.8);
 }
+
+#ui-opacity {
+    float:left;
+    margin-right:5px;
+    margin-top:5px;
+    height:100px;
+    width:15px;
+}
+
+.selected { background: rgba(150,150,150,0.3); }
 
 .grad {       background-image: linear-gradient(to bottom, #000, #fff);}
 .grad-red {   background-image: linear-gradient(to bottom, #f00, #fff);}
 .grad-green { background-image: linear-gradient(to bottom, #0f0, #fff);}
 .grad-blue {  background-image: linear-gradient(to bottom, #00f, #fff);}
+#symmetry-selectors {width:200px;}
+.symsel {outline:1px solid #000; margin: 2px; padding: 2px; display: inline-block;}
 

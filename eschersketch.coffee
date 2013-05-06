@@ -33,6 +33,13 @@ sign = (x) -> (if x < 0 then -1 else 1)
 ###################################################################################################
 # Global State Variables
 
+uiState =
+  opacity: 1.0
+  red: 0
+  green: 0
+  blue: 0
+  linew: 1.0
+
 CANVAS_WIDTH = 1600
 CANVAS_HEIGHT = 1200
 
@@ -260,7 +267,7 @@ initGUI = ->
   ctx.line 800 - 5, 400, 800 + 5, 400
   ctx.line 800, 400 - 5, 800, 400 + 5
 
-  # color
+  # Color Picker
   ColorPicker(
     $("#color-picker")[0],
     (hex, hsv, rgb) ->
@@ -268,6 +275,22 @@ initGUI = ->
       console.log(rgb.r, rgb.g, rgb.b)
       setColor(rgb)
     )
+
+  #Flush out symmetry list
+  #symlist = $('#symselect')
+  #symlist = $('#symmetry-selectors')
+  #syms  = Object.keys(planarSymmetries)
+  #for s in syms
+  #  symlist.append($("<div class=\"symsel\" id=\"sym-${s}\">#{s}</div>"))
+
+  $(".symsel").click( ()->
+    newsym=$(this).text()
+    $(".symsel").removeClass('selected')
+    $(this).addClass('selected')
+    affineset=generateTiling(planarSymmetries[newsym],37,31,100,800,400)
+    console.log("symmetry ", newsym, affineset.length)
+    canvas.focus()
+  )
 
   # event handlers
   $("#symselect").change( ()->
@@ -278,21 +301,18 @@ initGUI = ->
   )
 
   clrui = $("#ui-opacity")
-  clrui.width(15)
-  clrui.height(100)
-  clrui.addClass("grad")
-  clrui.mousedown changeOpacity
+  clrui.mousedown(changeOpacity)
 
   clrui2 = $("#ui-color2")
   clrui2_ctx=clrui2[0].getContext("2d")
   clrui2_ctx.beginPath()
   clrui2_ctx.moveTo(0,0)
   clrui2_ctx.lineTo(20,0)
-  clrui2_ctx.lineTo(0,200)
+  clrui2_ctx.lineTo(0,100)
   clrui2_ctx.lineTo(0,0)
   clrui2_ctx.closePath()
   clrui2_ctx.fill()
-  clrui2.mousedown changeLineWidth
+  clrui2.mousedown(changeLineWidth)
 
 setColor = (rgb) ->
   RED = rgb.r

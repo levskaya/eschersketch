@@ -71,7 +71,7 @@ UI_active = false
 
 
 #affineset=reflectRosette(3,800,400)
-#affineset=rotateRosette(40,800,400)
+affineset=rotateRosette(40,800,400)
 #affineset=reflectRosette(1,800,400)
 #affineset=affinesetproduct( reflectRosette(1,800,400) , [ IdentityTransform(), \
 #    TranslationTransform(100,0).Lmultiply( ScalingTransform(1,.8)),\
@@ -116,19 +116,21 @@ geomseries = (a,n) ->
     geom.push atot
   geom
 
-#affineset = affinesetproduct reflectRosette(2,800,400), segmentalset(50,[.8,.7,.6,.5,.4,.4,.3,.2,.2,.1])
+###################################################################################################
+# Initial Transform
+#   some examples of manually set rosettes and other weird things here
+
+#affineset = affinesetproduct reflectRosette(2,800,400), segmentalset(50,[.8,.7,.6,.5,.4,.4,.3,.2,.2,.1,.05,.025,.01])
 #affineset = affinesetproduct rotateRosette(3,800,400), segmentalset(50,[.8,.7,.6,.5,.4,.4,.3,.2,.2,.1])
 #affineset = affinesetproduct reflectRosette(12,800,400), segmentalset(50,geomseries(.9,22))
-
 #affineset = affinesetproduct rotateRosette(3,800,400), spiralsegmentalset(50,geomseries(.9,16),PI/20)
-
 
 #affineset=multiRosette(4,7,800,400,600,300)
 
-affineset=generateTiling(planarSymmetries['p31m'],37,31,100,800,400)
+#affineset=generateTiling(planarSymmetries['p31m'],37,31,100,800,400)
 #affineset=generateTiling(planarSymmetries['p1'],37,31,100,800,400)
 
-#affineset=RosetteGroup(1,0,800,400,PI/2)
+#affineset=RosetteGroup(2,0,800,400,PI/4)
 #affineset=multiRosette3(7,3,8,.8,50,.2,800,400)
 #affineset=[IdentityTransform(),GlideTransform(PI/2,100,800,400),GlideTransform(0,100,800,400)]
 
@@ -276,40 +278,27 @@ initGUI = ->
   )
 
   clrui = $("#ui-opacity")
-  clrui.width(20)
-  clrui.height(200)
+  clrui.width(15)
+  clrui.height(100)
   clrui.addClass("grad")
   clrui.mousedown changeOpacity
-
-  clruiR = $("#ui-red")
-  clruiR.width(20)
-  clruiR.height(200)
-  clruiR.addClass("grad-red")
-  clruiR.mousedown changeRed
-
-  clruiG = $("#ui-green")
-  clruiG.width(20)
-  clruiG.height(200)
-  clruiG.addClass("grad-green")
-  clruiG.mousedown changeGreen
-
-  clruiB = $("#ui-blue")
-  clruiB.width(20)
-  clruiB.height(200)
-  clruiB.addClass("grad-blue")
-  clruiB.mousedown changeBlue
 
   clrui2 = $("#ui-color2")
   clrui2_ctx=clrui2[0].getContext("2d")
   clrui2_ctx.beginPath()
   clrui2_ctx.moveTo(0,0)
   clrui2_ctx.lineTo(20,0)
-  clrui2_ctx.lineTo(10,200)
+  clrui2_ctx.lineTo(0,200)
   clrui2_ctx.lineTo(0,0)
   clrui2_ctx.closePath()
   clrui2_ctx.fill()
   clrui2.mousedown changeLineWidth
 
+setColor = (rgb) ->
+  RED = rgb.r
+  GREEN = rgb.g
+  BLUE = rgb.b
+  console.log "RGB: ", RED, GREEN, BLUE
 
 changeOpacity = (e) ->
   left=$(this).offset().left
@@ -320,39 +309,6 @@ changeOpacity = (e) ->
   OPACITY = map(y,0,h,1.0,0.0)
   console.log "changeopacity ", x, y, h, OPACITY
 
-changeRed = (e) ->
-  left=$(this).offset().left
-  top=$(this).offset().top
-  x = e.clientX - left
-  y = e.clientY - top
-  h = $(this).height()
-  RED = floor map(y,0,h,255,0)
-  console.log "red ", RED
-
-changeGreen = (e) ->
-  left = $(this).offset().left
-  top  = $(this).offset().top
-  x = e.clientX - left
-  y = e.clientY - top
-  h = $(this).height()
-  GREEN = floor map(y,0,h,255,0)
-  console.log "green ", GREEN
-
-changeBlue = (e) ->
-  left=$(this).offset().left
-  top=$(this).offset().top
-  x = e.clientX - left
-  y = e.clientY - top
-  h = $(this).height()
-  BLUE = floor map(y,0,h,255,0)
-  console.log "blue ", BLUE
-
-setColor = (rgb) ->
-  RED = rgb.r
-  GREEN = rgb.g
-  BLUE = rgb.b
-  console.log "RGB: ", RED, GREEN, BLUE
-
 changeLineWidth = (e) ->
   x = e.clientX - $(this).offset().left
   y = e.clientY - $(this).offset().top
@@ -361,13 +317,12 @@ changeLineWidth = (e) ->
   window.LINEW=LINEW
   console.log "changelinewidth ", x, y, h, LINEW
 
-
 # Export init function for invocation
 window.initGUI=initGUI
 
 
 # Mouse Events
-
+# ------------------------------------------------------------------------------
 onCanvasMousedown = (e) ->
   e.preventDefault()
   if KEYDN_space

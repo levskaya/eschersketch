@@ -58,7 +58,7 @@ uiState =
   mouseXonPan: 0
   mouseYonPan: 0
   # planar symmetry parameters:
-  symmetryclass: "p1"
+  symmetryclass: "p6m"
   gridNx: 37
   gridNy: 31
   gridX0: 800
@@ -81,7 +81,7 @@ ctx = {}
 # Initial Transform
 #   some examples of manually set rosettes and other weird things here
 
-affineset=generateTiling(planarSymmetries["p1"], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
+affineset=generateTiling(planarSymmetries["p6m"], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
 
 #affineset=reflectRosette(3,800,400)
 #affineset=rotateRosette(40,800,400)

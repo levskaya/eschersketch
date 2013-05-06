@@ -66,7 +66,7 @@
     canvasYonPan: 0,
     mouseXonPan: 0,
     mouseYonPan: 0,
-    symmetryclass: "p1",
+    symmetryclass: "p6m",
     gridNx: 37,
     gridNy: 31,
     gridX0: 800,
@@ -87,7 +87,7 @@
 
   ctx = {};
 
-  affineset = generateTiling(planarSymmetries["p1"], uiState.gridNx, uiState.gridNy, uiState.gridspacing, uiState.gridX0, uiState.gridY0);
+  affineset = generateTiling(planarSymmetries["p6m"], uiState.gridNx, uiState.gridNy, uiState.gridspacing, uiState.gridX0, uiState.gridY0);
 
   ScalingAbout2 = function(scale, scaley, px, py) {
     return TranslationTransform(px, py).multiply(ScalingTransform(scale, scaley)).multiply(TranslationTransform(-px, -py));

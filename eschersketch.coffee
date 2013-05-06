@@ -33,42 +33,44 @@ sign = (x) -> (if x < 0 then -1 else 1)
 ###################################################################################################
 # Global State Variables
 
+CANVAS_WIDTH = 1600
+CANVAS_HEIGHT = 1200
+DRAW_interval = 0
+MIN_linewidth = .01
+MAX_linewidth = 4
+
+wacom = undefined #wacom pen adaptor device
+
+# Important State Variables
 uiState =
   opacity: 1.0
   red: 0
   green: 0
   blue: 0
   linewidth: 1.0
+  newline: true  # bool for determining to start a new line
+  # variables for panning the canvas:
+  canvasActive: false
+  canvasPanning: false
+  canvasCursorM:false
+  canvasXonPan: 0
+  canvasYonPan: 0
+  mouseXonPan: 0
+  mouseYonPan: 0
 
-CANVAS_WIDTH = 1600
-CANVAS_HEIGHT = 1200
-
-DRAW_interval = 0
-
-MIN_linewidth = .01
-MAX_linewidth = 4
-
-CANVAS_active = false
-CANVAS_panning = false
-CANVAS_cursorM = false
-
-CANVAS_xOnPan = 0
-CANVAS_yOnPan = 0
-MOUSE_xOnPan = 0
-MOUSE_yOnPan = 0
-
-NEW_LINE=true
-
-KEYDN_space = false
-KEYDN_shift = false
-KEYDN_ctrl = false
-
-wacom = undefined #wacom pen adaptor device
-
-UI_active = false
+# Records state of keys: false is up, true is down
+keyState =
+  space: false
+  shift: false
+  ctrl: false
 
 # Globals to be initialized
 [sketch, canvas, ctx] = [{},{},{}]
+
+
+# ###################################################################################################
+# Initial Transform
+#   some examples of manually set rosettes and other weird things here
 
 #affineset=reflectRosette(3,800,400)
 affineset=rotateRosette(40,800,400)
@@ -116,20 +118,14 @@ geomseries = (a,n) ->
     geom.push atot
   geom
 
-###################################################################################################
-# Initial Transform
-#   some examples of manually set rosettes and other weird things here
-
 #affineset = affinesetproduct reflectRosette(2,800,400), segmentalset(50,[.8,.7,.6,.5,.4,.4,.3,.2,.2,.1,.05,.025,.01])
 #affineset = affinesetproduct rotateRosette(3,800,400), segmentalset(50,[.8,.7,.6,.5,.4,.4,.3,.2,.2,.1])
 #affineset = affinesetproduct reflectRosette(12,800,400), segmentalset(50,geomseries(.9,22))
 #affineset = affinesetproduct rotateRosette(3,800,400), spiralsegmentalset(50,geomseries(.9,16),PI/20)
 
 #affineset=multiRosette(4,7,800,400,600,300)
-
 #affineset=generateTiling(planarSymmetries['p31m'],37,31,100,800,400)
 #affineset=generateTiling(planarSymmetries['p1'],37,31,100,800,400)
-
 #affineset=RosetteGroup(2,0,800,400,PI/4)
 #affineset=multiRosette3(7,3,8,.8,50,.2,800,400)
 #affineset=[IdentityTransform(),GlideTransform(PI/2,100,800,400),GlideTransform(0,100,800,400)]
@@ -143,7 +139,7 @@ linear_distance = (x2, y2, x1, y1) ->
 #export canvas data to image in new window
 #crashes often in chrome beta...
 saveDrawing = ->
-  window.open canvas.toDataURL("image/png"), "mywindow"
+  window.open(canvas.toDataURL("image/png"), "mywindow")
 
 #linear map of i-range onto o-range
 map = (value, istart, istop, ostart, ostop) ->
@@ -178,7 +174,7 @@ class Drawing
 # these drawing functions should be assoc'd w. renderer, not point...
 lastline = (pointSet) ->
   ps = pointSet.length
-  if ps > 1 and not NEW_LINE
+  if ps > 1 and not uiState.newline
     p1 = pointSet[ps - 1]
     p2 = pointSet[ps - 2]
     ctx.strokeStyle = "rgba( #{uiState.red},#{uiState.green},#{uiState.blue},  #{ uiState.opacity }  )"
@@ -190,7 +186,7 @@ lastline = (pointSet) ->
       ctx.lineWidth = p1.linewidth
       ctx.line Tp2[0], Tp2[1], Tp1[0], Tp1[1]
 
-  else NEW_LINE = false if NEW_LINE
+  else uiState.newline = false if uiState.newline
 
 
 connect = (pointSet) ->
@@ -336,37 +332,36 @@ window.initGUI=initGUI
 # ------------------------------------------------------------------------------
 onCanvasMousedown = (e) ->
   e.preventDefault()
-  if KEYDN_space
-    CANVAS_panning = true
-    MOUSE_xOnPan = e.clientX
-    MOUSE_yOnPan = e.clientY
-    CANVAS_xOnPan = canvas.offset().left
-    CANVAS_yOnPan = canvas.offset().top
+  if keyState.space
+    uiState.canvasPanning = true
+    uiState.mouseXonPan = e.clientX
+    uiState.mouseYonPan = e.clientY
+    uiState.canvasXonPan = canvas.offset().left
+    uiState.canvasYonPan = canvas.offset().top
     return
-  NEW_LINE = true
+  uiState.newline = true
   renderPoint e
-  CANVAS_active = true
+  uiState.canvasActive = true
 
 onDocumentMouseup = (e) ->
-  CANVAS_panning = false
-  CANVAS_active = false
-  UI_active = false
-  NEW_LINE = false
+  uiState.canvasPanning = false
+  uiState.canvasActive = false
+  uiState.newline = false
 
 onDocumentMousemove = (e) ->
-  if CANVAS_panning
-    canvas[0].style.left=((e.clientX - MOUSE_xOnPan + CANVAS_xOnPan) + "px")
-    canvas[0].style.top=((e.clientY - MOUSE_yOnPan + CANVAS_yOnPan) + "px")
+  if uiState.canvasPanning
+    canvas[0].style.left=((e.clientX - uiState.mouseXonPan + uiState.canvasXonPan) + "px")
+    canvas[0].style.top=((e.clientY - uiState.mouseYonPan + uiState.canvasYonPan) + "px")
 
-  if KEYDN_space and CANVAS_panning and not CANVAS_cursorM
-    canvas.css "cursor", "move"
-    CANVAS_cursorM = true
+  if keyState.space and uiState.canvasPanning and not uiState.canvasCursorM
+    canvas.css("cursor", "move")
+    uiState.canvasCursorM = true
 
-  else if not CANVAS_panning and CANVAS_cursorM
-    canvas.css "cursor", "crosshair"
-    CANVAS_cursorM = false
+  else if not uiState.canvasPanning and uiState.canvasCursorM
+    canvas.css("cursor", "crosshair")
+    uiState.canvasCursorM = false
 
-  if CANVAS_active
+  if uiState.canvasActive
     if DRAW_interval <= 0
       pressure = undefined
       #console.log "move", wacom
@@ -386,24 +381,24 @@ onDocumentMousemove = (e) ->
 onDocumentKeydown = (e) ->
   switch e.keyCode
     when 32 #SPACE BAR
-      KEYDN_space = true
+      keyState.space = true
     when 16 #SHIFT
-      KEYDN_shift = true
+      keyState.shift = true
     when 17 #CTRL
-      KEYDN_ctrl = true
+      keyState.ctrl = true
     when 83 #S
-      saveDrawing()  if KEYDN_ctrl and KEYDN_shift
+      saveDrawing()  if keyState.ctrl and keyState.shift
     when 8, 46  #backspace, delete
-      if KEYDN_ctrl
+      if keyState.ctrl
         sketch.dumpCache()
         sketch.drawnP = 0
 
 onDocumentKeyup = (e) ->
   switch e.keyCode
     when 32 #SPACE BAR
-      KEYDN_space = false
+      keyState.space = false
     when 16 #SHIFT
-      KEYDN_shift = false
+      keyState.shift = false
     when 17 #CTRL
-      KEYDN_ctrl = false
+      keyState.ctrl = false
 

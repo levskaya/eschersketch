@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Eschersketch</title>
+
+<link rel="stylesheet" type="text/css" href="eschersketch.css">
+<style type="text/css">
+/*
+#picker { width: 100px; height: 100px; }
+#slider { width: 10px; height: 100px; float:left; }
+*/
+</style>
+
+<!-- Libraries -->
+<script type="text/javascript" src="lib/jquery-1.4.4.js"></script>
+<script type="text/javascript" src="lib/underscore.js"></script>
+<script type="text/javascript" src="lib/colorpicker.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/colorpicker-themes.css">
+
+<!-- Code -->
+<script type="text/javascript" src="geo.js"></script>
+<script type="text/javascript" src="eschersketch.js"></script>
+<!-- Initialization -->
+<script type="text/javascript">
+$(function() {
+    initGUI();
+});
+</script>
+
+</head>
+
+<body>
+
+<!-- Main Canvas -->
+<div id="sketch-container">
+    <canvas id="sketch" width="1600" height="1200"></canvas>
+</div>
+
+<!-- GUI Elements -->
+<div id="sketch-UI">
+
+<div id="ui-opacity" style="float:left;margin-right:5px;"></div>
+<div id="ui-red" style="float:left;margin-right:5px;"></div>
+<div id="ui-green" style="float:left;margin-right:5px;"></div>
+<div id="ui-blue" style="float:left;margin-right:5px;"></div>
+<div><canvas id="ui-color2" width="20" height="200"></canvas></div>
+
+<!--<div id="picker"></div> <div id="slider"></div>-->
+<div id="color-picker" class="cp-small"></div>
+
+<select id="symselect">
+  <option>p1</option>
+  <option>pm</option>
+  <option>cm</option>
+  <option>pg</option>
+  <option>pmg</option>
+  <option>pgg</option>
+  <option>pmm</option>
+  <option>p2</option>
+  <option>cmm</option>
+  <option>p4</option>
+  <option>p4g</option>
+  <option>p4m</option>
+  <option>p3</option>
+  <option>p6</option>
+  <option>p31m</option>
+  <option>p3m1</option>
+  <option>p6m</option>
+</select>
+
+</div>
+<!--
+    <ul>
+    	<li>pan: <i>space + drag</i></li>
+    </ul>
+</div>
+-->
+
+<!-- Wacom Tablet Adaptor Plugin -->
+<!--<embed name="wacom-plugin" id="wacom-plugin" type="application/x-wacom-tablet" HIDDEN="TRUE"></embed>-->
+<!--
+<object id="wtPlugin" type="application/x-wacomtabletplugin" width="1" height="1"></object>
+-->
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+

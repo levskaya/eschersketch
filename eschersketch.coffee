@@ -12,8 +12,8 @@
 root = exports ? this
 
 ###################################################################################################
+# Math
 # import core math to local namespace
-
 min = Math.min
 max = Math.max
 abs = Math.abs
@@ -57,6 +57,14 @@ uiState =
   canvasYonPan: 0
   mouseXonPan: 0
   mouseYonPan: 0
+  # planar symmetry parameters:
+  symmetryclass: "p1"
+  gridNx: 37
+  gridNy: 31
+  gridX0: 800
+  gridY0: 400
+  gridspacing: 100
+  gridrotation: 0
 
 # Records state of keys: false is up, true is down
 keyState =
@@ -65,15 +73,18 @@ keyState =
   ctrl: false
 
 # Globals to be initialized
-[sketch, canvas, ctx] = [{},{},{}]
-
+sketch = {}
+canvas = {}
+ctx = {}
 
 # ###################################################################################################
 # Initial Transform
 #   some examples of manually set rosettes and other weird things here
 
+affineset=generateTiling(planarSymmetries["p1"], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
+
 #affineset=reflectRosette(3,800,400)
-affineset=rotateRosette(40,800,400)
+#affineset=rotateRosette(40,800,400)
 #affineset=reflectRosette(1,800,400)
 #affineset=affinesetproduct( reflectRosette(1,800,400) , [ IdentityTransform(), \
 #    TranslationTransform(100,0).Lmultiply( ScalingTransform(1,.8)),\
@@ -162,7 +173,7 @@ class Drawing
     dp = @drawnP
     pc = @pointCache
     lastline pc if dp > 0
-    #console.log("foo", dp)
+    #circlepaint pc if dp > 0
 
   dumpCache: ->
     @pointCache.length = 0
@@ -177,8 +188,8 @@ lastline = (pointSet) ->
   if ps > 1 and not uiState.newline
     p1 = pointSet[ps - 1]
     p2 = pointSet[ps - 2]
-    ctx.strokeStyle = "rgba( #{uiState.red},#{uiState.green},#{uiState.blue},  #{ uiState.opacity }  )"
-    #ctx.strokeStyle = "rgba( 0,0,0,  #{ .5 }  )"
+    ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
+    #ctx.strokeStyle = "rgba( 0,0,0,.5)"
 
     for af in affineset
       Tp1 = af.on(p1.x, p1.y)
@@ -188,28 +199,16 @@ lastline = (pointSet) ->
 
   else uiState.newline = false if uiState.newline
 
-
-connect = (pointSet) ->
+circlepaint = (pointSet) ->
   ps = pointSet.length
-  pnew = pointSet[ps - 1]
-  if ps > 1
-    for p in pointSet
-      p_dist = linear_distance(p.x, p.y, pnew.x, pnew.y)
-      p.tempDist = p_dist
-
-    #	sort associated points in order of distance form current point
-    pointSet.sort (a, b) -> a.tempDist - b.tempDist
-
-    ctx.strokeStyle = "rgba( 0,0,0, #{ uiOpacity.opacity } )"
-    totDist = 0
-    maxDist = pnew.maxDist
-
-    for p in pointSet
-      totDist += drawDist
-      if totDist < maxDist * 5 and p.tempDist < maxDist
-        ctx.line pnew.x, pnew.y, p.x, p.y
-      else
-        break
+  p1 = pointSet[ps - 1]
+  for af in affineset
+    Tp1 = af.on(p1.x, p1.y)
+    #ctx.lineWidth = p1.linewidth
+    ctx.beginPath()
+    ctx.arc(Tp1[0], Tp1[1], uiState.linewidth, 0, 2*PI, false)
+    ctx.fillStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
+    ctx.fill()
 
 # actually invokes drawing routine for events
 renderPoint = (e) ->
@@ -242,6 +241,11 @@ initGUI = ->
   ctx.fillStyle = "rgb(255, 255, 255)"
   ctx.fillRect 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT
 
+  $('input[name=xpos]').val(uiState.gridX0)
+  $('input[name=ypos]').val(uiState.gridY0)
+  $('input[name=gridspacing]').val(uiState.gridspacing)
+  $('input[name=gridrotation]').val(uiState.gridrotation)
+
   #wacom = document.embeds["wacom-plugin"]
   #wacom = document.getElementById('wtPlugin').penAPI
 
@@ -264,26 +268,13 @@ initGUI = ->
       setColor(rgb)
     )
 
-  #Flush out symmetry list
-  #symlist = $('#symselect')
-  #symlist = $('#symmetry-selectors')
-  #syms  = Object.keys(planarSymmetries)
-  #for s in syms
-  #  symlist.append($("<div class=\"symsel\" id=\"sym-${s}\">#{s}</div>"))
-
   $(".symsel").click( ()->
     newsym=$(this).text()
     $(".symsel").removeClass('selected')
     $(this).addClass('selected')
-    affineset=generateTiling(planarSymmetries[newsym],37,31,100,800,400)
-    console.log("symmetry ", newsym, affineset.length)
-    canvas.focus()
-  )
-
-  # event handlers
-  $("#symselect").change( ()->
-    newsym=$(this).val()
-    affineset=generateTiling(planarSymmetries[newsym],37,31,100,800,400)
+    affineset=generateTiling(planarSymmetries[newsym], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
+    #console.log(uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
+    #affineset=generateTiling(planarSymmetries[newsym],37,31,100,800,400)
     console.log("symmetry ", newsym, affineset.length)
     canvas.focus()
   )
@@ -295,8 +286,8 @@ initGUI = ->
   clrui2_ctx=clrui2[0].getContext("2d")
   clrui2_ctx.beginPath()
   clrui2_ctx.moveTo(0,0)
-  clrui2_ctx.lineTo(20,0)
-  clrui2_ctx.lineTo(0,100)
+  clrui2_ctx.lineTo(0,20)
+  clrui2_ctx.lineTo(200,0)
   clrui2_ctx.lineTo(0,0)
   clrui2_ctx.closePath()
   clrui2_ctx.fill()
@@ -339,6 +330,10 @@ onCanvasMousedown = (e) ->
     uiState.canvasXonPan = canvas.offset().left
     uiState.canvasYonPan = canvas.offset().top
     return
+  #else if keyState.c
+  #  uiState.gridX0 = e.clientX - canvas.offset().left
+  #  uiState.gridY0 = e.clientY - canvas.offset().top
+  #  return
   uiState.newline = true
   renderPoint e
   uiState.canvasActive = true
@@ -362,9 +357,9 @@ onDocumentMousemove = (e) ->
     uiState.canvasCursorM = false
 
   if uiState.canvasActive
+    #renderPoint e
     if DRAW_interval <= 0
       pressure = undefined
-      #console.log "move", wacom
       if wacom
         pressure = wacom.pressure
         #console.log pressure
@@ -372,7 +367,6 @@ onDocumentMousemove = (e) ->
         renderPoint e
       else
         renderPoint e
-      #console.log e
       DRAW_interval = 1
     DRAW_interval--
 
@@ -386,6 +380,8 @@ onDocumentKeydown = (e) ->
       keyState.shift = true
     when 17 #CTRL
       keyState.ctrl = true
+    when 67 # C
+      keyState.c = true
     when 83 #S
       saveDrawing()  if keyState.ctrl and keyState.shift
     when 8, 46  #backspace, delete
@@ -401,4 +397,5 @@ onDocumentKeyup = (e) ->
       keyState.shift = false
     when 17 #CTRL
       keyState.ctrl = false
-
+    when 67 # C
+      keyState.c = false

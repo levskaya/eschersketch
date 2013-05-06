@@ -1,0 +1,74 @@
+/*
+ Eschersketch - A drawing program for exploring symmetrical designs
+
+ Copyright (c) 2013 Anselm Levskaya (http://anselmlevskaya.com)
+ Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php) license.
+*/
+@charset "utf-8";
+
+body {
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-size: 14px;
+}
+
+ul{ padding: 0 1em; margin: 1.1em 0; list-style: none; }
+li { line-height: 15px; color: #444; }
+li > span { font-size: 1.4em; color: #000; }
+i { color: #000; }
+a { color: #444; text-decoration: none; }
+a:hover, a.enabled { color: #000; }
+
+#sketch-container {
+    margin: 0;
+    padding: 0;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+#sketch {
+    position: absolute;
+    cursor: crosshair;
+}
+#sketch-UI {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 200px;
+    height: 100%;
+    margin: 5px;
+    background: rgba(245,245,245,0.8);
+}
+
+#ui-opacity {
+    float:left;
+    margin-right:5px;
+    margin-top:5px;
+    height:100px;
+    width:15px;
+}
+
+#symmetry-selectors {
+    width:200px;
+    font-family:serif;
+}
+.symsel {
+    outline:1px solid #000;
+    margin: 2px;
+    padding: 2px;
+    display: inline-block;
+    font-family:sans-serif;
+}
+
+.selected { background: rgba(150,150,150,0.3); }
+.grad {       background-image: linear-gradient(to bottom, #000, #fff);}
+.grad-red {   background-image: linear-gradient(to bottom, #f00, #fff);}
+.grad-green { background-image: linear-gradient(to bottom, #0f0, #fff);}
+.grad-blue {  background-image: linear-gradient(to bottom, #00f, #fff);}
+

@@ -38,16 +38,15 @@ uiState =
   red: 0
   green: 0
   blue: 0
-  linew: 1.0
+  linewidth: 1.0
 
 CANVAS_WIDTH = 1600
 CANVAS_HEIGHT = 1200
 
 DRAW_interval = 0
-DRAW_minDensity = 20
-DRAW_maxDensity = 600
-DRAW_minLineW = .01
-DRAW_maxLineW = 1
+
+MIN_linewidth = .01
+MAX_linewidth = 4
 
 CANVAS_active = false
 CANVAS_panning = false
@@ -64,18 +63,12 @@ KEYDN_space = false
 KEYDN_shift = false
 KEYDN_ctrl = false
 
-OPACITY = 1.0
-LINEW   = 1.0
-RED = 255
-GREEN = 0
-BLUE = 0
-
 wacom = undefined #wacom pen adaptor device
 
 UI_active = false
 
-[sketch, canvas, ctx, currOpacity, currDensity, currCache, uiDensity, uiOpacity] = [{},{},{},1.0,600,0,600,1.0]
-
+# Globals to be initialized
+[sketch, canvas, ctx] = [{},{},{}]
 
 #affineset=reflectRosette(3,800,400)
 affineset=rotateRosette(40,800,400)
@@ -188,7 +181,7 @@ lastline = (pointSet) ->
   if ps > 1 and not NEW_LINE
     p1 = pointSet[ps - 1]
     p2 = pointSet[ps - 2]
-    ctx.strokeStyle = "rgba( #{RED},#{GREEN},#{BLUE},  #{ OPACITY }  )"
+    ctx.strokeStyle = "rgba( #{uiState.red},#{uiState.green},#{uiState.blue},  #{ uiState.opacity }  )"
     #ctx.strokeStyle = "rgba( 0,0,0,  #{ .5 }  )"
 
     for af in affineset
@@ -227,7 +220,7 @@ renderPoint = (e) ->
   sketch.addPoint
     x: e.clientX - canvas.offset().left
     y: e.clientY - canvas.offset().top
-    linewidth: LINEW
+    linewidth: uiState.linewidth
   sketch.render()
 
 # simple canvas line method
@@ -247,8 +240,6 @@ initGUI = ->
   canvas.width = CANVAS_WIDTH
   canvas.height = CANVAS_HEIGHT
 
-  canvas.mousedown onCanvasMousedown
-
   ctx = canvas[0].getContext("2d")
   ctx.line = drawLine
   ctx.lineWidth = 0.5
@@ -258,10 +249,11 @@ initGUI = ->
   #wacom = document.embeds["wacom-plugin"]
   #wacom = document.getElementById('wtPlugin').penAPI
 
+  canvas.mousedown onCanvasMousedown
   canvas.mouseup   onDocumentMouseup
   canvas.mousemove onDocumentMousemove
-  canvas.keyup     onDocumentKeydown
-  canvas.keydown   onDocumentKeyup
+  $('body').keyup     onDocumentKeyup
+  $('body').keydown   onDocumentKeydown
 
   # center crosshairs
   ctx.line 800 - 5, 400, 800 + 5, 400
@@ -315,10 +307,10 @@ initGUI = ->
   clrui2.mousedown(changeLineWidth)
 
 setColor = (rgb) ->
-  RED = rgb.r
-  GREEN = rgb.g
-  BLUE = rgb.b
-  console.log "RGB: ", RED, GREEN, BLUE
+  uiState.red = rgb.r
+  uiState.green = rgb.g
+  uiState.blue = rgb.b
+  console.log "RGB: ", uiState.red, uiState.green, uiState.blue
 
 changeOpacity = (e) ->
   left=$(this).offset().left
@@ -326,16 +318,15 @@ changeOpacity = (e) ->
   x = e.clientX - left
   y = e.clientY - top
   h = $(this).height()
-  OPACITY = map(y,0,h,1.0,0.0)
-  console.log "changeopacity ", x, y, h, OPACITY
+  uiState.opacity = map(y,0,h,1.0,0.0)
+  console.log "changeopacity ", x, y, h, uiState.opacity
 
 changeLineWidth = (e) ->
   x = e.clientX - $(this).offset().left
   y = e.clientY - $(this).offset().top
   h = $(this).height()
-  LINEW = map(y,0,h,10.0,0.0)
-  window.LINEW=LINEW
-  console.log "changelinewidth ", x, y, h, LINEW
+  uiState.linewidth = map(y,0,h,MAX_linewidth,MIN_linewidth)
+  console.log "changelinewidth ", x, y, h, uiState.linewidth
 
 # Export init function for invocation
 window.initGUI=initGUI
@@ -364,8 +355,8 @@ onDocumentMouseup = (e) ->
 
 onDocumentMousemove = (e) ->
   if CANVAS_panning
-    canvas.offset( [(e.clientX - MOUSE_xOnPan + CANVAS_xOnPan) + "px",
-                   (e.clientY - MOUSE_yOnPan + CANVAS_yOnPan) + "px"] )
+    canvas[0].style.left=((e.clientX - MOUSE_xOnPan + CANVAS_xOnPan) + "px")
+    canvas[0].style.top=((e.clientY - MOUSE_yOnPan + CANVAS_yOnPan) + "px")
 
   if KEYDN_space and CANVAS_panning and not CANVAS_cursorM
     canvas.css "cursor", "move"
@@ -382,7 +373,7 @@ onDocumentMousemove = (e) ->
       if wacom
         pressure = wacom.pressure
         #console.log pressure
-        LINEW = map(wacom.pressure, 0, 1, DRAW_minLineW, DRAW_maxLineW)
+        uiState.linewidth = map(wacom.pressure, 0, 1, MAX_linewidth, MIN_linewidth)
         renderPoint e
       else
         renderPoint e
@@ -406,7 +397,6 @@ onDocumentKeydown = (e) ->
       if KEYDN_ctrl
         sketch.dumpCache()
         sketch.drawnP = 0
-        currCache.html( sketch.pointCache.length)
 
 onDocumentKeyup = (e) ->
   switch e.keyCode

@@ -440,43 +440,45 @@ planarSymmetries =
 
   pm:
     rots: []
-    refs: [ [ 0, 0, 0 ], [ 0, 0, -.5 ] ]
-    vec0: [ 0, 1.61803399 ]
+    refs: [ [ PI/2, 0, 0 ], [ PI/2, 0, -1/2 ] ]
+    vec0: [ 0, 1 ]
     vec1: [ 1, 0 ]
 
   cm:
-    rots: [ [ PI, 0, 0 ] ]
-    refs: [ [ PI / 8, 1.707107 / 2, 0.707107 / 2 ] ]
-    vec0: [ 1, 0 ]
-    vec1: [ 0.707107, 0.707107 ]
+    rots: []
+    refs: [ [PI/2, 0, 0] ]
+    #does PI/4 introduce unwanted additional symmetry?
+    vec0: [ sin(PI/4), cos(PI/4) ]
+    vec1: [ -sin(PI/4), cos(PI/4) ]
 
   pg:
     rots: []
     refs: []
-    glides: [ [ 0.0, 0.866025, 0.0, 0.0] ]
+    glides: [ [ PI/2, 0.866025, 0.0, 0.0] ]
     vec0: [ 0, 2 ]
-    vec1: [ 1, 0]
+    vec1: [ 1, 0 ]
 
   # 180deg rotation containing groups
   pmg:
     rots: [ [ PI, 1.0, 0.25 ] ]
     refs: [ [ 0.0, 0.0, 0.0] ]
     glides: [ [ PI / 2, .5, 1.0, 0.0] ]
-    vec0: [ 2.0, 0.0]
-    vec1: [ 0.0, 1.0 ]
+    vec0: [ 2, 0 ]
+    vec1: [ 0, 1 ]
 
   pgg:
     rots: [ [ PI, 0.0, 0.0] ]
     refs: []
     glides: [ [ 0.0, 1.0, 0.0, 0.25 ], [ PI / 2, .5, .5, 0.0] ]
-    vec0: [ 2.0, 0.0]
-    vec1: [ 0.0, 1.0 ]
+    vec0: [ 2, 0 ]
+    vec1: [ 0, 1 ]
 
   pmm:
     rots: [ [ PI, 0, 0 ] ]
     refs: [ [ 0, 0, 0 ], [ PI / 2, 0, 0 ] ]
     vec0: [ 0, 1 ]
-    vec1: [ 1.61803399, 0 ]
+    #vec1: [ 1.61803399, 0 ]
+    vec1: [ 1, 0 ]
 
   p2:
     rots: [ [ PI, 0, 0 ] ]
@@ -485,10 +487,12 @@ planarSymmetries =
     vec1: [ 1.73205, 0.0]
 
   cmm:
-    rots: [ [ PI, 0, 0 ] ]
-    refs: [ [ 9 * PI / 8, 1.707107 / 2, 0.707107 / 2 ], [ PI / 8, 1.707107 / 2, 0.707107 / 2 ] ]
-    vec0: [ 1, 0 ]
-    vec1: [ 0.707107, 0.707107 ]
+    rots: [ [PI, 0, 0] ]
+    refs: [ [PI/2, 0, 0], [0, 0, 0] ]
+    #does PI/4 introduce unwanted additional symmetry?
+    vec0: [ sin(PI/4), cos(PI/4) ]
+    vec1: [ -sin(PI/4), cos(PI/4) ]
+
 
   # Square-ish Groups
   p4:

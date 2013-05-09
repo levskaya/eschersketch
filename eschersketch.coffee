@@ -58,7 +58,7 @@ uiState =
   mouseXonPan: 0
   mouseYonPan: 0
   # planar symmetry parameters:
-  symmetryclass: "p6m"
+  symmetryclass: "p1"
   gridNx: 37
   gridNy: 31
   gridX0: 800
@@ -239,7 +239,7 @@ initGUI = ->
   ctx.line = drawLine
   ctx.lineWidth = 0.5
   ctx.fillStyle = "rgb(255, 255, 255)"
-  ctx.fillRect 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
   $('input[name=xpos]').val(uiState.gridX0)
   $('input[name=ypos]').val(uiState.gridY0)
@@ -249,15 +249,15 @@ initGUI = ->
   #wacom = document.embeds["wacom-plugin"]
   #wacom = document.getElementById('wtPlugin').penAPI
 
-  canvas.mousedown onCanvasMousedown
-  canvas.mouseup   onDocumentMouseup
-  canvas.mousemove onDocumentMousemove
-  $('body').keyup     onDocumentKeyup
-  $('body').keydown   onDocumentKeydown
+  canvas.mousedown(onCanvasMousedown)
+  canvas.mouseup(onDocumentMouseup)
+  canvas.mousemove(onDocumentMousemove)
+  $('body').keyup(onDocumentKeyup)
+  $('body').keydown(onDocumentKeydown)
 
   # center crosshairs
-  ctx.line 800 - 5, 400, 800 + 5, 400
-  ctx.line 800, 400 - 5, 800, 400 + 5
+  ctx.line(800 - 5, 400, 800 + 5, 400)
+  ctx.line(800, 400 - 5, 800, 400 + 5)
 
   # Color Picker
   ColorPicker(
@@ -292,6 +292,14 @@ initGUI = ->
   clrui2_ctx.closePath()
   clrui2_ctx.fill()
   clrui2.mousedown(changeLineWidth)
+
+  $('#clearscreen').click(clearScreen)
+  # END UI INIT ----------------------------------------------------------------------
+
+
+clearScreen = () ->
+  ctx.fillStyle = "rgb(255, 255, 255)"
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
 setColor = (rgb) ->
   uiState.red = rgb.r

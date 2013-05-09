@@ -35,10 +35,9 @@
 <div>
   <center>&oplus;</center>
   <div style="margin-left:100px"><b>Escher</b></div>
-  <div style="margin-right:100px;-webkit-transform:rotate(180deg);"><b>Sketch</b></div>
+  <div style="margin-right:100px;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);"><b>Sketch</b></div>
   <center>&otimes;</center>
   <div style="margin-left:90px">v0.1</div>
-  <br><br>
 </div>
 
 <div id="symmetry-selectors">
@@ -65,14 +64,14 @@
   <div class="symsel">p6m</div>
   <br><br>
 </div>
-
+<!--
 <div id="affine-parameters">
 <label>X</label> <input name="xpos" size="3"></input>
 <label>Y</label> <input name="ypos" size="3"></input><br>
 <label>&Delta;</label> <input name="gridspacing" size="3"></input>
 <label>&phi;</label> <input name="gridrotation" size="3"></input>
 </div>
-
+-->
 <br><br>
 Color and Transparency:
 <div id="color-picker" class="cp-small"></div>
@@ -81,12 +80,15 @@ Color and Transparency:
 <br><br><br><br><br><br><br><br><br>
 
 Line Thickness:
-<div><canvas id="ui-color2" width="200" height="20"></canvas></div>
+<div><canvas id="ui-linewidth" width="200" height="20"></canvas></div>
 <br><br>
 <div id="clearscreen" class="button">CLEAR SCREEN</div>
 <br><br>
 MIT License<br>Anselm Levskaya
-
+<br><br>
+  <i> Hi internet, you discovered this a little early,
+  the UI/code will be improving over the next few weeks.
+  </i><br><br>
 </div>
 
 <!-- Wacom Tablet Adaptor Plugin -->

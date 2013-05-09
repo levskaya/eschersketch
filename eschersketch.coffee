@@ -282,7 +282,7 @@ initGUI = ->
   clrui = $("#ui-opacity")
   clrui.mousedown(changeOpacity)
 
-  clrui2 = $("#ui-color2")
+  clrui2 = $("#ui-linewidth")
   clrui2_ctx=clrui2[0].getContext("2d")
   clrui2_ctx.beginPath()
   clrui2_ctx.moveTo(0,0)

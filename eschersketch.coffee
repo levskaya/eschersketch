@@ -294,8 +294,12 @@ initGUI = ->
   clrui2.mousedown(changeLineWidth)
 
   $('#clearscreen').click(clearScreen)
+  #$('#saveimage').click(saveImage)
   # END UI INIT ----------------------------------------------------------------------
 
+saveImage = () ->
+  image = canvas[0].toDataURL("image/png")
+  window.location.href = image
 
 clearScreen = () ->
   ctx.fillStyle = "rgb(255, 255, 255)"

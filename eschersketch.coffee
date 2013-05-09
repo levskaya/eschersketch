@@ -81,7 +81,7 @@ ctx = {}
 # Initial Transform
 #   some examples of manually set rosettes and other weird things here
 
-affineset=generateTiling(planarSymmetries["p1"], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
+affineset=generateTiling(planarSymmetries["p6m"], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
 
 #affineset=reflectRosette(3,800,400)
 #affineset=rotateRosette(40,800,400)
@@ -282,7 +282,7 @@ initGUI = ->
   clrui = $("#ui-opacity")
   clrui.mousedown(changeOpacity)
 
-  clrui2 = $("#ui-color2")
+  clrui2 = $("#ui-linewidth")
   clrui2_ctx=clrui2[0].getContext("2d")
   clrui2_ctx.beginPath()
   clrui2_ctx.moveTo(0,0)
@@ -294,8 +294,12 @@ initGUI = ->
   clrui2.mousedown(changeLineWidth)
 
   $('#clearscreen').click(clearScreen)
+  #$('#saveimage').click(saveImage)
   # END UI INIT ----------------------------------------------------------------------
 
+saveImage = () ->
+  image = canvas[0].toDataURL("image/png")
+  window.location.href = image
 
 clearScreen = () ->
   ctx.fillStyle = "rgb(255, 255, 255)"
@@ -320,7 +324,8 @@ changeLineWidth = (e) ->
   x = e.clientX - $(this).offset().left
   y = e.clientY - $(this).offset().top
   h = $(this).height()
-  uiState.linewidth = map(y,0,h,MAX_linewidth,MIN_linewidth)
+  w = $(this).width()
+  uiState.linewidth = map(x,0,w,MAX_linewidth,MIN_linewidth)
   console.log "changelinewidth ", x, y, h, uiState.linewidth
 
 # Export init function for invocation

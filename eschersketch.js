@@ -314,12 +314,13 @@
   };
 
   changeLineWidth = function(e) {
-    var h, x, y;
+    var h, w, x, y;
 
     x = e.clientX - $(this).offset().left;
     y = e.clientY - $(this).offset().top;
     h = $(this).height();
-    uiState.linewidth = map(y, 0, h, MAX_linewidth, MIN_linewidth);
+    w = $(this).width();
+    uiState.linewidth = map(x, 0, w, MAX_linewidth, MIN_linewidth);
     return console.log("changelinewidth ", x, y, h, uiState.linewidth);
   };
 

@@ -64,6 +64,15 @@ a:hover, a.enabled { color: #000; }
     padding: 2px;
     display: inline-block;
     font-family:sans-serif;
+    cursor:pointer;
+}
+.button {
+    outline:1px solid #000;
+    margin: 2px;
+    padding: 2px;
+    display: inline-block;
+    font-family:sans-serif;
+    cursor:pointer;
 }
 
 .selected { background: rgba(150,150,150,0.3); }
@@ -75,4 +84,5 @@ background-image: -webkit-linear-gradient(top, #000, #fff);
 .grad-red {   background-image: linear-gradient(to bottom, #f00, #fff);}
 .grad-green { background-image: linear-gradient(to bottom, #0f0, #fff);}
 .grad-blue {  background-image: linear-gradient(to bottom, #00f, #fff);}
+
 

@@ -64,6 +64,7 @@ a:hover, a.enabled { color: #000; }
     padding: 2px;
     display: inline-block;
     font-family:sans-serif;
+    cursor:pointer;
 }
 .button {
     outline:1px solid #000;
@@ -71,6 +72,7 @@ a:hover, a.enabled { color: #000; }
     padding: 2px;
     display: inline-block;
     font-family:sans-serif;
+    cursor:pointer;
 }
 
 .selected { background: rgba(150,150,150,0.3); }

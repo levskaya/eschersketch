@@ -38,8 +38,9 @@ CANVAS_HEIGHT = 1200
 DRAW_interval = 0
 MIN_linewidth = .01
 MAX_linewidth = 4
+INITIAL_SYM = "p6m"
 
-wacom = undefined #wacom pen adaptor device
+#wacom = undefined #wacom pen adaptor device
 
 # Important State Variables
 uiState =
@@ -77,87 +78,26 @@ sketch = {}
 canvas = {}
 ctx = {}
 
-# ###################################################################################################
+################################################################################
 # Initial Transform
 #   some examples of manually set rosettes and other weird things here
 
-affineset=generateTiling(planarSymmetries["p6m"], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
+affineset=generateTiling(planarSymmetries[INITIAL_SYM], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
 
-#affineset=reflectRosette(3,800,400)
-#affineset=rotateRosette(40,800,400)
-#affineset=reflectRosette(1,800,400)
-#affineset=affinesetproduct( reflectRosette(1,800,400) , [ IdentityTransform(), \
-#    TranslationTransform(100,0).Lmultiply( ScalingTransform(1,.8)),\
-#    TranslationTransform(150,0).Lmultiply( ScalingTransform(1,.5)),\
-#    TranslationTransform(175,0).Lmultiply( ScalingTransform(1,.1))])
-
-# Segmental Transform
-# x0+dx0 = x1, x1+dx1=x1+a*dx0=x2, x2+dx2
-ScalingAbout2 = (scale, scaley, px, py) ->
-  TranslationTransform(px, py).multiply(ScalingTransform(scale,scaley)).multiply(TranslationTransform(-px, -py))
-
-segmentalset = (dx0,segscales) ->
-  segset = []
-  segset.push IdentityTransform()
-  x = dx0
-  segset.push TranslationTransform(x,0).multiply ScalingAbout2(segscales[0],segscales[0],800,400)
-  for i in [1..segscales.length-1]
-    dx = segscales[i-1]*dx0
-    x+=dx
-    segset.push TranslationTransform(x,0).multiply ScalingAbout2(segscales[i],segscales[i],800,400)
-  segset
-
-spiralsegmentalset = (dx0,segscales,rot) ->
-  segset = []
-  segset.push IdentityTransform()
-  trot=0
-  x = dx0
-  segset.push TranslationTransform(x,0).multiply ScalingAbout2(segscales[0],segscales[0],800,400)
-  for i in [1..segscales.length-1]
-    dx = segscales[i-1]*dx0
-    x+=dx
-    trot+=rot*segscales[i-1]
-    segset.push RotationAbout(trot,800,400).multiply TranslationTransform(x,0).multiply ScalingAbout2(segscales[i],segscales[i],800,400)
-  segset
-
-geomseries = (a,n) ->
-  geom=[]
-  atot=a
-  geom.push atot
-  for i in [1..n]
-    atot*=a
-    geom.push atot
-  geom
-
-#affineset = affinesetproduct reflectRosette(2,800,400), segmentalset(50,[.8,.7,.6,.5,.4,.4,.3,.2,.2,.1,.05,.025,.01])
-#affineset = affinesetproduct rotateRosette(3,800,400), segmentalset(50,[.8,.7,.6,.5,.4,.4,.3,.2,.2,.1])
-#affineset = affinesetproduct reflectRosette(12,800,400), segmentalset(50,geomseries(.9,22))
-#affineset = affinesetproduct rotateRosette(3,800,400), spiralsegmentalset(50,geomseries(.9,16),PI/20)
-
-#affineset=multiRosette(4,7,800,400,600,300)
-#affineset=generateTiling(planarSymmetries['p31m'],37,31,100,800,400)
-#affineset=generateTiling(planarSymmetries['p1'],37,31,100,800,400)
-#affineset=RosetteGroup(2,0,800,400,PI/4)
-#affineset=multiRosette3(7,3,8,.8,50,.2,800,400)
-#affineset=[IdentityTransform(),GlideTransform(PI/2,100,800,400),GlideTransform(0,100,800,400)]
-
-###################################################################################################
+################################################################################
 # Basic Functions
-
-linear_distance = (x2, y2, x1, y1) ->
-  sqrt (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)
 
 #export canvas data to image in new window
 #crashes often in chrome beta...
-saveDrawing = ->
-  window.open(canvas.toDataURL("image/png"), "mywindow")
+#saveDrawing = ->
+#  window.open(canvas.toDataURL("image/png"), "mywindow")
 
 #linear map of i-range onto o-range
 map = (value, istart, istop, ostart, ostop) ->
   ostart + (ostop - ostart) * (value - istart) / (istop - istart)
 
 
-###################################################################################################
+################################################################################
 # Drawing Object
 #  really just holds cache of previous points
 class Drawing
@@ -179,7 +119,7 @@ class Drawing
     @pointCache.length = 0
 
 
-###################################################################################################
+################################################################################
 # Drawing Functions
 
 # these drawing functions should be assoc'd w. renderer, not point...
@@ -188,13 +128,16 @@ lastline = (pointSet) ->
   if ps > 1 and not uiState.newline
     p1 = pointSet[ps - 1]
     p2 = pointSet[ps - 2]
-    ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
+    #the below line slows things down, state changes are costly in canvas
+    #ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
     #ctx.strokeStyle = "rgba( 0,0,0,.5)"
 
     for af in affineset
       Tp1 = af.on(p1.x, p1.y)
       Tp2 = af.on(p2.x, p2.y)
-      ctx.lineWidth = p1.linewidth
+      #the below line slows things down, state changes are costly in canvas
+      #ctx.lineWidth = p1.linewidth
+      #ctx.lineWidth = uiState.linewidth
       ctx.line Tp2[0], Tp2[1], Tp1[0], Tp1[1]
 
   else uiState.newline = false if uiState.newline
@@ -215,7 +158,7 @@ renderPoint = (e) ->
   sketch.addPoint
     x: e.clientX - canvas.offset().left
     y: e.clientY - canvas.offset().top
-    linewidth: uiState.linewidth
+    #linewidth: uiState.linewidth
   sketch.render()
 
 # simple canvas line method
@@ -225,7 +168,7 @@ drawLine = (x1, y1, x2, y2) ->
   @lineTo x2, y2
   @stroke()
 
-###################################################################################################
+################################################################################
 # main init function
 
 initGUI = ->
@@ -241,11 +184,7 @@ initGUI = ->
   ctx.fillStyle = "rgb(255, 255, 255)"
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
-  $('input[name=xpos]').val(uiState.gridX0)
-  $('input[name=ypos]').val(uiState.gridY0)
-  $('input[name=gridspacing]').val(uiState.gridspacing)
-  $('input[name=gridrotation]').val(uiState.gridrotation)
-
+  # sigh, the wacom plugins are so buggy.
   #wacom = document.embeds["wacom-plugin"]
   #wacom = document.getElementById('wtPlugin').penAPI
 
@@ -256,8 +195,32 @@ initGUI = ->
   $('body').keydown(onDocumentKeydown)
 
   # center crosshairs
-  ctx.line(800 - 5, 400, 800 + 5, 400)
-  ctx.line(800, 400 - 5, 800, 400 + 5)
+  #    these belong on a second UI canvas layer
+  #ctx.line(800 - 5, 400, 800 + 5, 400)
+  #ctx.line(800, 400 - 5, 800, 400 + 5)
+
+  #$('input[name=xpos]').val(uiState.gridX0)
+  #$('input[name=ypos]').val(uiState.gridY0)
+  #$('input[name=gridspacing]').val(uiState.gridspacing)
+  #$('input[name=gridrotation]').val(uiState.gridrotation)
+
+  # Set Up Symmetry Selector Buttons
+  $(".symsel").click( ()->
+    newsym=$(this).text()
+    $(".symsel").removeClass('selected')
+    $(this).addClass('selected')
+    affineset=generateTiling(planarSymmetries[newsym],
+                             uiState.gridNx, uiState.gridNy,
+                             uiState.gridspacing,
+                             uiState.gridX0,uiState.gridY0)
+    #console.log(uiState.gridNx,uiState.gridNy,
+    #            uiState.gridspacing,uiState.gridX0,uiState.gridY0)
+    console.log("symmetry ", newsym, affineset.length)
+    canvas.focus()
+  )
+
+  # highlight the initial startup symmetry button
+  $(".symsel:contains(#{INITIAL_SYM})").addClass('selected')
 
   # Color Picker
   ColorPicker(
@@ -266,40 +229,44 @@ initGUI = ->
       console.log(hsv.h, hsv.s, hsv.v)
       console.log(rgb.r, rgb.g, rgb.b)
       setColor(rgb)
+      ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
     )
 
-  $(".symsel").click( ()->
-    newsym=$(this).text()
-    $(".symsel").removeClass('selected')
-    $(this).addClass('selected')
-    affineset=generateTiling(planarSymmetries[newsym], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
-    #console.log(uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
-    #affineset=generateTiling(planarSymmetries[newsym],37,31,100,800,400)
-    console.log("symmetry ", newsym, affineset.length)
-    canvas.focus()
-  )
+  # Opacity Element
+  opacityui = $("#ui-opacity")
+  opacityui.mousedown(changeOpacity)
 
-  clrui = $("#ui-opacity")
-  clrui.mousedown(changeOpacity)
+  # Line Width Element
+  linewidthui = $("#ui-linewidth")
+  linewidthui_ctx=linewidthui[0].getContext("2d")
+  linewidthui_ctx.beginPath()
+  linewidthui_ctx.moveTo(0,0)
+  linewidthui_ctx.lineTo(0,20)
+  linewidthui_ctx.lineTo(200,0)
+  linewidthui_ctx.lineTo(0,0)
+  linewidthui_ctx.closePath()
+  linewidthui_ctx.fill()
+  linewidthui.mousedown(changeLineWidth)
 
-  clrui2 = $("#ui-linewidth")
-  clrui2_ctx=clrui2[0].getContext("2d")
-  clrui2_ctx.beginPath()
-  clrui2_ctx.moveTo(0,0)
-  clrui2_ctx.lineTo(0,20)
-  clrui2_ctx.lineTo(200,0)
-  clrui2_ctx.lineTo(0,0)
-  clrui2_ctx.closePath()
-  clrui2_ctx.fill()
-  clrui2.mousedown(changeLineWidth)
-
+  # Clear Screen Button
   $('#clearscreen').click(clearScreen)
-  #$('#saveimage').click(saveImage)
+
+  # Save Image Button
+  #hack, keep save button off safari, where it crashes
+  if window.navigator.userAgent.indexOf('Safari') == -1 or
+     window.navigator.userAgent.indexOf('Chrome') != -1
+    $('#saveimage').click(saveImage)
+  else
+    $('#saveimage').hide()
+
   # END UI INIT ----------------------------------------------------------------------
 
 saveImage = () ->
-  image = canvas[0].toDataURL("image/png")
-  window.location.href = image
+  if window.navigator.userAgent.indexOf('Safari') == -1 or
+     window.navigator.userAgent.indexOf('Chrome') != -1
+    canvas[0].toBlob((blob) -> saveAs(blob, "eschersketch.png") )
+  else
+    alert("Saving images clientside will crash some recent versions of Safari. Sorry!")
 
 clearScreen = () ->
   ctx.fillStyle = "rgb(255, 255, 255)"
@@ -309,7 +276,7 @@ setColor = (rgb) ->
   uiState.red = rgb.r
   uiState.green = rgb.g
   uiState.blue = rgb.b
-  console.log "RGB: ", uiState.red, uiState.green, uiState.blue
+  #console.log "RGB: ", uiState.red, uiState.green, uiState.blue
 
 changeOpacity = (e) ->
   left=$(this).offset().left
@@ -318,7 +285,8 @@ changeOpacity = (e) ->
   y = e.clientY - top
   h = $(this).height()
   uiState.opacity = map(y,0,h,1.0,0.0)
-  console.log "changeopacity ", x, y, h, uiState.opacity
+  ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
+  #console.log "changeopacity ", x, y, h, uiState.opacity
 
 changeLineWidth = (e) ->
   x = e.clientX - $(this).offset().left
@@ -326,11 +294,11 @@ changeLineWidth = (e) ->
   h = $(this).height()
   w = $(this).width()
   uiState.linewidth = map(x,0,w,MAX_linewidth,MIN_linewidth)
-  console.log "changelinewidth ", x, y, h, uiState.linewidth
+  ctx.lineWidth = uiState.linewidth
+  #console.log "changelinewidth ", x, y, h, uiState.linewidth
 
 # Export init function for invocation
 window.initGUI=initGUI
-
 
 # Mouse Events
 # ------------------------------------------------------------------------------
@@ -372,14 +340,12 @@ onDocumentMousemove = (e) ->
   if uiState.canvasActive
     #renderPoint e
     if DRAW_interval <= 0
-      pressure = undefined
-      if wacom
-        pressure = wacom.pressure
-        #console.log pressure
-        uiState.linewidth = map(wacom.pressure, 0, 1, MAX_linewidth, MIN_linewidth)
-        renderPoint e
-      else
-        renderPoint e
+      #if wacom
+      #  pressure = wacom.pressure
+      #  uiState.linewidth = map(wacom.pressure, 0, 1, MAX_linewidth, MIN_linewidth)
+      #  renderPoint e
+      #else
+      renderPoint e
       DRAW_interval = 1
     DRAW_interval--
 
@@ -395,8 +361,8 @@ onDocumentKeydown = (e) ->
       keyState.ctrl = true
     when 67 # C
       keyState.c = true
-    when 83 #S
-      saveDrawing()  if keyState.ctrl and keyState.shift
+    #when 83 #S
+    #  saveDrawing()  if keyState.ctrl and keyState.shift
     when 8, 46  #backspace, delete
       if keyState.ctrl
         sketch.dumpCache()
@@ -412,3 +378,4 @@ onDocumentKeyup = (e) ->
       keyState.ctrl = false
     when 67 # C
       keyState.c = false
+

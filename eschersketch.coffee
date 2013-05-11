@@ -224,10 +224,6 @@ initGUI = ->
     uiState.symmetry = newsym
     $(".symsel").removeClass('selected')
     $(this).addClass('selected')
-    #affineset=generateTiling(planarSymmetries[newsym],
-    #                         uiState.gridNx, uiState.gridNy,
-    #                         uiState.gridspacing,
-    #                         uiState.gridX0,uiState.gridY0)
     updateTiling()
     #console.log(uiState.gridNx,uiState.gridNy,
     #            uiState.gridspacing,uiState.gridX0,uiState.gridY0)

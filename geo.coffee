@@ -453,22 +453,30 @@ planarSymmetries =
     rots: []
     refs: []
     glides: [ [ PI/2, sqrt(3)/2, 0.0, 0.0] ]
-    vec0: [ 0, 2 ]
+    vec0: [ 0, 1 ]
     vec1: [ 1, 0 ]
 
   # 180deg rotation containing groups
+  p2:
+    rots: [ [ PI, 0, 0 ] ]
+    refs: []
+    #vec0: [ sqrt(3)/2, 1.5 ]
+    #vec1: [ sqrt(3), 0.0]
+    vec0: [ 1, 0 ]
+    vec1: [ 0, 1 ]
+
   pmg:
     rots: [ [ PI, 1.0, 0.25 ] ]
     refs: [ [ 0.0, 0.0, 0.0] ]
     glides: [ [ PI / 2, .5, 1.0, 0.0] ]
-    vec0: [ 2, 0 ]
+    vec0: [ 1, 0 ]
     vec1: [ 0, 1 ]
 
   pgg:
     rots: [ [ PI, 0.0, 0.0] ]
     refs: []
-    glides: [ [ 0.0, 1.0, 0.0, 0.25 ], [ PI / 2, .5, .5, 0.0] ]
-    vec0: [ 2, 0 ]
+    glides: [ [ 0.0, 1.0, 0.0, 0.25 ], [ PI/2, 1/2, 1/2, 0.0] ]
+    vec0: [ 1, 0 ]
     vec1: [ 0, 1 ]
 
   pmm:
@@ -477,12 +485,6 @@ planarSymmetries =
     vec0: [ 0, 1 ]
     #vec1: [ 1.61803399, 0 ]
     vec1: [ 1, 0 ]
-
-  p2:
-    rots: [ [ PI, 0, 0 ] ]
-    refs: []
-    vec0: [ sqrt(3)/2, 1.5 ]
-    vec1: [ sqrt(3), 0.0]
 
   cmm:
     rots: [ [PI, 0, 0] ]

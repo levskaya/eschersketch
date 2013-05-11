@@ -8,10 +8,12 @@
 <link rel="stylesheet" type="text/css" href="eschersketch.css">
 
 <!-- Libraries -->
-<script type="text/javascript" src="lib/jquery-1.4.4.js"></script>
-<script type="text/javascript" src="lib/underscore.js"></script>
+<script type="text/javascript" src="lib/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="lib/underscore-min.js"></script>
 <script type="text/javascript" src="lib/colorpicker.js"></script>
-<!--<script type="text/javascript" src="lib/canvas2image.js"></script>-->
+<script type="text/javascript" src="lib/Blob.js"></script>
+<script type="text/javascript" src="lib/canvas-toBlob.js"></script>
+<script type="text/javascript" src="lib/FileSaver.min.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/colorpicker-themes.css">
 
 <!-- Code -->
@@ -84,15 +86,16 @@ Line Thickness:
 <br><br>
 <div id="clearscreen" class="button">CLEAR SCREEN</div>
 
-<!--Crashes safari, toDataURL not so reliable:
-<div id="saveimage" class="button">Save Image</div>
--->
+<!--Crashes safari, toDataURL not so reliable: -->
+<div id="saveimage" class="button">SAVE IMAGE</div>
+
 <br><br>
-MIT License<br>Anselm Levskaya
+Anselm Levskaya
 <br><br>
-  <i> Hi internet, you discovered this a little early,
-  the UI/code will be improving over the next few weeks.
-  </i><br><br>
+  <i> Hi internet, the UI/code will be improving over the next few
+     weeks.</i><br><br>
+Also try: <a href="http://levskaya.github.io/polyhedronisme/">Polyhedronisme</a>
+  <br><br>
   <a href="https://github.com/levskaya/eschersketch">Source Code</a><br>
   <a href="http://en.wikipedia.org/wiki/Wallpaper_group">Wallpaper Groups?</a>
 </div>

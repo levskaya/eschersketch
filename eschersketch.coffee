@@ -1,19 +1,20 @@
-###################################################################################################
+################################################################################
 #
 # Eschersketch - A drawing program for exploring symmetrical designs
 #
 # Main UI
 #
 # Copyright (c) 2013 Anselm Levskaya (http://anselmlevskaya.com)
-# Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php) license.
+# Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
+# license.
 #
-###################################################################################################
+################################################################################
 
 root = exports ? this
 
-###################################################################################################
+################################################################################
 # Math
-# import core math to local namespace
+# we're not barbarians, import core math to local namespace
 min = Math.min
 max = Math.max
 abs = Math.abs
@@ -30,7 +31,7 @@ pow = Math.pow
 PI = Math.PI
 sign = (x) -> (if x < 0 then -1 else 1)
 
-###################################################################################################
+################################################################################
 # Global State Variables
 
 CANVAS_WIDTH = 1600
@@ -66,6 +67,7 @@ uiState =
   gridY0: 400
   gridspacing: 100
   gridrotation: 0
+  symmetry: "p6m"
 
 # Records state of keys: false is up, true is down
 keyState =
@@ -77,12 +79,24 @@ keyState =
 sketch = {}
 canvas = {}
 ctx = {}
-
+affineset = []
 ################################################################################
 # Initial Transform
-#   some examples of manually set rosettes and other weird things here
 
-affineset=generateTiling(planarSymmetries[INITIAL_SYM], uiState.gridNx,uiState.gridNy, uiState.gridspacing,uiState.gridX0,uiState.gridY0)
+updateTiling = () ->
+    affineset = generateTiling(planarSymmetries[uiState.symmetry],
+                              uiState.gridNx, uiState.gridNy,
+                              uiState.gridspacing,
+                              uiState.gridX0, uiState.gridY0)
+
+updateTiling()
+
+# affineset = generateTiling(planarSymmetries[uiState.symmetry],
+#                            uiState.gridNx, uiState.gridNy,
+#                            uiState.gridspacing,
+#                            uiState.gridX0, uiState.gridY0)
+
+
 
 ################################################################################
 # Basic Functions
@@ -99,7 +113,7 @@ map = (value, istart, istop, ostart, ostop) ->
 
 ################################################################################
 # Drawing Object
-#  really just holds cache of previous points
+#  just a cache of previously drawn points
 class Drawing
   constructor: ->
     @pointCache = new Array()
@@ -112,8 +126,8 @@ class Drawing
   render: ->
     dp = @drawnP
     pc = @pointCache
-    lastline pc if dp > 0
-    #circlepaint pc if dp > 0
+    lastline(pc) if dp > 0
+    #circlepaint(pc) if dp > 0
 
   dumpCache: ->
     @pointCache.length = 0
@@ -207,12 +221,14 @@ initGUI = ->
   # Set Up Symmetry Selector Buttons
   $(".symsel").click( ()->
     newsym=$(this).text()
+    uiState.symmetry = newsym
     $(".symsel").removeClass('selected')
     $(this).addClass('selected')
-    affineset=generateTiling(planarSymmetries[newsym],
-                             uiState.gridNx, uiState.gridNy,
-                             uiState.gridspacing,
-                             uiState.gridX0,uiState.gridY0)
+    #affineset=generateTiling(planarSymmetries[newsym],
+    #                         uiState.gridNx, uiState.gridNy,
+    #                         uiState.gridspacing,
+    #                         uiState.gridX0,uiState.gridY0)
+    updateTiling()
     #console.log(uiState.gridNx,uiState.gridNy,
     #            uiState.gridspacing,uiState.gridX0,uiState.gridY0)
     console.log("symmetry ", newsym, affineset.length)
@@ -220,7 +236,7 @@ initGUI = ->
   )
 
   # highlight the initial startup symmetry button
-  $(".symsel:contains(#{INITIAL_SYM})").addClass('selected')
+  $(".symsel:contains(#{uiState.symmetry})").addClass('selected')
 
   # Color Picker
   ColorPicker(

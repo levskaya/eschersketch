@@ -239,10 +239,9 @@ GlideTransform = (angle, distance, px, py) ->
 
 
 ###################################################################################################
-# Function for manipulating Sets of Affine Trans
+# Functions for manipulating Sets of Affine Transforms
 setproduct = (X, Y, prodfunc) ->
   prodfunc = prodfunc or (x, y) -> [ x, y ]
-
   _.reduce X, ((memo, x) ->
     _.map(Y, (y) ->
       prodfunc x, y
@@ -288,7 +287,7 @@ findclosure = (Afset, recursion_limit) ->
     Afset = uniqueset
     oldset = uniqueset
     i++
-  console.log "/uniqueset() length: " + uniqueset.length
+  #console.log "/uniqueset() length: " + uniqueset.length
   uniqueset
 
 # function maskfilter(Afset,positionfunc){
@@ -408,8 +407,7 @@ generateTiling = (spec, nx, ny, d, x, y) ->
       transset.push TranslationTransform((i*vec0[0] + j*vec1[0])*d, (i*vec0[1] + j*vec1[1])*d)
 
   # return cartesian product of compositions
-  affinesetproduct transset, Afset
-
+  affinesetproduct(transset, Afset)
 
 planarSymmetries =
   squaregrid:
@@ -421,22 +419,22 @@ planarSymmetries =
   diagonalgrid:
     rots: []
     refs: []
-    vec0: [ 0.707107, 0.707107 ]
-    vec1: [ 0.707107, -0.707107 ]
+    vec0: [ sqrt(2)/2, sqrt(2)/2 ]
+    vec1: [ sqrt(2)/2, -sqrt(2)/2 ]
 
   hexgrid:
     rots: []
     refs: []
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, 1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   #  Wallpaper Groups ----------------------------
   #  rotation-free groups
   p1:
     rots: []
     refs: []
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, 1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   pm:
     rots: []
@@ -454,7 +452,7 @@ planarSymmetries =
   pg:
     rots: []
     refs: []
-    glides: [ [ PI/2, 0.866025, 0.0, 0.0] ]
+    glides: [ [ PI/2, sqrt(3)/2, 0.0, 0.0] ]
     vec0: [ 0, 2 ]
     vec1: [ 1, 0 ]
 
@@ -483,8 +481,8 @@ planarSymmetries =
   p2:
     rots: [ [ PI, 0, 0 ] ]
     refs: []
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, 1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   cmm:
     rots: [ [PI, 0, 0] ]
@@ -517,37 +515,37 @@ planarSymmetries =
 
   # Hex-ish Groups
   p3:
-    rots: [ [ 2 * PI / 3, 0.866017, -0.5 ], [ 4 * PI / 3, 0.866017, -0.5 ] ]
+    rots: [ [ 2 * PI / 3, sqrt(3)/2, -0.5 ], [ 4 * PI / 3, sqrt(3)/2, -0.5 ] ]
     refs: []
-    vec0: [ 0.866025, -1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, -1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   p6:
-    rots: [ [ 2 * PI / 3, 0.866017, -0.5 ], [ 4 * PI / 3, 0.866017, -0.5 ], [ PI / 3.0, 0.0, 0.0],
+    rots: [ [ 2 * PI / 3, sqrt(3)/2, -0.5 ], [ 4 * PI / 3, sqrt(3)/2, -0.5 ], [ PI / 3.0, 0.0, 0.0],
             [ -PI / 3.0, 0.0, 0.0], [ 3 * PI / 3.0, 0.0, 0.0] ]
     refs: []
-    vec0: [ 0.866025, -1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, -1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   p31m:
-    rots: [ [ 2 * PI/3, 0.866017, -0.5 ], [ 4*PI/3, 0.866017, -0.5 ] ]
+    rots: [ [ 2 * PI/3, sqrt(3)/2, -0.5 ], [ 4*PI/3, sqrt(3)/2, -0.5 ] ]
     refs: [ [ PI/3, 0.0, 0.0], [ -PI/3, 0.0, 0.0], [ 0.0, 0.0, 0.0] ]
-    vec0: [ 0.866025, -1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, -1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   p3m1:
     rots: [ [ 2 * PI / 3, 0, 0 ], [ 4 * PI / 3, 0, 0 ] ]
     refs: [ [ -PI / 2, 0, 0 ], [ -2 * PI / 3 - PI / 2, 0, 0 ], [ 2 * PI / 3 - PI / 2, 0, 0 ] ]
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, 1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   p6m:
     rots: []
     refs: [ [ PI / 6, 0, 0 ], [ 2 * PI / 6, 0, 0 ], [ 3 * PI / 6, 0, 0 ],
             [ 4 * PI / 6, 0, 0 ], [ 5 * PI / 6, 0, 0 ], [ 6 * PI / 6, 0, 0 ] ]
     closeref: true
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, 1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
 
 # Hack for now:

@@ -53,7 +53,6 @@ a:hover, a.enabled { color: #000; }
     height:100px;
     width:15px;
 }
-
 #symmetry-selectors {
     width:200px;
     font-family:serif;
@@ -74,12 +73,16 @@ a:hover, a.enabled { color: #000; }
     font-family:sans-serif;
     cursor:pointer;
 }
-
+.circle {
+    position:absolute;
+	border-radius: 50%;
+    background:black;
+    /*display:block;*/
+}
 .selected { background: rgba(150,150,150,0.3); }
 .grad {
     background-image: linear-gradient(to bottom, #000, #fff);
-background-image: -webkit-linear-gradient(top, #000, #fff);
-
+    background-image: -webkit-linear-gradient(top, #000, #fff);
 }
 .grad-red {   background-image: linear-gradient(to bottom, #f00, #fff);}
 .grad-green { background-image: linear-gradient(to bottom, #0f0, #fff);}

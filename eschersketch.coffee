@@ -39,7 +39,6 @@ CANVAS_HEIGHT = 1200
 DRAW_interval = 0
 MIN_linewidth = .01
 MAX_linewidth = 4
-INITIAL_SYM = "p6m"
 
 #wacom = undefined #wacom pen adaptor device
 
@@ -67,7 +66,10 @@ uiState =
   gridY0: 400
   gridspacing: 100
   gridrotation: 0
-  symmetry: "p6m"
+  showgrid: false
+  symmetry: "p4m"
+  #_gridspacing:0
+  #_gridrotation:0
 
 # Records state of keys: false is up, true is down
 keyState =
@@ -79,23 +81,32 @@ keyState =
 sketch = {}
 canvas = {}
 ctx = {}
+gridcanvas = {}
+gridctx = {}
 affineset = []
+lattice = {}
+#placementui = {}
+#rotscaleui = {}
 ################################################################################
 # Initial Transform
 
 updateTiling = () ->
     affineset = generateTiling(planarSymmetries[uiState.symmetry],
                               uiState.gridNx, uiState.gridNy,
-                              uiState.gridspacing,
+                              uiState.gridspacing, uiState.gridrotation,
+                              uiState.gridX0, uiState.gridY0)
+    lattice = generateLattice(planarSymmetries[uiState.symmetry],
+                              uiState.gridNx, uiState.gridNy,
+                              uiState.gridspacing, uiState.gridrotation,
+                              uiState.gridX0, uiState.gridY0)
+
+updateLattice = () ->
+    lattice = generateLattice(planarSymmetries[uiState.symmetry],
+                              uiState.gridNx, uiState.gridNy,
+                              uiState.gridspacing, uiState.gridrotation,
                               uiState.gridX0, uiState.gridY0)
 
 updateTiling()
-
-# affineset = generateTiling(planarSymmetries[uiState.symmetry],
-#                            uiState.gridNx, uiState.gridNy,
-#                            uiState.gridspacing,
-#                            uiState.gridX0, uiState.gridY0)
-
 
 
 ################################################################################
@@ -182,6 +193,46 @@ drawLine = (x1, y1, x2, y2) ->
   @lineTo x2, y2
   @stroke()
 
+gridDraw = () ->
+  #gridctx.strokeStyle = "rgb(100, 100, 100)"
+  #gridctx.fillStyle = "rgb(100, 100, 100)"
+  gridctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+
+  v0 = RotationTransform(uiState.gridrotation).onvec(planarSymmetries[uiState.symmetry]['vec0'])
+  v1 = RotationTransform(uiState.gridrotation).onvec(planarSymmetries[uiState.symmetry]['vec1'])
+
+  p0 = [uiState.gridX0, uiState.gridY0]
+  p1 = [uiState.gridspacing*v0[0]+uiState.gridX0, uiState.gridspacing*v0[1]+uiState.gridY0]
+  p2 = [uiState.gridspacing*v1[0]+uiState.gridX0, uiState.gridspacing*v1[1]+uiState.gridY0]
+  # Draw Lattice
+  for af in lattice
+    Tp0 = af.on(p0[0],p0[1])
+    Tp1 = af.on(p1[0],p1[1])
+    Tp2 = af.on(p2[0],p2[1])
+    #console.log(Tp0,Tp1,Tp2)
+    gridctx.beginPath()
+    gridctx.moveTo(Tp0[0],Tp0[1])
+    gridctx.lineTo(Tp1[0],Tp1[1])
+    gridctx.moveTo(Tp0[0],Tp0[1])
+    gridctx.lineTo(Tp2[0],Tp2[1])
+    #gridctx.closePath()
+    gridctx.stroke()
+
+  circR=20
+  c0 = [p0[0] + gridcanvas.offset().left-circR/2,
+        p0[1] + gridcanvas.offset().top-circR/2]
+  c1 = [p1[0] + gridcanvas.offset().left-circR/2,
+        p1[1] + gridcanvas.offset().top-circR/2]
+
+  $('#center-ui').css({top:"#{c0[1]}px",left:"#{c0[0]}px",width:'20px',height:'20px'})
+  $('#rotscale-ui').css({top:"#{c1[1]}px",left:"#{c1[0]}px",width:'20px',height:'20px'})
+
+  #for p in [p0,p1,p2]
+  #  gridctx.beginPath()
+  #  gridctx.arc(p[0],p[1],10,0,2*PI)
+  #  gridctx.fill()
+  #  gridctx.stroke()
+
 ################################################################################
 # main init function
 
@@ -189,14 +240,29 @@ initGUI = ->
   sketch = new Drawing()
   canvas = $("#sketch")
 
+  #canvas.hide()
   canvas.width = CANVAS_WIDTH
   canvas.height = CANVAS_HEIGHT
-
   ctx = canvas[0].getContext("2d")
   ctx.line = drawLine
   ctx.lineWidth = 0.5
   ctx.fillStyle = "rgb(255, 255, 255)"
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  #ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+
+  gridcanvas = $("#gridcanvas")
+  gridcanvas.width = CANVAS_WIDTH
+  gridcanvas.height = CANVAS_HEIGHT
+  gridctx = gridcanvas[0].getContext("2d")
+  #gridctx.globalAlpha = 0.5;
+  gridctx.line = drawLine
+  gridctx.lineWidth = 0.5
+  gridctx.fillStyle = "rgba(0,0,0,0.0)"
+  gridctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  #gridctx.strokeStyle = "rgb(0, 255, 255)"
+  gridctx.strokeStyle = "rgba(0,0,0,0.5)"
+  gridcanvas.hide()
+  $('#grid-container').hide()
+  gridDraw()
 
   # sigh, the wacom plugins are so buggy.
   #wacom = document.embeds["wacom-plugin"]
@@ -213,6 +279,14 @@ initGUI = ->
   #ctx.line(800 - 5, 400, 800 + 5, 400)
   #ctx.line(800, 400 - 5, 800, 400 + 5)
 
+  gridUI = $('#grid-container')
+  centerUI = $('#center-ui')
+  rotscaleUI = $('#rotscale-ui')
+  centerUI.mousedown(onCenterMousedown)
+  rotscaleUI.mousedown(onRotScaleMousedown)
+  gridUI.mouseup(onGridMouseUp)
+  gridUI.mousemove(onGridMouseMove)
+
   #$('input[name=xpos]').val(uiState.gridX0)
   #$('input[name=ypos]').val(uiState.gridY0)
   #$('input[name=gridspacing]').val(uiState.gridspacing)
@@ -225,6 +299,8 @@ initGUI = ->
     $(".symsel").removeClass('selected')
     $(this).addClass('selected')
     updateTiling()
+    gridDraw()
+
     #console.log(uiState.gridNx,uiState.gridNy,
     #            uiState.gridspacing,uiState.gridX0,uiState.gridY0)
     console.log("symmetry ", newsym, affineset.length)
@@ -271,7 +347,22 @@ initGUI = ->
   else
     $('#saveimage').hide()
 
+  # show grid
+  $('#showgrid').click(toggleGrid)
+
+
   # END UI INIT ----------------------------------------------------------------------
+
+toggleGrid = () ->
+  if uiState.showgrid
+    $('#grid-container').hide()
+    gridcanvas.hide()
+  else
+    $('#grid-container').show()
+    gridcanvas.show()
+    gridDraw()
+  uiState.showgrid = (not uiState.showgrid)
+  #console.log uiState.showgrid
 
 saveImage = () ->
   if window.navigator.userAgent.indexOf('Safari') == -1 or
@@ -281,8 +372,8 @@ saveImage = () ->
     alert("Saving images clientside will crash some recent versions of Safari. Sorry!")
 
 clearScreen = () ->
-  ctx.fillStyle = "rgb(255, 255, 255)"
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  #ctx.fillStyle = "rgb(255, 255, 255)"
+  ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
 setColor = (rgb) ->
   uiState.red = rgb.r
@@ -361,7 +452,6 @@ onDocumentMousemove = (e) ->
       DRAW_interval = 1
     DRAW_interval--
 
-
 # Key Handling
 onDocumentKeydown = (e) ->
   switch e.keyCode
@@ -390,4 +480,67 @@ onDocumentKeyup = (e) ->
       keyState.ctrl = false
     when 67 # C
       keyState.c = false
+    when 71 # C
+      toggleGrid()
+
+
+onCenterMousedown = (e) ->
+  e.preventDefault()
+  uiState.recentering = true
+  uiState.mouseXonPan = e.clientX
+  uiState.mouseYonPan = e.clientY
+  uiState.canvasXonPan = uiState.gridX0
+  uiState.canvasYonPan = uiState.gridY0
+
+onRotScaleMousedown = (e) ->
+  e.preventDefault()
+  uiState.rotscaling = true
+  uiState.mouseXonPan = e.clientX
+  uiState.mouseYonPan = e.clientY
+  uiState._gridspacing = uiState.gridspacing
+  uiState._gridrotation = uiState.gridrotation
+
+coordsToAngle = (x,y) ->
+    if x == 0 and y >= 0
+      phi = PI/2
+    else if x == 0 and y < 0
+      phi = -PI/2
+    else if x > 0
+      phi = atan(y/x)
+    else if x < 0
+      phi = atan(y/x) + PI
+    phi
+
+onGridMouseMove = (e) ->
+  e.preventDefault()
+  if uiState.recentering
+    uiState.gridX0 = uiState.canvasXonPan + (e.clientX - uiState.mouseXonPan)
+    uiState.gridY0 = uiState.canvasYonPan + (e.clientY - uiState.mouseYonPan)
+    #console.log uiState.gridX0, uiState.gridY0
+    #canvas[0].style.left=((e.clientX - uiState.mouseXonPan) + "px")
+    #canvas[0].style.top=((e.clientY - uiState.mouseYonPan) + "px")
+    #uiState.recentering = false
+    gridDraw()
+    #uiState.recentering = true
+  if uiState.rotscaling
+    v0 = RotationTransform(uiState._gridrotation).onvec(planarSymmetries[uiState.symmetry].vec0)
+    origPhi = coordsToAngle(uiState._gridspacing*v0[0],uiState._gridspacing*v0[1])
+    origR = uiState._gridspacing*sqrt(v0[0]*v0[0]+v0[1]*v0[1])
+    #origY =
+    deltaX = (e.clientX - uiState.mouseXonPan) + uiState._gridspacing*v0[0]
+    deltaY = (e.clientY - uiState.mouseYonPan) + uiState._gridspacing*v0[1]
+    #console.log deltaX, deltaY
+    newR = sqrt(deltaX*deltaX+deltaY*deltaY)
+    newPhi = coordsToAngle(deltaX,deltaY)
+    uiState.gridspacing = newR-origR + uiState._gridspacing
+    uiState.gridrotation = -1*(newPhi-origPhi) + uiState._gridrotation
+    #console.log deltaR, -1*(newPhi-origPhi)
+    updateLattice()
+    gridDraw()
+
+onGridMouseUp = (e) ->
+  e.preventDefault()
+  uiState.recentering = false
+  uiState.rotscaling = false
+  updateTiling()
 

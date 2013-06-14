@@ -24,6 +24,10 @@ i { color: #000; }
 a { color: #444; text-decoration: none; }
 a:hover, a.enabled { color: #000; }
 
+input {
+    vertical-align:text-top;
+}
+
 #sketch-container {
     margin: 0;
     padding: 0;
@@ -43,9 +47,8 @@ a:hover, a.enabled { color: #000; }
     width: 200px;
     height: 100%;
     margin: 5px;
-    background: rgba(245,245,245,0.8);
+    background: rgba(245,245,245,0.9);
 }
-
 #ui-opacity {
     float:left;
     margin-right:5px;
@@ -53,36 +56,62 @@ a:hover, a.enabled { color: #000; }
     height:100px;
     width:15px;
 }
-
 #symmetry-selectors {
     width:200px;
     font-family:serif;
 }
 .symsel {
-    outline:1px solid #000;
+    //outline:1px solid #000;
+    background: #eee0e0;
+    text-indent:0px;
+    text-align: center;
+    border-radius: 5px;
     margin: 2px;
-    padding: 2px;
+    padding: 3px;
     display: inline-block;
     font-family:sans-serif;
     cursor:pointer;
+    color:#666;
 }
 .button {
-    outline:1px solid #000;
+    //border:1px solid #eee;
+    text-indent:0px;
+    background: #eee0e0;
+    text-align: center;
+    border-radius: 5px;
     margin: 2px;
-    padding: 2px;
+    padding: 3px;
     display: inline-block;
     font-family:sans-serif;
     cursor:pointer;
+    color:#666;
 }
-
-.selected { background: rgba(150,150,150,0.3); }
+.circle {
+    position:absolute;
+	border-radius: 50%;
+    background:black;
+    color: white;
+    text-align:center;
+    /*display:block;*/
+}
+.arrow {
+	width: 0px;
+	height: 0px;
+	border-top: 10px solid transparent;
+	border-bottom: 10px solid transparent;
+	border-right :10px solid black;
+}
+.selected { background: rgba(250,150,150,0.6); }
 .grad {
     background-image: linear-gradient(to bottom, #000, #fff);
-background-image: -webkit-linear-gradient(top, #000, #fff);
-
+    background-image: -webkit-linear-gradient(top, #000, #fff);
 }
-.grad-red {   background-image: linear-gradient(to bottom, #f00, #fff);}
+.grad-red   { background-image: linear-gradient(to bottom, #f00, #fff);}
 .grad-green { background-image: linear-gradient(to bottom, #0f0, #fff);}
-.grad-blue {  background-image: linear-gradient(to bottom, #00f, #fff);}
+.grad-blue  { background-image: linear-gradient(to bottom, #00f, #fff);}
 
-
+.clearfix:after {
+    clear: both;
+    content: "";
+    display: block;
+}

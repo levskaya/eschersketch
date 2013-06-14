@@ -188,6 +188,11 @@ class AffineTransform
     ny = @c * x + @d * y + @y
     [ nx, ny ]
 
+  onvec: (x) ->
+    nx = @a * x[0] + @b * x[1] + @x
+    ny = @c * x[0] + @d * x[1] + @y
+    [ nx, ny ]
+
   tolist: ->
     [ @a, @b, @c, @d, @x, @y ]
 
@@ -239,10 +244,9 @@ GlideTransform = (angle, distance, px, py) ->
 
 
 ###################################################################################################
-# Function for manipulating Sets of Affine Trans
+# Functions for manipulating Sets of Affine Transforms
 setproduct = (X, Y, prodfunc) ->
   prodfunc = prodfunc or (x, y) -> [ x, y ]
-
   _.reduce X, ((memo, x) ->
     _.map(Y, (y) ->
       prodfunc x, y
@@ -251,6 +255,14 @@ setproduct = (X, Y, prodfunc) ->
 
 affinesetproduct = (Afset1, Afset2) ->
   setproduct Afset1, Afset2, (x, y) -> x.multiply y
+
+transformAffineSet = (transformAf, Afset) ->
+  #_.map(Afset, (x) -> (transformAf.multiply(x)).multiply(transformAf.inverse()))
+  newAfset=[]
+  invtransformAf=transformAf.inverse()
+  for Af in Afset
+    newAfset.push(transformAf.multiply(Af).multiply(invtransformAf))
+  newAfset
 
 # generates unique subset of ar using equivalency function eqfunc
 uniques = (ar, eqfunc) ->
@@ -288,7 +300,7 @@ findclosure = (Afset, recursion_limit) ->
     Afset = uniqueset
     oldset = uniqueset
     i++
-  console.log "/uniqueset() length: " + uniqueset.length
+  #console.log "/uniqueset() length: " + uniqueset.length
   uniqueset
 
 # function maskfilter(Afset,positionfunc){
@@ -362,8 +374,24 @@ multiRosette3 = (n1, n2, n3, a, d, skew, x, y) ->
   afset
 
 
+# Generate Lattice
+generateLattice = (spec, nx, ny, d, phi, x, y) ->
+  transset = []
+  vec0 = spec.vec0
+  vec1 = spec.vec1
+  # Build set of translations
+  for i in [-floor(nx/2)..nx/2]
+    for j in [-floor(ny/2)..ny/2]
+      transset.push TranslationTransform((i*vec0[0] + j*vec1[0])*d, (i*vec0[1] + j*vec1[1])*d)
+  # return lattice
+  #transset
+  # global rotation
+  globalRot = RotationAbout(phi, 0, 0)
+  #affinesetproduct([globalRot], transset)
+  transformAffineSet(globalRot, transset)
+
 # Master Routine for making Wallpaper Group Sets
-generateTiling = (spec, nx, ny, d, x, y) ->
+generateTiling = (spec, nx, ny, d, phi, x, y) ->
   rotset = []
   refset = []
   glideset = []
@@ -407,8 +435,13 @@ generateTiling = (spec, nx, ny, d, x, y) ->
     for j in [-floor(ny/2)..ny/2]
       transset.push TranslationTransform((i*vec0[0] + j*vec1[0])*d, (i*vec0[1] + j*vec1[1])*d)
 
-  # return cartesian product of compositions
-  affinesetproduct transset, Afset
+  # cartesian product of compositions
+  wholeset = affinesetproduct(transset, Afset)
+
+  # global rotation
+  globalRot = RotationAbout(phi, 0, 0)
+  #affinesetproduct([globalRot], wholeset)
+  transformAffineSet(globalRot, wholeset)
 
 
 planarSymmetries =
@@ -421,28 +454,30 @@ planarSymmetries =
   diagonalgrid:
     rots: []
     refs: []
-    vec0: [ 0.707107, 0.707107 ]
-    vec1: [ 0.707107, -0.707107 ]
+    vec0: [ sqrt(2)/2, sqrt(2)/2 ]
+    vec1: [ sqrt(2)/2, -sqrt(2)/2 ]
 
   hexgrid:
     rots: []
     refs: []
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, 1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   #  Wallpaper Groups ----------------------------
   #  rotation-free groups
   p1:
     rots: []
     refs: []
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    #vec0: [ sqrt(3)/2, 1.5 ]
+    #vec1: [ sqrt(3), 0.0]
+    vec0: [ 1, 0 ]
+    vec1: [ 0, -1 ]
 
   pm:
     rots: []
     refs: [ [ PI/2, 0, 0 ], [ PI/2, 0, -1/2 ] ]
-    vec0: [ 0, 1 ]
-    vec1: [ 1, 0 ]
+    vec0: [ 1, 0 ]
+    vec1: [ 0, -1 ]
 
   cm:
     rots: []
@@ -454,37 +489,40 @@ planarSymmetries =
   pg:
     rots: []
     refs: []
-    glides: [ [ PI/2, 0.866025, 0.0, 0.0] ]
-    vec0: [ 0, 2 ]
-    vec1: [ 1, 0 ]
+    glides: [ [ PI/2, sqrt(3)/2, 0.0, 0.0] ]
+    #glides: [ [ PI/2, 1/2, 0.0, 0.0] ]
+    vec0: [ 1, 0 ]
+    vec1: [ 0, -1 ]
 
   # 180deg rotation containing groups
+  p2:
+    rots: [ [ PI, 0, 0 ] ]
+    refs: []
+    #vec0: [ sqrt(3)/2, 1.5 ]
+    #vec1: [ sqrt(3), 0.0]
+    vec0: [ 1, 0 ]
+    vec1: [ 0, -1 ]
+
   pmg:
     rots: [ [ PI, 1.0, 0.25 ] ]
     refs: [ [ 0.0, 0.0, 0.0] ]
     glides: [ [ PI / 2, .5, 1.0, 0.0] ]
-    vec0: [ 2, 0 ]
-    vec1: [ 0, 1 ]
+    vec0: [ 1, 0 ]
+    vec1: [ 0, -1 ]
 
   pgg:
     rots: [ [ PI, 0.0, 0.0] ]
     refs: []
-    glides: [ [ 0.0, 1.0, 0.0, 0.25 ], [ PI / 2, .5, .5, 0.0] ]
-    vec0: [ 2, 0 ]
-    vec1: [ 0, 1 ]
+    glides: [ [ 0.0, 1.0, 0.0, 0.25 ], [ PI/2, 1/2, 1/2, 0.0] ]
+    vec0: [ 1, 0 ]
+    vec1: [ 0, -1 ]
 
   pmm:
     rots: [ [ PI, 0, 0 ] ]
     refs: [ [ 0, 0, 0 ], [ PI / 2, 0, 0 ] ]
-    vec0: [ 0, 1 ]
+    vec0: [ 1, 0 ]
     #vec1: [ 1.61803399, 0 ]
-    vec1: [ 1, 0 ]
-
-  p2:
-    rots: [ [ PI, 0, 0 ] ]
-    refs: []
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec1: [ 0, -1 ]
 
   cmm:
     rots: [ [PI, 0, 0] ]
@@ -496,58 +534,58 @@ planarSymmetries =
 
   # Square-ish Groups
   p4:
-    rots: [ [ PI / 2, 0, 0 ], [ PI, 0, 0 ], [ 3 * PI / 2, 0, 0 ] ]
+    rots: [ [ PI/2, 0, 0 ], [ PI, 0, 0 ], [ 3 * PI/2, 0, 0 ] ]
     refs: []
     vec0: [ 1, 0 ]
-    vec1: [ 0, 1 ]
+    vec1: [ 0, -1 ]
 
   p4g:
-    rots: [ [ PI / 2, 0, 0 ], [ PI, 0, 0 ], [ 3 * PI / 2, 0, 0 ] ]
+    rots: [ [ PI/2, 0, 0 ], [ PI, 0, 0 ], [ 3 * PI/2, 0, 0 ] ]
     refs: [ [ -PI / 4, .5, 0.0] ]
     refrot: true
     vec0: [ 1, 0 ]
-    vec1: [ 0, 1 ]
+    vec1: [ 0, -1 ]
 
   p4m:
-    rots: [ [ PI / 2, 0, 0 ], [ PI, 0, 0 ], [ 3 * PI / 2, 0, 0 ] ]
+    rots: [ [ PI/2, 0, 0 ], [ PI, 0, 0 ], [ 3 * PI/2, 0, 0 ] ]
     refs: [ [ -PI / 4, 0.0, 0.0], [ PI / 4, 0.0, 0.0], [ 0.0, 0.0, 0.0] ]
     closeref: true
     vec0: [ 1, 0 ]
-    vec1: [ 0, 1 ]
+    vec1: [ 0, -1 ]
 
   # Hex-ish Groups
   p3:
-    rots: [ [ 2 * PI / 3, 0.866017, -0.5 ], [ 4 * PI / 3, 0.866017, -0.5 ] ]
+    rots: [ [ 2 * PI / 3, sqrt(3)/2, -0.5 ], [ 4 * PI / 3, sqrt(3)/2, -0.5 ] ]
     refs: []
-    vec0: [ 0.866025, -1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, -1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   p6:
-    rots: [ [ 2 * PI / 3, 0.866017, -0.5 ], [ 4 * PI / 3, 0.866017, -0.5 ], [ PI / 3.0, 0.0, 0.0],
+    rots: [ [ 2 * PI / 3, sqrt(3)/2, -0.5 ], [ 4 * PI / 3, sqrt(3)/2, -0.5 ], [ PI / 3.0, 0.0, 0.0],
             [ -PI / 3.0, 0.0, 0.0], [ 3 * PI / 3.0, 0.0, 0.0] ]
     refs: []
-    vec0: [ 0.866025, -1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, -1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   p31m:
-    rots: [ [ 2 * PI/3, 0.866017, -0.5 ], [ 4*PI/3, 0.866017, -0.5 ] ]
+    rots: [ [ 2 * PI/3, sqrt(3)/2, -0.5 ], [ 4*PI/3, sqrt(3)/2, -0.5 ] ]
     refs: [ [ PI/3, 0.0, 0.0], [ -PI/3, 0.0, 0.0], [ 0.0, 0.0, 0.0] ]
-    vec0: [ 0.866025, -1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, -1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   p3m1:
     rots: [ [ 2 * PI / 3, 0, 0 ], [ 4 * PI / 3, 0, 0 ] ]
-    refs: [ [ -PI / 2, 0, 0 ], [ -2 * PI / 3 - PI / 2, 0, 0 ], [ 2 * PI / 3 - PI / 2, 0, 0 ] ]
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    refs: [ [ -PI/2, 0, 0 ], [ -2 * PI/3 - PI/2, 0, 0 ], [ 2 * PI/3 - PI/2, 0, 0 ] ]
+    vec0: [ sqrt(3)/2, -1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
   p6m:
     rots: []
     refs: [ [ PI / 6, 0, 0 ], [ 2 * PI / 6, 0, 0 ], [ 3 * PI / 6, 0, 0 ],
             [ 4 * PI / 6, 0, 0 ], [ 5 * PI / 6, 0, 0 ], [ 6 * PI / 6, 0, 0 ] ]
     closeref: true
-    vec0: [ 0.866025, 1.5 ]
-    vec1: [ 1.73205, 0.0]
+    vec0: [ sqrt(3)/2, -1.5 ]
+    vec1: [ sqrt(3), 0.0]
 
 
 # Hack for now:
@@ -555,9 +593,10 @@ planarSymmetries =
 root.rotateRosette = rotateRosette
 root.reflectRosette = reflectRosette
 root.RosetteGroup = RosetteGroup
-root.multiRosette = multiRosette
-root.multiRosette2 = multiRosette2
-root.multiRosette3 = multiRosette3
+#root.multiRosette = multiRosette
+#root.multiRosette2 = multiRosette2
+#root.multiRosette3 = multiRosette3
+root.generateLattice = generateLattice
 root.generateTiling = generateTiling
 root.planarSymmetries = planarSymmetries
 root.TranslationTransform = TranslationTransform
@@ -566,7 +605,5 @@ root.GlideTransform = GlideTransform
 root.ReflectionTransform = ReflectionTransform
 root.RotationTransform = RotationTransform
 root.ScalingTransform = ScalingTransform
-
 root.RotationAbout = RotationAbout
-
 root.affinesetproduct = affinesetproduct

@@ -26,12 +26,13 @@
 </script>
 </head>
 
+
 <body>
 <!-- Main Canvas -->
 <div id="sketch-container">
   <div id="grid-container" style="position:absolute;z-index:2;">
     <div id="center-ui" class="circle"></div>
-    <div id="rotscale-ui" class="circle"></div>
+    <div id="rotscale-ui" class="circle">&#8596;</div>
     <canvas id="gridcanvas" width="1600" height="1200" style=""></canvas>
   </div>
   <canvas id="sketch" width="1600" height="1200" style="z-index:1"></canvas>
@@ -40,30 +41,28 @@
 <!-- GUI Elements -->
 <div id="sketch-UI" style="z-index:5">
 <div>
-  <center>&oplus;</center>
   <div style="margin-left:100px"><b>Escher</b></div>
   <div style="margin-right:100px;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);"><b>Sketch</b></div>
-  <center>&otimes;</center>
-  <div style="margin-left:90px">v0.1</div>
+  <div style="margin-left:90px">v0.2</div>
 </div>
-
+<br>
 <div id="symmetry-selectors">
   Rotation-free Groups:<br>
   <div class="symsel">p1</div>
   <div class="symsel">pm</div>
   <div class="symsel">cm</div>
   <div class="symsel">pg</div>
-  <br><br>180&deg; containing Groups:<br>
+  <br>180&deg; containing Groups:<br>
   <div class="symsel">pmg</div>
   <div class="symsel">pgg</div>
   <div class="symsel">pmm</div>
   <div class="symsel">p2</div>
   <div class="symsel">cmm</div>
-  <br><br>Square Groups:<br>
+  <br>Square Groups:<br>
   <div class="symsel">p4</div>
   <div class="symsel">p4g</div>
   <div class="symsel">p4m</div>
-  <br><br>Hexagonal Groups:<br>
+  <br>Hexagonal Groups:<br>
   <div class="symsel">p3</div>
   <div class="symsel">p6</div>
   <div class="symsel">p31m</div>
@@ -72,40 +71,39 @@
   <br>
 </div>
 
-<br><br>
+<br>
+Grid Parameters:
 <div id="affine-parameters">
 <label>X</label> <input name="xpos" size="3"></input>
-<label>Y</label> <input name="ypos" size="3"></input><br>
+<label>Y</label> <input name="ypos" size="3"></input>
 <label>&Delta;</label> <input name="gridspacing" size="3"></input>
-<label>&phi;</label> <input name="gridrotation" size="3"></input>
+<!--<label>&phi;</label> <input name="gridrotation" size="3"></input>-->
 </div>
+<div id="showgrid" class="button">Toggle Grid Control</div>
 
 <br><br>
 Color and Transparency:
 <div id="color-picker" class="cp-small"></div>
 <div id="ui-opacity" class="grad"></div>
-
-<br><br><br><br><br><br><br><br><br>
+<div class="clearfix"></div>
 
 Line Thickness:
-<div><canvas id="ui-linewidth" width="200" height="20"></canvas></div>
+<div><canvas id="ui-linewidth" width="200" height="10"></canvas></div>
+<input name="linecapround" type="radio"></input><label>Round linecap</label>
 <br><br>
-<div id="clearscreen" class="button">CLEAR SCREEN</div>
 
-<!--Crashes safari, toDataURL not so reliable: -->
+<div id="clearscreen" class="button">CLEAR SCREEN</div>
 <div id="saveimage" class="button">SAVE IMAGE</div>
+<br><br>
+
+Also try: <a href="http://levskaya.github.io/polyhedronisme/">Polyhedronisme</a>
 <br>
-<div id="showgrid" class="button">Grid</div>
+<a href="https://github.com/levskaya/eschersketch">Source Code</a><br>
+<a href="http://en.wikipedia.org/wiki/Wallpaper_group">Wallpaper Groups?</a>
 
 <br><br>
 Anselm Levskaya
-<br><br>
-  <i> Hi internet, the UI/code will be improving over the next few
-     weeks.</i><br><br>
-Also try: <a href="http://levskaya.github.io/polyhedronisme/">Polyhedronisme</a>
-  <br><br>
-  <a href="https://github.com/levskaya/eschersketch">Source Code</a><br>
-  <a href="http://en.wikipedia.org/wiki/Wallpaper_group">Wallpaper Groups?</a>
+
 </div>
 
 <!-- Wacom Tablet Adaptor Plugin -->

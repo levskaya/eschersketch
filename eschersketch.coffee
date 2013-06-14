@@ -31,6 +31,10 @@ pow = Math.pow
 PI = Math.PI
 sign = (x) -> (if x < 0 then -1 else 1)
 
+#linear map of i-range onto o-range
+map = (value, istart, istop, ostart, ostop) ->
+  ostart + (ostop - ostart) * (value - istart) / (istop - istart)
+
 ################################################################################
 # Global State Variables
 
@@ -70,6 +74,7 @@ uiState =
   symmetry: "p4m"
   #_gridspacing:0
   #_gridrotation:0
+  linecapround:false
 
 # Records state of keys: false is up, true is down
 keyState =
@@ -87,6 +92,7 @@ affineset = []
 lattice = {}
 #placementui = {}
 #rotscaleui = {}
+
 ################################################################################
 # Initial Transform
 
@@ -106,21 +112,8 @@ updateLattice = () ->
                               uiState.gridspacing, uiState.gridrotation,
                               uiState.gridX0, uiState.gridY0)
 
+# Build Initial Tiling Set
 updateTiling()
-
-
-################################################################################
-# Basic Functions
-
-#export canvas data to image in new window
-#crashes often in chrome beta...
-#saveDrawing = ->
-#  window.open(canvas.toDataURL("image/png"), "mywindow")
-
-#linear map of i-range onto o-range
-map = (value, istart, istop, ostart, ostop) ->
-  ostart + (ostop - ostart) * (value - istart) / (istop - istart)
-
 
 ################################################################################
 # Drawing Object
@@ -138,6 +131,7 @@ class Drawing
     dp = @drawnP
     pc = @pointCache
     lastline(pc) if dp > 0
+    #lastline_quadratic(pc) if dp > 0
     #circlepaint(pc) if dp > 0
 
   dumpCache: ->
@@ -146,8 +140,9 @@ class Drawing
 
 ################################################################################
 # Drawing Functions
-
 # these drawing functions should be assoc'd w. renderer, not point...
+
+# Strokes lines between last two points in set
 lastline = (pointSet) ->
   ps = pointSet.length
   if ps > 1 and not uiState.newline
@@ -167,6 +162,33 @@ lastline = (pointSet) ->
 
   else uiState.newline = false if uiState.newline
 
+# Strokes quadratic lines between last two points in set
+lastline_quadratic = (pointSet) ->
+  ps = pointSet.length
+  if ps > 1 and not uiState.newline
+    p1 = pointSet[ps - 1]
+    p2 = pointSet[ps - 2]
+    #the below line slows things down, state changes are costly in canvas
+    #ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
+    #ctx.strokeStyle = "rgba(0,0,0,.5)"
+
+    for af in affineset
+      Tp1 = af.on(p1.x, p1.y)
+      Tp2 = af.on(p2.x, p2.y)
+      #the below line slows things down, state changes are costly in canvas
+      #ctx.lineWidth = p1.linewidth
+      #ctx.lineWidth = uiState.linewidth
+      xc = (Tp1[0] + Tp2[0]) / 2
+      yc = (Tp1[1] + Tp2[1]) / 2
+      ctx.beginPath()
+      ctx.moveTo(Tp1[0], Tp1[1])
+      ctx.quadraticCurveTo(xc, yc, Tp2[0], Tp2[1]);
+      #ctx.line Tp2[0], Tp2[1], Tp1[0], Tp1[1]
+      ctx.stroke()
+
+  else uiState.newline = false if uiState.newline
+
+# Draws circles at each point
 circlepaint = (pointSet) ->
   ps = pointSet.length
   p1 = pointSet[ps - 1]
@@ -233,12 +255,64 @@ gridDraw = () ->
   #  gridctx.fill()
   #  gridctx.stroke()
 
+# Fixes DPI issues with Retina displays on Chrome
+# http://www.html5rocks.com/en/tutorials/canvas/hidpi/
+pixelFix = (canvas) ->
+  # get the canvas and context
+  context = canvas.getContext('2d')
+
+  # finally query the various pixel ratios
+  devicePixelRatio = window.devicePixelRatio || 1
+  backingStoreRatio = context.webkitBackingStorePixelRatio ||
+    context.mozBackingStorePixelRatio ||
+    context.msBackingStorePixelRatio ||
+    context.oBackingStorePixelRatio ||
+    context.backingStorePixelRatio || 1
+
+  ratio = devicePixelRatio / backingStoreRatio
+  #console.log "pixel ratio", ratio
+
+  # upscale the canvas if the two ratios don't match
+  if devicePixelRatio != backingStoreRatio
+
+    oldWidth = canvas.width
+    oldHeight = canvas.height
+    canvas.width = oldWidth * ratio
+    canvas.height = oldHeight * ratio
+    canvas.style.width = oldWidth + 'px'
+    canvas.style.height = oldHeight + 'px'
+
+    # now scale the context to counter
+    # the fact that we've manually scaled
+    # our canvas element
+    context.scale(ratio, ratio)
+
+# Scales the number of "backing pixels" for a given on-screen pixel
+# to a higher value - useful for high-DPI exports
+setCanvasPixelDensity = (canvas, ratio) ->
+  # get the canvas and context
+  context = canvas.getContext('2d')
+
+  oldWidth = canvas.width
+  oldHeight = canvas.height
+  canvas.width = oldWidth * ratio
+  canvas.height = oldHeight * ratio
+  canvas.style.width = oldWidth + 'px'
+  canvas.style.height = oldHeight + 'px'
+
+  # now scale the context to counter
+  # the fact that we've manually scaled
+  # our canvas element
+  context.scale(ratio, ratio)
+
+
 ################################################################################
-# main init function
+# Main GUI initialization function
 
 initGUI = ->
   sketch = new Drawing()
   canvas = $("#sketch")
+  pixelFix(canvas[0])
 
   #canvas.hide()
   canvas.width = CANVAS_WIDTH
@@ -248,8 +322,11 @@ initGUI = ->
   ctx.lineWidth = 0.5
   ctx.fillStyle = "rgb(255, 255, 255)"
   #ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  #ctx.lineJoin="round"
+  #ctx.lineCap="round"
 
   gridcanvas = $("#gridcanvas")
+  pixelFix(gridcanvas[0])
   gridcanvas.width = CANVAS_WIDTH
   gridcanvas.height = CANVAS_HEIGHT
   gridctx = gridcanvas[0].getContext("2d")
@@ -264,7 +341,7 @@ initGUI = ->
   $('#grid-container').hide()
   gridDraw()
 
-  # sigh, the wacom plugins are so buggy.
+  #sigh, the wacom plugins are so buggy.
   #wacom = document.embeds["wacom-plugin"]
   #wacom = document.getElementById('wtPlugin').penAPI
 
@@ -329,10 +406,19 @@ initGUI = ->
   linewidthui_ctx=linewidthui[0].getContext("2d")
   linewidthui_ctx.beginPath()
   linewidthui_ctx.moveTo(0,0)
-  linewidthui_ctx.lineTo(0,20)
+  linewidthui_ctx.lineTo(0,10)
+  linewidthui_ctx.lineTo(200,10)
   linewidthui_ctx.lineTo(200,0)
+  linewidthui_ctx.closePath()
+  linewidthui_ctx.fillStyle="#fff"
+  linewidthui_ctx.fill()
+  linewidthui_ctx.beginPath()
+  linewidthui_ctx.moveTo(0,0)
+  linewidthui_ctx.lineTo(0,10)
+  linewidthui_ctx.lineTo(200,5)
   linewidthui_ctx.lineTo(0,0)
   linewidthui_ctx.closePath()
+  linewidthui_ctx.fillStyle="#000"
   linewidthui_ctx.fill()
   linewidthui.mousedown(changeLineWidth)
 
@@ -350,8 +436,48 @@ initGUI = ->
   # show grid
   $('#showgrid').click(toggleGrid)
 
-
+  console.log window.devicePixelRatio, ctx.webkitBackingStorePixelRatio
   # END UI INIT ----------------------------------------------------------------------
+
+  $('input[name="gridspacing"]').change( ()->
+    uiState.gridspacing=Number($(this).val())
+    #console.log $(this).val()
+    updateTiling()
+    gridDraw()
+    $(this).blur()
+    )
+  $('input[name="xpos"]').change( ()->
+    uiState.gridX0=Number($(this).val())
+    updateTiling()
+    gridDraw()
+    $(this).blur()
+    )
+  $('input[name="ypos"]').change( ()->
+    uiState.gridY0=Number($(this).val())
+    updateTiling()
+    gridDraw()
+    $(this).blur()
+    )
+  $("input[name='linecapround']").click( ()->
+    val=$(this).val()
+    if uiState.linecapround
+      ctx.lineCap="butt"
+      $(this).prop('checked', false)
+      uiState.linecapround = false
+    else
+      ctx.lineCap="round"
+      $(this).prop('checked', true)
+      uiState.linecapround = true
+    console.log "foo"
+  )
+
+  updateGUI()
+
+updateGUI = () ->
+  $('input[name="xpos"]').val(uiState.gridX0)
+  $('input[name="ypos"]').val(uiState.gridY0)
+  $('input[name="gridspacing"]').val(uiState.gridspacing)
+  $('input[name="gridrotation"]').val(uiState.gridrotation)
 
 toggleGrid = () ->
   if uiState.showgrid
@@ -533,10 +659,12 @@ onGridMouseMove = (e) ->
     newR = sqrt(deltaX*deltaX+deltaY*deltaY)
     newPhi = coordsToAngle(deltaX,deltaY)
     uiState.gridspacing = newR-origR + uiState._gridspacing
-    uiState.gridrotation = -1*(newPhi-origPhi) + uiState._gridrotation
+    #uiState.gridrotation = -1*(newPhi-origPhi) + uiState._gridrotation
     #console.log deltaR, -1*(newPhi-origPhi)
     updateLattice()
     gridDraw()
+  updateGUI()
+
 
 onGridMouseUp = (e) ->
   e.preventDefault()

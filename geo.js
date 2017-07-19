@@ -13,15 +13,14 @@
 //
 //--------------------------------------------------------------------------------------------------
 
-//const root = typeof exports !== 'undefined' && exports !== null ? exports : this;
 
 // import core math to local namespace
 //--------------------------------------------------------------------------------------------------
+
 const { min, max, abs, sqrt, floor, round, sin, cos, tan, acos, asin, atan, pow, PI } = Math;
-const sign = 
+const sign = // sign func -> -1, 1
     function(x) { if (x < 0) { return -1; } else { return 1; } };
-//linear map of i-range onto o-range
-const map = 
+const map =  // linear map of i-range onto o-range
     (value, istart, istop, ostart, ostop) => 
     ostart + (((ostop - ostart) * (value - istart)) / (istop - istart));
 
@@ -282,10 +281,10 @@ const affinesetproduct =
     (Afset1, Afset2) => setProduct(Afset1, Afset2, (x, y) => x.multiply(y));
 
 const transformAffineSet = function(transformAf, Afset) {
-  //_.map(Afset, (x) -> (transformAf.multiply(x)).multiply(transformAf.inverse()))
-  const newAfset=[];
-  const invtransformAf=transformAf.inverse();
-  for (let Af of Afset) {
+  // similarity transform A -> U A U^-1
+  const newAfset = [];
+  const invtransformAf = transformAf.inverse();
+  for (let Af of Afset) { 
     newAfset.push(transformAf.multiply(Af).multiply(invtransformAf));
   }
   return newAfset;
@@ -423,6 +422,7 @@ const multiRosette3 = function(n1, n2, n3, a, d, skew, x, y) {
 
 // Generate Lattice
 //--------------------------------------------------------------------------------------------------
+
 const generateLattice = function(spec, nx, ny, d, phi, x, y) {
     const transset = [];
     const { vec0 } = spec;
@@ -445,6 +445,7 @@ const generateLattice = function(spec, nx, ny, d, phi, x, y) {
 
 // Master Routine for making Wallpaper Group Sets
 //--------------------------------------------------------------------------------------------------
+
 const generateTiling = function(spec, nx, ny, d, phi, x, y) {
   let rotset = [];
   let refset = [];
@@ -471,8 +472,7 @@ const generateTiling = function(spec, nx, ny, d, phi, x, y) {
     if (spec.closeref && (spec.closeref === true)) { refset = findclosure(refset); }
   }
 
-  // unsightly HACK for p4g: merge rotation and reflection
-  // there should be a better way...
+  // HACK: for p4g: merge rotation and reflection ...there should be a better way
   if (spec.refrot && (spec.refrot === true)) {
     Afset = uniqueaffineset(affinesetproduct(rotset, refset).concat(rotset));
   } else {
@@ -492,15 +492,17 @@ const generateTiling = function(spec, nx, ny, d, phi, x, y) {
     }
   }
 
-  // cartesian product of compositions
+  // Cartesian product of compositions
   const wholeset = affinesetproduct(transset, Afset);
 
-  // global rotation
+  // Global rotation
   const globalRot = RotationAbout(phi, 0, 0);
-  //affinesetproduct([globalRot], wholeset)
   return transformAffineSet(globalRot, wholeset);
 };
 
+
+// Wallpaper Symmetry Specification
+//--------------------------------------------------------------------------------------------------
 
 const planarSymmetries = {
   squaregrid: {
@@ -664,26 +666,3 @@ const planarSymmetries = {
     vec1: [ sqrt(3), 0.0]
   }
 };
-
-
-// Hack for now:
-// Export usable pieces to global namespace
-/*
-root.rotateRosette = rotateRosette;
-root.reflectRosette = reflectRosette;
-root.RosetteGroup = RosetteGroup;
-//root.multiRosette = multiRosette
-//root.multiRosette2 = multiRosette2
-//root.multiRosette3 = multiRosette3
-root.generateLattice = generateLattice;
-root.generateTiling = generateTiling;
-root.planarSymmetries = planarSymmetries;
-root.TranslationTransform = TranslationTransform;
-root.IdentityTransform = IdentityTransform;
-root.GlideTransform = GlideTransform;
-root.ReflectionTransform = ReflectionTransform;
-root.RotationTransform = RotationTransform;
-root.ScalingTransform = ScalingTransform;
-root.RotationAbout = RotationAbout;
-root.affinesetproduct = affinesetproduct;
-*/

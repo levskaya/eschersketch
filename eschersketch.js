@@ -428,20 +428,13 @@ const initGUI = function() {
   $('#clearscreen').click(clearScreen);
 
   // Save Image Button
-  //hack, keep save button off safari, where it crashes
-  if ((window.navigator.userAgent.indexOf('Safari') === -1) ||
-     (window.navigator.userAgent.indexOf('Chrome') !== -1)) {
-    $('#saveimage').click(saveImage);
-  } else {
-    $('#saveimage').hide();
-  }
+  $('#saveimage').click(saveImage);
 
   // show grid
   $('#showgrid').click(toggleGrid);
 
   $('input[name="gridspacing"]').change( function(){
     uiState.gridspacing=Number($(this).val());
-    //console.log $(this).val()
     updateTiling();
     gridDraw();
     $(this).blur();
@@ -502,12 +495,7 @@ var toggleGrid = function() {
 };
 
 var saveImage = function() {
-  if ((window.navigator.userAgent.indexOf('Safari') === -1) ||
-     (window.navigator.userAgent.indexOf('Chrome') !== -1)) {
     canvas[0].toBlob(blob => saveAs(blob, "eschersketch.png"));
-  } else {
-    alert("Saving images clientside will crash some recent versions of Safari. Sorry!");
-  }
 };
 
 var clearScreen = () =>

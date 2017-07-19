@@ -13,39 +13,14 @@
 //
 // Main UI
 //
-// Copyright (c) 2013 Anselm Levskaya (http://anselmlevskaya.com)
+// Copyright (c) 2017 Anselm Levskaya (http://anselmlevskaya.com)
 // Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
 // license.
 //
 //###############################################################################
 
-const root = typeof exports !== 'undefined' && exports !== null ? exports : this;
-
-//###############################################################################
-// Math
-// we're not barbarians, import core math to local namespace
-const { min } = Math;
-const { max } = Math;
-const { abs } = Math;
-const { sqrt } = Math;
-const { floor } = Math;
-const { round } = Math;
-const { sin } = Math;
-const { cos } = Math;
-const { tan } = Math;
-const { acos } = Math;
-const { asin } = Math;
-const { atan } = Math;
-const { pow } = Math;
-const { PI } = Math;
-const sign = function(x) { if (x < 0) { return -1; } else { return 1; } };
-
-//linear map of i-range onto o-range
-const map = (value, istart, istop, ostart, ostop) => ostart + (((ostop - ostart) * (value - istart)) / (istop - istart));
-
 //###############################################################################
 // Global State Variables
-
 const CANVAS_WIDTH = 1600;
 const CANVAS_HEIGHT = 1200;
 let DRAW_interval = 0;

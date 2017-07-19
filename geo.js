@@ -14,7 +14,7 @@
 //
 // Geometry Functions and Routines
 //
-// Copyright (c) 2011 Anselm Levskaya (http://anselmlevskaya.com)
+// Copyright (c) 2017 Anselm Levskaya (http://anselmlevskaya.com)
 // Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php) license.
 //
 // Points
@@ -27,23 +27,13 @@ const root = typeof exports !== 'undefined' && exports !== null ? exports : this
 
 //##################################################################################################
 // import core math to local namespace
-
-const { min } = Math;
-const { max } = Math;
-const { abs } = Math;
-const { sqrt } = Math;
-const { floor } = Math;
-const { round } = Math;
-const { sin } = Math;
-const { cos } = Math;
-const { tan } = Math;
-const { acos } = Math;
-const { asin } = Math;
-const { atan } = Math;
-const { pow } = Math;
-const { PI } = Math;
-const sign = function(x) { if (x < 0) { return -1; } else { return 1; } };
-
+const { min, max, abs, sqrt, floor, round, sin, cos, tan, acos, asin, atan, pow, PI } = Math;
+const sign = 
+    function(x) { if (x < 0) { return -1; } else { return 1; } };
+//linear map of i-range onto o-range
+const map = 
+    (value, istart, istop, ostart, ostop) => 
+    ostart + (((ostop - ostart) * (value - istart)) / (istop - istart));
 
 //##################################################################################################
 // 2d Point Class
@@ -258,26 +248,34 @@ class AffineTransform {
 //##################################################################################################
 // Some Specific Affine Transforms that are generally considered useful
 
-const IdentityTransform = () => new AffineTransform(1, 0, 0, 1, 0, 0);
+const IdentityTransform = 
+    () => new AffineTransform(1, 0, 0, 1, 0, 0);
 
 const ScalingTransform = function(scale, scaley) {
   scaley = scaley || scale;
   return new AffineTransform(scale, 0, 0, scaley, 0, 0);
 };
 
-const RotationTransform = angle => new AffineTransform(Math.cos(angle), Math.sin(angle), -1 * Math.sin(angle), Math.cos(angle), 0, 0);
+const RotationTransform = 
+    angle => new AffineTransform(Math.cos(angle), Math.sin(angle), -1 * Math.sin(angle), Math.cos(angle), 0, 0);
 
-const TranslationTransform = (dx, dy) => new AffineTransform(1, 0, 0, 1, dx, dy);
+const TranslationTransform = 
+    (dx, dy) => new AffineTransform(1, 0, 0, 1, dx, dy);
 
-const ReflectionTransform = angle => new AffineTransform(Math.cos(2 * angle), Math.sin(2 * angle), Math.sin(2 * angle), -1 * Math.cos(2 * angle), 0, 0);
+const ReflectionTransform = 
+    angle => new AffineTransform(Math.cos(2 * angle), Math.sin(2 * angle), Math.sin(2 * angle), -1 * Math.cos(2 * angle), 0, 0);
 
-const ScalingAbout = (scale, px, py) => TranslationTransform(px, py).multiply(ScalingTransform(scale)).multiply(TranslationTransform(-px, -py));
+const ScalingAbout = 
+    (scale, px, py) => TranslationTransform(px, py).multiply(ScalingTransform(scale)).multiply(TranslationTransform(-px, -py));
 
-const RotationAbout = (angle, px, py) => TranslationTransform(px, py).multiply(RotationTransform(angle)).multiply(TranslationTransform(-px, -py));
+const RotationAbout = 
+    (angle, px, py) => TranslationTransform(px, py).multiply(RotationTransform(angle)).multiply(TranslationTransform(-px, -py));
 
-const ReflectionAbout = (angle, px, py) => TranslationTransform(px, py).multiply(ReflectionTransform(angle)).multiply(TranslationTransform(-px, -py));
+const ReflectionAbout = 
+    (angle, px, py) => TranslationTransform(px, py).multiply(ReflectionTransform(angle)).multiply(TranslationTransform(-px, -py));
 
-const GlideTransform = (angle, distance, px, py) => ReflectionAbout(angle, px, py).multiply(TranslationTransform(distance * cos(angle), distance * sin(angle)));
+const GlideTransform = 
+    (angle, distance, px, py) => ReflectionAbout(angle, px, py).multiply(TranslationTransform(distance * cos(angle), distance * sin(angle)));
 
 
 //##################################################################################################

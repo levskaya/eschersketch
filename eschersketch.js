@@ -1,13 +1,4 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * DS208: Avoid top-level this
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-//###############################################################################
+//--------------------------------------------------------------------------------------------------
 //
 // Eschersketch - A drawing program for exploring symmetrical designs
 //
@@ -17,57 +8,20 @@
 // Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
 // license.
 //
-//###############################################################################
+//--------------------------------------------------------------------------------------------------
 
-//###############################################################################
-// Global State Variables
-const CANVAS_WIDTH = 1600;
+
+// Globals
+//--------------------------------------------------------------------------------------------------
+
+// Constants
+const CANVAS_WIDTH  = 1600;
 const CANVAS_HEIGHT = 1200;
-let DRAW_interval = 0;
-const MIN_linewidth = .01;
-const MAX_linewidth = 4;
+const MIN_LINEWIDTH = .01;
+const MAX_LINEWIDTH = 4;
 
-//wacom = undefined #wacom pen adaptor device
-
-// Important State Variables
-const uiState = {
-  opacity: 1.0,
-  red: 0,
-  green: 0,
-  blue: 0,
-  linewidth: 1.0,
-  newline: true,  // bool for determining to start a new line
-  // variables for panning the canvas:
-  canvasActive: false,
-  canvasPanning: false,
-  canvasCursorM:false,
-  canvasXonPan: 0,
-  canvasYonPan: 0,
-  mouseXonPan: 0,
-  mouseYonPan: 0,
-  // planar symmetry parameters:
-  symmetryclass: "p1",
-  gridNx: 37,
-  gridNy: 31,
-  gridX0: 800,
-  gridY0: 400,
-  gridspacing: 100,
-  gridrotation: 0,
-  showgrid: false,
-  symmetry: "p4m",
-  //_gridspacing:0
-  //_gridrotation:0
-  linecapround:false
-};
-
-// Records state of keys: false is up, true is down
-const keyState = {
-  space: false,
-  shift: false,
-  ctrl: false
-};
-
-// Globals to be initialized
+// Uninitialized Variables
+//let wacom = 0; // wacom pen adaptor device
 let sketch = {};
 let canvas = {};
 let ctx = {};
@@ -78,15 +32,56 @@ let lattice = {};
 //placementui = {}
 //rotscaleui = {}
 
-//###############################################################################
+
+// Important State Variables
+//--------------------------------------------------------------------------------------------------
+const uiState = {
+  opacity: 1.0,
+  red: 0,
+  green: 0,
+  blue: 0,
+  linewidth: 1.0,
+  newline: true,  // bool for determining to start a new line
+  // variables for panning the canvas:
+  canvasActive: false,
+  canvasPanning: false,
+  canvasCursorM: false,
+  canvasXonPan: 0,
+  canvasYonPan: 0,
+  mouseXonPan: 0,
+  mouseYonPan: 0,
+  drawInterval: 0,
+  // planar symmetry parameters:
+  gridNx: 37,
+  gridNy: 31,
+  gridX0: 800,
+  gridY0: 400,
+  gridspacing: 100,
+  gridrotation: 0,
+  showgrid: false,
+  symmetry: "p4m",
+  //_gridspacing: 0, //for grid rotation, not used right now
+  //_gridrotation: 0, //for grid rotation, not used right now
+  linecapround: false
+};
+
+// Records state of keys: false is up, true is down
+const keyState = {
+  space: false,
+  shift: false,
+  ctrl: false
+};
+
+
 // Initial Transform
+//--------------------------------------------------------------------------------------------------
 
 const updateTiling = function() {
     affineset = generateTiling(planarSymmetries[uiState.symmetry],
                               uiState.gridNx, uiState.gridNy,
                               uiState.gridspacing, uiState.gridrotation,
                               uiState.gridX0, uiState.gridY0);
-    return lattice = generateLattice(planarSymmetries[uiState.symmetry],
+    lattice = generateLattice(planarSymmetries[uiState.symmetry],
                               uiState.gridNx, uiState.gridNy,
                               uiState.gridspacing, uiState.gridrotation,
                               uiState.gridX0, uiState.gridY0);
@@ -102,9 +97,11 @@ const updateLattice = () =>
 // Build Initial Tiling Set
 updateTiling();
 
-//###############################################################################
+
 // Drawing Object
 //  just a cache of previously drawn points
+//--------------------------------------------------------------------------------------------------
+
 class Drawing {
   constructor() {
     this.pointCache = new Array();
@@ -113,26 +110,26 @@ class Drawing {
 
   addPoint(p) {
     this.pointCache.push(p);
-    return this.drawnP++;
+    this.drawnP++;
   }
 
   render() {
     const dp = this.drawnP;
     const pc = this.pointCache;
-    if (dp > 0) { return lastline(pc); }
+    if (dp > 0) { lastline(pc); }
+    //if (dp > 0) { lastline_quadratic(pc); }
+    //if (dp > 0) { circlepaint(pc); }
   }
-    //lastline_quadratic(pc) if dp > 0
-    //circlepaint(pc) if dp > 0
-
+ 
   dumpCache() {
-    return this.pointCache.length = 0;
+    this.pointCache.length = 0;
   }
 }
 
 
-//###############################################################################
 // Drawing Functions
 // these drawing functions should be assoc'd w. renderer, not point...
+//--------------------------------------------------------------------------------------------------
 
 // Strokes lines between last two points in set
 var lastline = function(pointSet) {
@@ -144,20 +141,18 @@ var lastline = function(pointSet) {
     //ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
     //ctx.strokeStyle = "rgba( 0,0,0,.5)"
 
-    return (() => {
-      const result = [];
-      for (let af of Array.from(affineset)) {
+    for (let af of affineset) {
         const Tp1 = af.on(p1.x, p1.y);
         const Tp2 = af.on(p2.x, p2.y);
         //the below line slows things down, state changes are costly in canvas
         //ctx.lineWidth = p1.linewidth
         //ctx.lineWidth = uiState.linewidth
-        result.push(ctx.line(Tp2[0], Tp2[1], Tp1[0], Tp1[1]));
-      }
-      return result;
-    })();
+        ctx.line(Tp2[0], Tp2[1], Tp1[0], Tp1[1]);
+    }
 
-  } else if (uiState.newline) { return uiState.newline = false; }
+  } else if (uiState.newline) { 
+      uiState.newline = false; 
+  }
 };
 
 // Strokes quadratic lines between last two points in set
@@ -170,44 +165,38 @@ const lastline_quadratic = function(pointSet) {
     //ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
     //ctx.strokeStyle = "rgba(0,0,0,.5)"
 
-    return (() => {
-      const result = [];
-      for (let af of Array.from(affineset)) {
-        const Tp1 = af.on(p1.x, p1.y);
-        const Tp2 = af.on(p2.x, p2.y);
-        //the below line slows things down, state changes are costly in canvas
-        //ctx.lineWidth = p1.linewidth
-        //ctx.lineWidth = uiState.linewidth
-        const xc = (Tp1[0] + Tp2[0]) / 2;
-        const yc = (Tp1[1] + Tp2[1]) / 2;
-        ctx.beginPath();
-        ctx.moveTo(Tp1[0], Tp1[1]);
-        ctx.quadraticCurveTo(xc, yc, Tp2[0], Tp2[1]);
-        //ctx.line Tp2[0], Tp2[1], Tp1[0], Tp1[1]
-        result.push(ctx.stroke());
-      }
-      return result;
-    })();
-
-  } else if (uiState.newline) { return uiState.newline = false; }
+    for (let af of affineset) {
+	const Tp1 = af.on(p1.x, p1.y);
+	const Tp2 = af.on(p2.x, p2.y);
+	//the below line slows things down, state changes are costly in canvas
+	//ctx.lineWidth = p1.linewidth
+	//ctx.lineWidth = uiState.linewidth
+	const xc = (Tp1[0] + Tp2[0]) / 2;
+	const yc = (Tp1[1] + Tp2[1]) / 2;
+	ctx.beginPath();
+	ctx.moveTo(Tp1[0], Tp1[1]);
+	ctx.quadraticCurveTo(xc, yc, Tp2[0], Tp2[1]);
+	//ctx.line Tp2[0], Tp2[1], Tp1[0], Tp1[1]
+	ctx.stroke();
+    }
+    
+  } else if (uiState.newline) { 
+      uiState.newline = false; 
+  }
 };
 
 // Draws circles at each point
 const circlepaint = function(pointSet) {
   const ps = pointSet.length;
   const p1 = pointSet[ps - 1];
-  return (() => {
-    const result = [];
-    for (let af of Array.from(affineset)) {
+  for (let af of affineset) {
       const Tp1 = af.on(p1.x, p1.y);
       //ctx.lineWidth = p1.linewidth
       ctx.beginPath();
       ctx.arc(Tp1[0], Tp1[1], uiState.linewidth, 0, 2*PI, false);
       ctx.fillStyle = `rgba(${uiState.red},${uiState.green},${uiState.blue},${uiState.opacity})`;
-      result.push(ctx.fill());
-    }
-    return result;
-  })();
+      ctx.fill();
+  }
 };
 
 // actually invokes drawing routine for events
@@ -217,7 +206,7 @@ const renderPoint = function(e) {
     y: e.clientY - canvas.offset().top
   });
     //linewidth: uiState.linewidth
-  return sketch.render();
+  sketch.render();
 };
 
 // simple canvas line method
@@ -225,7 +214,7 @@ const drawLine = function(x1, y1, x2, y2) {
   this.beginPath();
   this.moveTo(x1, y1);
   this.lineTo(x2, y2);
-  return this.stroke();
+  this.stroke();
 };
 
 const gridDraw = function() {
@@ -233,14 +222,14 @@ const gridDraw = function() {
   //gridctx.fillStyle = "rgb(100, 100, 100)"
   gridctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  const v0 = RotationTransform(uiState.gridrotation).onvec(planarSymmetries[uiState.symmetry]['vec0']);
-  const v1 = RotationTransform(uiState.gridrotation).onvec(planarSymmetries[uiState.symmetry]['vec1']);
+  const v0 = RotationTransform(uiState.gridrotation).onVec(planarSymmetries[uiState.symmetry]['vec0']);
+  const v1 = RotationTransform(uiState.gridrotation).onVec(planarSymmetries[uiState.symmetry]['vec1']);
 
   const p0 = [uiState.gridX0, uiState.gridY0];
   const p1 = [(uiState.gridspacing*v0[0])+uiState.gridX0, (uiState.gridspacing*v0[1])+uiState.gridY0];
   const p2 = [(uiState.gridspacing*v1[0])+uiState.gridX0, (uiState.gridspacing*v1[1])+uiState.gridY0];
   // Draw Lattice
-  for (let af of Array.from(lattice)) {
+  for (let af of lattice) {
     const Tp0 = af.on(p0[0],p0[1]);
     const Tp1 = af.on(p1[0],p1[1]);
     const Tp2 = af.on(p2[0],p2[1]);
@@ -261,7 +250,7 @@ const gridDraw = function() {
         (p1[1] + gridcanvas.offset().top)-(circR/2)];
 
   $('#center-ui').css({top:`${c0[1]}px`,left:`${c0[0]}px`,width:'20px',height:'20px'});
-  return $('#rotscale-ui').css({top:`${c1[1]}px`,left:`${c1[0]}px`,width:'20px',height:'20px'});
+  $('#rotscale-ui').css({top:`${c1[1]}px`,left:`${c1[0]}px`,width:'20px',height:'20px'});
 };
 
   //for p in [p0,p1,p2]
@@ -300,7 +289,7 @@ const pixelFix = function(canvas) {
     // now scale the context to counter
     // the fact that we've manually scaled
     // our canvas element
-    return context.scale(ratio, ratio);
+    context.scale(ratio, ratio);
   }
 };
 
@@ -320,12 +309,12 @@ const setCanvasPixelDensity = function(canvas, ratio) {
   // now scale the context to counter
   // the fact that we've manually scaled
   // our canvas element
-  return context.scale(ratio, ratio);
+  context.scale(ratio, ratio);
 };
 
 
-//###############################################################################
 // Main GUI initialization function
+//--------------------------------------------------------------------------------------------------
 
 const initGUI = function() {
   sketch = new Drawing();
@@ -395,11 +384,8 @@ const initGUI = function() {
     $(this).addClass('selected');
     updateTiling();
     gridDraw();
-
-    //console.log(uiState.gridNx,uiState.gridNy,
-    //            uiState.gridspacing,uiState.gridX0,uiState.gridY0)
     console.log("symmetry ", newsym, affineset.length);
-    return canvas.focus();
+    canvas.focus();
   });
 
   // highlight the initial startup symmetry button
@@ -409,10 +395,8 @@ const initGUI = function() {
   ColorPicker(
     $("#color-picker")[0],
     function(hex, hsv, rgb) {
-      console.log(hsv.h, hsv.s, hsv.v);
-      console.log(rgb.r, rgb.g, rgb.b);
-      setColor(rgb);
-      return ctx.strokeStyle = `rgba(${uiState.red},${uiState.green},${uiState.blue},${uiState.opacity})`;
+	setColor(rgb);
+	ctx.strokeStyle = `rgba(${uiState.red},${uiState.green},${uiState.blue},${uiState.opacity})`;
     });
 
   // Opacity Element
@@ -455,28 +439,28 @@ const initGUI = function() {
   // show grid
   $('#showgrid').click(toggleGrid);
 
-  console.log(window.devicePixelRatio, ctx.webkitBackingStorePixelRatio);
-  // END UI INIT ----------------------------------------------------------------------
-
   $('input[name="gridspacing"]').change( function(){
     uiState.gridspacing=Number($(this).val());
     //console.log $(this).val()
     updateTiling();
     gridDraw();
-    return $(this).blur();
+    $(this).blur();
     });
+
   $('input[name="xpos"]').change( function(){
     uiState.gridX0=Number($(this).val());
     updateTiling();
     gridDraw();
-    return $(this).blur();
+    $(this).blur();
     });
+
   $('input[name="ypos"]').change( function(){
     uiState.gridY0=Number($(this).val());
     updateTiling();
     gridDraw();
-    return $(this).blur();
+    $(this).blur();
     });
+
   $("input[name='linecapround']").click( function(){
     const val=$(this).val();
     if (uiState.linecapround) {
@@ -488,17 +472,21 @@ const initGUI = function() {
       $(this).prop('checked', true);
       uiState.linecapround = true;
     }
-    return console.log("foo");
+    console.log("foo");
   });
 
-  return updateGUI();
+  updateGUI();
 };
+
+
+// UI Helper Functions
+//--------------------------------------------------------------------------------------------------
 
 var updateGUI = function() {
   $('input[name="xpos"]').val(uiState.gridX0);
   $('input[name="ypos"]').val(uiState.gridY0);
   $('input[name="gridspacing"]').val(uiState.gridspacing);
-  return $('input[name="gridrotation"]').val(uiState.gridrotation);
+  $('input[name="gridrotation"]').val(uiState.gridrotation);
 };
 
 var toggleGrid = function() {
@@ -510,30 +498,27 @@ var toggleGrid = function() {
     gridcanvas.show();
     gridDraw();
   }
-  return uiState.showgrid = (!uiState.showgrid);
+  uiState.showgrid = (!uiState.showgrid);
 };
-  //console.log uiState.showgrid
 
 var saveImage = function() {
   if ((window.navigator.userAgent.indexOf('Safari') === -1) ||
      (window.navigator.userAgent.indexOf('Chrome') !== -1)) {
-    return canvas[0].toBlob(blob => saveAs(blob, "eschersketch.png"));
+    canvas[0].toBlob(blob => saveAs(blob, "eschersketch.png"));
   } else {
-    return alert("Saving images clientside will crash some recent versions of Safari. Sorry!");
+    alert("Saving images clientside will crash some recent versions of Safari. Sorry!");
   }
 };
 
 var clearScreen = () =>
-  //ctx.fillStyle = "rgb(255, 255, 255)"
-  ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-;
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
 var setColor = function(rgb) {
-  uiState.red = rgb.r;
-  uiState.green = rgb.g;
-  return uiState.blue = rgb.b;
+    uiState.red = rgb.r;
+    uiState.green = rgb.g;
+    uiState.blue = rgb.b;
+    //console.log("RGB: ", uiState.red, uiState.green, uiState.blue);
 };
-  //console.log "RGB: ", uiState.red, uiState.green, uiState.blue
 
 var changeOpacity = function(e) {
   const { left }=$(this).offset();
@@ -542,25 +527,27 @@ var changeOpacity = function(e) {
   const y = e.clientY - top;
   const h = $(this).height();
   uiState.opacity = map(y,0,h,1.0,0.0);
-  return ctx.strokeStyle = `rgba(${uiState.red},${uiState.green},${uiState.blue},${uiState.opacity})`;
+  ctx.strokeStyle = `rgba(${uiState.red},${uiState.green},${uiState.blue},${uiState.opacity})`;
+  //console.log("changeopacity ", x, y, h, uiState.opacity);
 };
-  //console.log "changeopacity ", x, y, h, uiState.opacity
 
 var changeLineWidth = function(e) {
   const x = e.clientX - $(this).offset().left;
   const y = e.clientY - $(this).offset().top;
   const h = $(this).height();
   const w = $(this).width();
-  uiState.linewidth = map(x,0,w,MAX_linewidth,MIN_linewidth);
-  return ctx.lineWidth = uiState.linewidth;
+  uiState.linewidth = map(x,0,w,MAX_LINEWIDTH,MIN_LINEWIDTH);
+  ctx.lineWidth = uiState.linewidth;
+  //console.log("changelinewidth ", x, y, h, uiState.linewidth);
 };
-  //console.log "changelinewidth ", x, y, h, uiState.linewidth
 
 // Export init function for invocation
-window.initGUI=initGUI;
+window.initGUI = initGUI;
+
 
 // Mouse Events
-// ------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
+
 var onCanvasMousedown = function(e) {
   e.preventDefault();
   if (keyState.space) {
@@ -577,13 +564,13 @@ var onCanvasMousedown = function(e) {
   //  return
   uiState.newline = true;
   renderPoint(e);
-  return uiState.canvasActive = true;
+  uiState.canvasActive = true;
 };
 
 var onDocumentMouseup = function(e) {
   uiState.canvasPanning = false;
   uiState.canvasActive = false;
-  return uiState.newline = false;
+  uiState.newline = false;
 };
 
 var onDocumentMousemove = function(e) {
@@ -603,56 +590,18 @@ var onDocumentMousemove = function(e) {
 
   if (uiState.canvasActive) {
     //renderPoint e
-    if (DRAW_interval <= 0) {
+    if (uiState.drawInterval <= 0) {
       //if wacom
       //  pressure = wacom.pressure
-      //  uiState.linewidth = map(wacom.pressure, 0, 1, MAX_linewidth, MIN_linewidth)
+      //  uiState.linewidth = map(wacom.pressure, 0, 1, MAX_LINEWIDTH, MIN_LINEWIDTH)
       //  renderPoint e
       //else
       renderPoint(e);
-      DRAW_interval = 1;
+      uiState.drawInterval = 1;
     }
-    return DRAW_interval--;
+    uiState.drawInterval--;
   }
 };
-
-// Key Handling
-var onDocumentKeydown = function(e) {
-  switch (e.keyCode) {
-    case 32: //SPACE BAR
-      return keyState.space = true;
-    case 16: //SHIFT
-      return keyState.shift = true;
-    case 17: //CTRL
-      return keyState.ctrl = true;
-    case 67: // C
-      return keyState.c = true;
-    //when 83 #S
-    //  saveDrawing()  if keyState.ctrl and keyState.shift
-    case 8: case 46:  //backspace, delete
-      if (keyState.ctrl) {
-        sketch.dumpCache();
-        return sketch.drawnP = 0;
-      }
-      break;
-  }
-};
-
-var onDocumentKeyup = function(e) {
-  switch (e.keyCode) {
-    case 32: //SPACE BAR
-      return keyState.space = false;
-    case 16: //SHIFT
-      return keyState.shift = false;
-    case 17: //CTRL
-      return keyState.ctrl = false;
-    case 67: // C
-      return keyState.c = false;
-    case 71: // C
-      return toggleGrid();
-  }
-};
-
 
 var onCenterMousedown = function(e) {
   e.preventDefault();
@@ -660,7 +609,7 @@ var onCenterMousedown = function(e) {
   uiState.mouseXonPan = e.clientX;
   uiState.mouseYonPan = e.clientY;
   uiState.canvasXonPan = uiState.gridX0;
-  return uiState.canvasYonPan = uiState.gridY0;
+  uiState.canvasYonPan = uiState.gridY0;
 };
 
 var onRotScaleMousedown = function(e) {
@@ -669,7 +618,7 @@ var onRotScaleMousedown = function(e) {
   uiState.mouseXonPan = e.clientX;
   uiState.mouseYonPan = e.clientY;
   uiState._gridspacing = uiState.gridspacing;
-  return uiState._gridrotation = uiState.gridrotation;
+  uiState._gridrotation = uiState.gridrotation;
 };
 
 const coordsToAngle = function(x,y) {
@@ -699,7 +648,7 @@ var onGridMouseMove = function(e) {
   }
     //uiState.recentering = true
   if (uiState.rotscaling) {
-    const v0 = RotationTransform(uiState._gridrotation).onvec(planarSymmetries[uiState.symmetry].vec0);
+    const v0 = RotationTransform(uiState._gridrotation).onVec(planarSymmetries[uiState.symmetry].vec0);
     const origPhi = coordsToAngle(uiState._gridspacing*v0[0],uiState._gridspacing*v0[1]);
     const origR = uiState._gridspacing*sqrt((v0[0]*v0[0])+(v0[1]*v0[1]));
     //origY =
@@ -714,14 +663,52 @@ var onGridMouseMove = function(e) {
     updateLattice();
     gridDraw();
   }
-  return updateGUI();
+  updateGUI();
 };
-
 
 var onGridMouseUp = function(e) {
   e.preventDefault();
   uiState.recentering = false;
   uiState.rotscaling = false;
-  return updateTiling();
+  updateTiling();
 };
 
+
+// Key Handling
+// ------------------------------------------------------------------------------
+
+var onDocumentKeydown = function(e) {
+  switch (e.keyCode) {
+    case 32: //SPACE BAR
+      keyState.space = true;
+    case 16: //SHIFT
+      keyState.shift = true;
+    case 17: //CTRL
+      keyState.ctrl = true;
+    case 67: // C
+      keyState.c = true;
+    //when 83 #S
+    //  saveDrawing()  if keyState.ctrl and keyState.shift
+    case 8: case 46:  //backspace, delete
+      if (keyState.ctrl) {
+        sketch.dumpCache();
+        sketch.drawnP = 0;
+      }
+      break;
+  }
+};
+
+var onDocumentKeyup = function(e) {
+  switch (e.keyCode) {
+    case 32: //SPACE BAR
+      keyState.space = false;
+    case 16: //SHIFT
+      keyState.shift = false;
+    case 17: //CTRL
+      keyState.ctrl = false;
+    case 67: // C
+      keyState.c = false;
+    case 71: // C
+      toggleGrid();
+  }
+};

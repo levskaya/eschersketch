@@ -1,14 +1,4 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS202: Simplify dynamic range loops
- * DS206: Consider reworking classes to avoid initClass
- * DS207: Consider shorter variations of null checks
- * DS208: Avoid top-level this
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-//##################################################################################################
+//--------------------------------------------------------------------------------------------------
 //
 // Eschersketch - A drawing program for exploring symmetrical designs
 //
@@ -21,12 +11,12 @@
 // Matrix Transforms
 // Affine Transforms
 //
-//##################################################################################################
+//--------------------------------------------------------------------------------------------------
 
-const root = typeof exports !== 'undefined' && exports !== null ? exports : this;
+//const root = typeof exports !== 'undefined' && exports !== null ? exports : this;
 
-//##################################################################################################
 // import core math to local namespace
+//--------------------------------------------------------------------------------------------------
 const { min, max, abs, sqrt, floor, round, sin, cos, tan, acos, asin, atan, pow, PI } = Math;
 const sign = 
     function(x) { if (x < 0) { return -1; } else { return 1; } };
@@ -35,8 +25,9 @@ const map =
     (value, istart, istop, ostart, ostop) => 
     ostart + (((ostop - ostart) * (value - istart)) / (istop - istart));
 
-//##################################################################################################
+
 // 2d Point Class
+//--------------------------------------------------------------------------------------------------
 
 class Point2d {
   constructor(x, y) {
@@ -44,11 +35,11 @@ class Point2d {
     this.y = y || 0;
   }
 
-  fromarray(ar) {
+  fromArray(ar) {
     return new Point2(ar[0], ar[1]);
   }
 
-  toarray() {
+  toArray() {
     return [ x, y ];
   }
 
@@ -99,7 +90,7 @@ class Point2d {
     return sqrt((this.x * this.x) + (this.y * this.y));
   }
 
-  anglewith(pIn) {
+  angleWith(pIn) {
     const thisnorm = sqrt((this.x * this.x) + (this.y * this.y));
     const pInnorm = sqrt((pIn.x * pIn.x) + (pIn.y * pIn.y));
     return acos(((this.x * pIn.x) + (this.y * pIn.y)) / thisnorm / pInnorm);
@@ -110,24 +101,24 @@ class Point2d {
   }
 }
 
+const radialPoint = 
+    (r, theta) => new Point2d(r * cos(theta), r * sin(theta));
 
-const radialpoint = (r, theta) => new Point2d(r * cos(theta), r * sin(theta));
 
-//##################################################################################################
+
 // 2D Linear Transform Class
+//--------------------------------------------------------------------------------------------------
 
-var Matrix2 = (function() {
-  let fromarray = undefined;
-  Matrix2 = class Matrix2 {
-    static initClass() {
-  
-      fromarray = ar => new Matrix2(ar[0][0], ar[0][1], ar[1][0], ar[1][1]);
-    }
+class Matrix2 {
     constructor(a, b, c, d) {
       this.a = a || 1;
       this.b = b || 0;
       this.c = c || 0;
       this.d = d || 1;
+    }
+
+    fromArray(ar) {
+      return new Matrix2(ar[0][0], ar[0][1], ar[1][0], ar[1][1]);
     }
 
     add(matIn) {
@@ -157,13 +148,11 @@ var Matrix2 = (function() {
       matOut.d = this.a / det;
       return matOut;
     }
-  };
-  Matrix2.initClass();
-  return Matrix2;
-})();
+}
 
-//##################################################################################################
+
 // 2D Affine Transform Class
+//--------------------------------------------------------------------------------------------------
 
 class AffineTransform {
   constructor(a, b, c, d, x, y) {
@@ -217,18 +206,18 @@ class AffineTransform {
     return [ nx, ny ];
   }
 
-  onvec(x) {
+  onVec(x) {
     const nx = (this.a * x[0]) + (this.b * x[1]) + this.x;
     const ny = (this.c * x[0]) + (this.d * x[1]) + this.y;
     return [ nx, ny ];
   }
 
-  tolist() {
+  toList() {
     return [ this.a, this.b, this.c, this.d, this.x, this.y ];
   }
 
-  // approx. comparison function
-  sameas(Afin, tol) {
+  // approximate comparison function
+  sameAs(Afin, tol) {
     tol = tol || 1e-8;
     let sum = 0;
     sum += abs(this.a - Afin.a);
@@ -245,8 +234,9 @@ class AffineTransform {
   }
 }
 
-//##################################################################################################
-// Some Specific Affine Transforms that are generally considered useful
+
+// Common Affine Transforms
+//--------------------------------------------------------------------------------------------------
 
 const IdentityTransform = 
     () => new AffineTransform(1, 0, 0, 1, 0, 0);
@@ -278,28 +268,30 @@ const GlideTransform =
     (angle, distance, px, py) => ReflectionAbout(angle, px, py).multiply(TranslationTransform(distance * cos(angle), distance * sin(angle)));
 
 
-//##################################################################################################
 // Functions for manipulating Sets of Affine Transforms
-const setproduct = function(X, Y, prodfunc) {
+//--------------------------------------------------------------------------------------------------
+
+const setProduct = function(X, Y, prodfunc) {
   prodfunc = prodfunc || ((x, y) => [ x, y ]);
   return _.reduce(X, ((memo, x) =>
     _.map(Y, y => prodfunc(x, y)).concat(memo)
   ), []);
 };
 
-const affinesetproduct = (Afset1, Afset2) => setproduct(Afset1, Afset2, (x, y) => x.multiply(y));
+const affinesetproduct = 
+    (Afset1, Afset2) => setProduct(Afset1, Afset2, (x, y) => x.multiply(y));
 
 const transformAffineSet = function(transformAf, Afset) {
   //_.map(Afset, (x) -> (transformAf.multiply(x)).multiply(transformAf.inverse()))
   const newAfset=[];
   const invtransformAf=transformAf.inverse();
-  for (let Af of Array.from(Afset)) {
+  for (let Af of Afset) {
     newAfset.push(transformAf.multiply(Af).multiply(invtransformAf));
   }
   return newAfset;
 };
 
-// generates unique subset of ar using equivalency function eqfunc
+// generates unique subset of array ar using equivalency function eqfunc
 const uniques = function(ar, eqfunc) {
   eqfunc = eqfunc || ((x, y) => x === y);
   let i = 0;
@@ -325,7 +317,8 @@ const uniques = function(ar, eqfunc) {
   return newar;
 };
 
-const uniqueaffineset = Afset => uniques(Afset, (x, y) => x.sameas(y));
+const uniqueaffineset = 
+    Afset => uniques(Afset, (x, y) => x.sameAs(y));
 
 const findclosure = function(Afset, recursion_limit) {
   let uniqueset;
@@ -348,22 +341,22 @@ const findclosure = function(Afset, recursion_limit) {
 // }
 
 
-//##################################################################################################
 // Affine Set Generators
+//--------------------------------------------------------------------------------------------------
 
 const makegrid = function(nx, ny, d) {
-  const Afs = [];
-  for (let i = 0, end = nx-1, asc = 0 <= end; asc ? i <= end : i >= end; asc ? i++ : i--) {
-    for (let j = 0, end1 = ny-1, asc1 = 0 <= end1; asc1 ? j <= end1 : j >= end1; asc1 ? j++ : j--) {
-      Afs.push(TranslationTransform(i * d, j * d));
+    const Afs = [];
+    for (var i = 0; i < nx; i++) {
+	for (var j = 0; j < ny; j++) {
+	    Afs.push(TranslationTransform(i * d, j * d));
+	}
     }
-  }
-  return Afs;
+    return Afs;
 };
 
 const rotateRosette = function(n, x, y) {
   const Afs = [];
-  for (let i = 0, end = n-1, asc = 0 <= end; asc ? i <= end : i >= end; asc ? i++ : i--) {
+  for (var i = 0; i < n; i++) {
     Afs.push(RotationAbout((i * 2*PI)/n, x, y));
   }
   return Afs;
@@ -374,7 +367,7 @@ const reflectRosette = function(n, x, y, offsetangle) {
   const Afs = [];
   Afs.push(IdentityTransform());
 
-  for (let i = 0, end = n-1, asc = 0 <= end; asc ? i <= end : i >= end; asc ? i++ : i--) {
+  for (var i = 0; i< n; i++) {
     Afs.push(RotationAbout(offsetangle, x, y).multiply(ReflectionAbout((i * PI) / n, x, y)));
   }
 
@@ -410,12 +403,12 @@ const multiRosette3 = function(n1, n2, n3, a, d, skew, x, y) {
 
   const Af1 = rotateRosette(n1, x, y);
   let afset = [];
-  for (let i = 0, end = n2-1, asc = 0 <= end; asc ? i <= end : i >= end; asc ? i++ : i--) { // rotation loop
-    for (let j = 1, end1 = n3-1, asc1 = 1 <= end1; asc1 ? j <= end1 : j >= end1; asc1 ? j++ : j--) { // scale loop
-      const afop = RotationAbout(j*PI*skew, x, y).multiply( //skew
-        TranslationTransform(j*d*cos((i*2*PI)/n2), j*d*sin((i*2*PI)/n2)).multiply(//translate
-          RotationAbout((i * 2 * PI) / n2, x, y).multiply(//rotate to maintain rot sym.
-            ScalingAbout(pow(a, j), x, y) )
+  for (var i = 0; i < n2; i++) { // rotation loop
+      for (let j = 1; j < n3; j++) {// scale loop
+	  const afop = RotationAbout(j*PI*skew, x, y).multiply( //skew
+          TranslationTransform(j*d*cos((i*2*PI)/n2), j*d*sin((i*2*PI)/n2)).multiply(//translate
+            RotationAbout((i * 2 * PI) / n2, x, y).multiply(//rotate to maintain rot sym.
+              ScalingAbout(pow(a, j), x, y) )
           )
       ); //scale
 
@@ -429,25 +422,29 @@ const multiRosette3 = function(n1, n2, n3, a, d, skew, x, y) {
 
 
 // Generate Lattice
+//--------------------------------------------------------------------------------------------------
 const generateLattice = function(spec, nx, ny, d, phi, x, y) {
-  const transset = [];
-  const { vec0 } = spec;
-  const { vec1 } = spec;
-  // Build set of translations
-  for (let start = -floor(nx/2), i = start, end = nx/2, asc = start <= end; asc ? i <= end : i >= end; asc ? i++ : i--) {
-    for (let start1 = -floor(ny/2), j = start1, end1 = ny/2, asc1 = start1 <= end1; asc1 ? j <= end1 : j >= end1; asc1 ? j++ : j--) {
-      transset.push(TranslationTransform(((i*vec0[0]) + (j*vec1[0]))*d, ((i*vec0[1]) + (j*vec1[1]))*d));
+    const transset = [];
+    const { vec0 } = spec;
+    const { vec1 } = spec;
+    // Build set of translations
+    for (var i = -floor(nx/2); i <= nx/2; i++) {
+	for (var j = -floor(ny/2); j <= ny/2; j++) {
+	    transset.push(TranslationTransform(((i*vec0[0]) + (j*vec1[0]))*d, 
+					       ((i*vec0[1]) + (j*vec1[1]))*d));
+	}
     }
-  }
-  // return lattice
-  //transset
-  // global rotation
-  const globalRot = RotationAbout(phi, 0, 0);
-  //affinesetproduct([globalRot], transset)
-  return transformAffineSet(globalRot, transset);
+    // return lattice
+    //transset
+    // global rotation
+    const globalRot = RotationAbout(phi, 0, 0);
+    //affinesetproduct([globalRot], transset)
+    return transformAffineSet(globalRot, transset);
 };
 
+
 // Master Routine for making Wallpaper Group Sets
+//--------------------------------------------------------------------------------------------------
 const generateTiling = function(spec, nx, ny, d, phi, x, y) {
   let rotset = [];
   let refset = [];
@@ -489,8 +486,8 @@ const generateTiling = function(spec, nx, ny, d, phi, x, y) {
   Afset = Afset.concat(glideset);
 
   // Build set of translations
-  for (let start = -floor(nx/2), i = start, end = nx/2, asc = start <= end; asc ? i <= end : i >= end; asc ? i++ : i--) {
-    for (let start1 = -floor(ny/2), j = start1, end1 = ny/2, asc1 = start1 <= end1; asc1 ? j <= end1 : j >= end1; asc1 ? j++ : j--) {
+  for (var i = -floor(nx/2); i <= nx/2; i++){ 
+      for (var j = -floor(ny/2); j <= ny/2; j++) {
       transset.push(TranslationTransform(((i*vec0[0]) + (j*vec1[0]))*d, ((i*vec0[1]) + (j*vec1[1]))*d));
     }
   }
@@ -604,7 +601,6 @@ const planarSymmetries = {
     vec1: [ -sin(PI/4), cos(PI/4) ]
   },
 
-
   // Square-ish Groups
   p4: {
     rots: [ [ PI/2, 0, 0 ], [ PI, 0, 0 ], [ (3 * PI)/2, 0, 0 ] ],
@@ -672,6 +668,7 @@ const planarSymmetries = {
 
 // Hack for now:
 // Export usable pieces to global namespace
+/*
 root.rotateRosette = rotateRosette;
 root.reflectRosette = reflectRosette;
 root.RosetteGroup = RosetteGroup;
@@ -689,3 +686,4 @@ root.RotationTransform = RotationTransform;
 root.ScalingTransform = ScalingTransform;
 root.RotationAbout = RotationAbout;
 root.affinesetproduct = affinesetproduct;
+*/

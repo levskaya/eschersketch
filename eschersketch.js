@@ -17,11 +17,10 @@
 // Constants
 const CANVAS_WIDTH  = 1600;
 const CANVAS_HEIGHT = 1200;
-const MIN_LINEWIDTH = .01;
+const MIN_LINEWIDTH = 0.01;
 const MAX_LINEWIDTH = 4;
 
 // Uninitialized Variables
-//let wacom = 0; // wacom pen adaptor device
 let sketch = {};
 let canvas = {};
 let ctx = {};
@@ -348,9 +347,6 @@ const initGUI = function() {
   $('#grid-container').hide();
   gridDraw();
 
-  //sigh, the wacom plugins are so buggy.
-  //wacom = document.embeds["wacom-plugin"]
-  //wacom = document.getElementById('wtPlugin').penAPI
 
   canvas.mousedown(onCanvasMousedown);
   canvas.mouseup(onDocumentMouseup);
@@ -546,10 +542,11 @@ var onCanvasMousedown = function(e) {
     uiState.canvasYonPan = canvas.offset().top;
     return;
   }
-  //else if keyState.c
-  //  uiState.gridX0 = e.clientX - canvas.offset().left
-  //  uiState.gridY0 = e.clientY - canvas.offset().top
-  //  return
+  //else if (keyState.c) {
+  //  uiState.gridX0 = e.clientX - canvas.offset().left;
+  //  uiState.gridY0 = e.clientY - canvas.offset().top;
+  //  return;
+  //}
   uiState.newline = true;
   renderPoint(e);
   uiState.canvasActive = true;
@@ -577,13 +574,10 @@ var onDocumentMousemove = function(e) {
   }
 
   if (uiState.canvasActive) {
-    //renderPoint e
     if (uiState.drawInterval <= 0) {
-      //if wacom
-      //  pressure = wacom.pressure
-      //  uiState.linewidth = map(wacom.pressure, 0, 1, MAX_LINEWIDTH, MIN_LINEWIDTH)
-      //  renderPoint e
-      //else
+      // pressure = <use modern pressure lib here>
+      // uiState.linewidth = map(pressure, 0, 1, MAX_LINEWIDTH, MIN_LINEWIDTH);
+      // renderPoint(e);
       renderPoint(e);
       uiState.drawInterval = 1;
     }
@@ -628,26 +622,23 @@ var onGridMouseMove = function(e) {
   if (uiState.recentering) {
     uiState.gridX0 = uiState.canvasXonPan + (e.clientX - uiState.mouseXonPan);
     uiState.gridY0 = uiState.canvasYonPan + (e.clientY - uiState.mouseYonPan);
-    //console.log uiState.gridX0, uiState.gridY0
-    //canvas[0].style.left=((e.clientX - uiState.mouseXonPan) + "px")
-    //canvas[0].style.top=((e.clientY - uiState.mouseYonPan) + "px")
-    //uiState.recentering = false
+    //canvas[0].style.left = ((e.clientX - uiState.mouseXonPan) + "px");
+    //canvas[0].style.top  = ((e.clientY - uiState.mouseYonPan) + "px");
+    //uiState.recentering  = false;
     gridDraw();
   }
-    //uiState.recentering = true
+  //uiState.recentering = true;
   if (uiState.rotscaling) {
-    const v0 = RotationTransform(uiState._gridrotation).onVec(planarSymmetries[uiState.symmetry].vec0);
-    const origPhi = coordsToAngle(uiState._gridspacing*v0[0],uiState._gridspacing*v0[1]);
-    const origR = uiState._gridspacing*sqrt((v0[0]*v0[0])+(v0[1]*v0[1]));
-    //origY =
-    const deltaX = (e.clientX - uiState.mouseXonPan) + (uiState._gridspacing*v0[0]);
-    const deltaY = (e.clientY - uiState.mouseYonPan) + (uiState._gridspacing*v0[1]);
-    //console.log deltaX, deltaY
-    const newR = sqrt((deltaX*deltaX)+(deltaY*deltaY));
-    const newPhi = coordsToAngle(deltaX,deltaY);
+    const v0      = RotationTransform(uiState._gridrotation).onVec(planarSymmetries[uiState.symmetry].vec0);
+    const origPhi = coordsToAngle(uiState._gridspacing*v0[0], uiState._gridspacing*v0[1]);
+    const origR   = uiState._gridspacing * sqrt((v0[0]*v0[0]) + (v0[1]*v0[1]));
+    const deltaX  = (e.clientX - uiState.mouseXonPan) + (uiState._gridspacing * v0[0]);
+    const deltaY  = (e.clientY - uiState.mouseYonPan) + (uiState._gridspacing * v0[1]);
+    const newR    = sqrt((deltaX*deltaX) + (deltaY*deltaY));
+    const newPhi  = coordsToAngle(deltaX, deltaY);
     uiState.gridspacing = (newR-origR) + uiState._gridspacing;
-    //uiState.gridrotation = -1*(newPhi-origPhi) + uiState._gridrotation
-    //console.log deltaR, -1*(newPhi-origPhi)
+    //uiState.gridrotation = -1*(newPhi-origPhi) + uiState._gridrotation;
+    //console.log(deltaR, -1*(newPhi-origPhi));
     updateLattice();
     gridDraw();
   }
@@ -667,36 +658,45 @@ var onGridMouseUp = function(e) {
 
 var onDocumentKeydown = function(e) {
   switch (e.keyCode) {
-    case 32: //SPACE BAR
-      keyState.space = true;
-    case 16: //SHIFT
-      keyState.shift = true;
-    case 17: //CTRL
-      keyState.ctrl = true;
-    case 67: // C
-      keyState.c = true;
+  case 32: //SPACE BAR
+    keyState.space = true;
+    break;
+  case 16: //SHIFT
+    keyState.shift = true;
+    break;
+  case 17: //CTRL
+    keyState.ctrl = true;
+    break;
+  case 67: // C
+    keyState.c = true;
     //when 83 #S
     //  saveDrawing()  if keyState.ctrl and keyState.shift
-    case 8: case 46:  //backspace, delete
-      if (keyState.ctrl) {
-        sketch.dumpCache();
-        sketch.drawnP = 0;
-      }
-      break;
+    break;
+  case 8: case 46:  //backspace, delete
+    if (keyState.ctrl) {
+      sketch.dumpCache();
+      sketch.drawnP = 0;
+    }
+    break;
   }
 };
 
 var onDocumentKeyup = function(e) {
   switch (e.keyCode) {
-    case 32: //SPACE BAR
-      keyState.space = false;
-    case 16: //SHIFT
-      keyState.shift = false;
-    case 17: //CTRL
-      keyState.ctrl = false;
-    case 67: // C
-      keyState.c = false;
-    case 71: // C
-      toggleGrid();
+  case 32: //SPACE BAR
+    keyState.space = false;
+    break;
+  case 16: //SHIFT
+    keyState.shift = false;
+    break;
+  case 17: //CTRL
+    keyState.ctrl = false;
+    break;
+  case 67: // C
+    keyState.c = false;
+    break;
+  case 71: // C
+    toggleGrid();
+    break;
   }
 };

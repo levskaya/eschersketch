@@ -217,46 +217,38 @@ const drawLine = function(x1, y1, x2, y2) {
 };
 
 const gridDraw = function() {
-  //gridctx.strokeStyle = "rgb(100, 100, 100)"
-  //gridctx.fillStyle = "rgb(100, 100, 100)"
   gridctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  const v0 = RotationTransform(uiState.gridrotation).onVec(planarSymmetries[uiState.symmetry]['vec0']);
-  const v1 = RotationTransform(uiState.gridrotation).onVec(planarSymmetries[uiState.symmetry]['vec1']);
-
+  const v0 = RotationTransform(uiState.gridrotation).onVec(planarSymmetries[uiState.symmetry].vec0);
+  const v1 = RotationTransform(uiState.gridrotation).onVec(planarSymmetries[uiState.symmetry].vec1);
   const p0 = [uiState.gridX0, uiState.gridY0];
-  const p1 = [(uiState.gridspacing*v0[0])+uiState.gridX0, (uiState.gridspacing*v0[1])+uiState.gridY0];
-  const p2 = [(uiState.gridspacing*v1[0])+uiState.gridX0, (uiState.gridspacing*v1[1])+uiState.gridY0];
+  const p1 = [(uiState.gridspacing * v0[0]) + uiState.gridX0,
+              (uiState.gridspacing * v0[1]) + uiState.gridY0];
+  const p2 = [(uiState.gridspacing * v1[0]) + uiState.gridX0,
+              (uiState.gridspacing * v1[1]) + uiState.gridY0];
+
   // Draw Lattice
   for (let af of lattice) {
     const Tp0 = af.on(p0[0],p0[1]);
     const Tp1 = af.on(p1[0],p1[1]);
     const Tp2 = af.on(p2[0],p2[1]);
-    //console.log(Tp0,Tp1,Tp2)
     gridctx.beginPath();
     gridctx.moveTo(Tp0[0],Tp0[1]);
     gridctx.lineTo(Tp1[0],Tp1[1]);
     gridctx.moveTo(Tp0[0],Tp0[1]);
     gridctx.lineTo(Tp2[0],Tp2[1]);
-    //gridctx.closePath()
     gridctx.stroke();
   }
 
-  const circR=20;
+  const circR = 20;
   const c0 = [(p0[0] + gridcanvas.offset().left)-(circR/2),
-        (p0[1] + gridcanvas.offset().top)-(circR/2)];
+              (p0[1] + gridcanvas.offset().top)-(circR/2)];
   const c1 = [(p1[0] + gridcanvas.offset().left)-(circR/2),
-        (p1[1] + gridcanvas.offset().top)-(circR/2)];
+              (p1[1] + gridcanvas.offset().top)-(circR/2)];
 
-  $('#center-ui').css({top:`${c0[1]}px`,left:`${c0[0]}px`,width:'20px',height:'20px'});
-  $('#rotscale-ui').css({top:`${c1[1]}px`,left:`${c1[0]}px`,width:'20px',height:'20px'});
+  $('#center-ui'  ).css({top:`${c0[1]}px`, left:`${c0[0]}px`, width:'20px', height:'20px'});
+  $('#rotscale-ui').css({top:`${c1[1]}px`, left:`${c1[0]}px`, width:'20px', height:'20px'});
 };
-
-  //for p in [p0,p1,p2]
-  //  gridctx.beginPath()
-  //  gridctx.arc(p[0],p[1],10,0,2*PI)
-  //  gridctx.fill()
-  //  gridctx.stroke()
 
 // Fixes DPI issues with Retina displays on Chrome
 // http://www.html5rocks.com/en/tutorials/canvas/hidpi/
@@ -273,7 +265,7 @@ const pixelFix = function(canvas) {
     context.backingStorePixelRatio || 1;
 
   const ratio = devicePixelRatio / backingStoreRatio;
-  //console.log "pixel ratio", ratio
+  //console.log("pixel ratio", ratio);
 
   // upscale the canvas if the two ratios don't match
   if (devicePixelRatio !== backingStoreRatio) {
@@ -320,7 +312,6 @@ const initGUI = function() {
   canvas = $("#sketch");
   pixelFix(canvas[0]);
 
-  //canvas.hide()
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
   ctx = canvas[0].getContext("2d");
@@ -328,20 +319,16 @@ const initGUI = function() {
   ctx.lineWidth = 0.5;
   ctx.fillStyle = "rgb(255, 255, 255)";
   //ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-  //ctx.lineJoin="round"
-  //ctx.lineCap="round"
 
   gridcanvas = $("#gridcanvas");
   pixelFix(gridcanvas[0]);
   gridcanvas.width = CANVAS_WIDTH;
   gridcanvas.height = CANVAS_HEIGHT;
   gridctx = gridcanvas[0].getContext("2d");
-  //gridctx.globalAlpha = 0.5;
   gridctx.line = drawLine;
   gridctx.lineWidth = 0.5;
   gridctx.fillStyle = "rgba(0,0,0,0.0)";
   gridctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  //gridctx.strokeStyle = "rgb(0, 255, 255)"
   gridctx.strokeStyle = "rgba(0,0,0,0.5)";
   gridcanvas.hide();
   $('#grid-container').hide();
@@ -356,8 +343,8 @@ const initGUI = function() {
 
   // center crosshairs
   //    these belong on a second UI canvas layer
-  //ctx.line(800 - 5, 400, 800 + 5, 400)
-  //ctx.line(800, 400 - 5, 800, 400 + 5)
+  //ctx.line(800 - 5, 400, 800 + 5, 400);
+  //ctx.line(800, 400 - 5, 800, 400 + 5);
 
   const gridUI = $('#grid-container');
   const centerUI = $('#center-ui');
@@ -366,11 +353,6 @@ const initGUI = function() {
   rotscaleUI.mousedown(onRotScaleMousedown);
   gridUI.mouseup(onGridMouseUp);
   gridUI.mousemove(onGridMouseMove);
-
-  //$('input[name=xpos]').val(uiState.gridX0)
-  //$('input[name=ypos]').val(uiState.gridY0)
-  //$('input[name=gridspacing]').val(uiState.gridspacing)
-  //$('input[name=gridrotation]').val(uiState.gridrotation)
 
   // Set Up Symmetry Selector Buttons
   $(".symsel").click( function(){
@@ -384,7 +366,7 @@ const initGUI = function() {
     canvas.focus();
   });
 
-  // highlight the initial startup symmetry button
+  // Highlight the initial startup symmetry button
   $(`.symsel:contains(${uiState.symmetry})`).addClass('selected');
 
   // Color Picker
@@ -426,9 +408,10 @@ const initGUI = function() {
   // Save Image Button
   $('#saveimage').click(saveImage);
 
-  // show grid
+  // Show Grid
   $('#showgrid').click(toggleGrid);
 
+  // Grid Parameters
   $('input[name="gridspacing"]').change( function(){
     uiState.gridspacing=Number($(this).val());
     updateTiling();
@@ -461,7 +444,6 @@ const initGUI = function() {
       $(this).prop('checked', true);
       uiState.linecapround = true;
     }
-    console.log("foo");
   });
 
   updateGUI();
@@ -542,11 +524,6 @@ var onCanvasMousedown = function(e) {
     uiState.canvasYonPan = canvas.offset().top;
     return;
   }
-  //else if (keyState.c) {
-  //  uiState.gridX0 = e.clientX - canvas.offset().left;
-  //  uiState.gridY0 = e.clientY - canvas.offset().top;
-  //  return;
-  //}
   uiState.newline = true;
   renderPoint(e);
   uiState.canvasActive = true;
@@ -669,9 +646,12 @@ var onDocumentKeydown = function(e) {
     break;
   case 67: // C
     keyState.c = true;
-    //when 83 #S
-    //  saveDrawing()  if keyState.ctrl and keyState.shift
     break;
+  //case 83: // S
+  //  if(keyState.ctrl && keyState.shift) {
+  //    saveDrawing();
+  //  }
+  //  break;
   case 8: case 46:  //backspace, delete
     if (keyState.ctrl) {
       sketch.dumpCache();

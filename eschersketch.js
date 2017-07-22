@@ -1,4 +1,4 @@
-//--------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 // Eschersketch - A drawing program for exploring symmetrical designs
 //
@@ -8,11 +8,20 @@
 // Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
 // license.
 //
-//--------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
+// Imports
+const { Chrome } = VueColor;
 
-// Globals
-//--------------------------------------------------------------------------------------------------
+// Symmetries
+const allsyms = ['p1','pm','cm','pg',            //rot-free
+                 'pmg','pgg','pmm','p2','cmm',   //180deg containing
+                 'p4', 'p4g', 'p4m',             //square
+                 'p3','p6','p31m','p3m1','p6m']; //hex
+
+var gridstate = {x:800, y:400, d:100, t:0};
+const GRIDNX = 37;
+const GRIDNY = 31;
 
 // Constants
 const CANVAS_WIDTH  = 1600;
@@ -20,235 +29,504 @@ const CANVAS_HEIGHT = 1200;
 const MIN_LINEWIDTH = 0.01;
 const MAX_LINEWIDTH = 4;
 
-// Uninitialized Variables
-let sketch = {};
-let canvas = {};
-let ctx = {};
-let gridcanvas = {};
-let gridctx = {};
-let affineset = [];
-let lattice = {};
-//placementui = {}
-//rotscaleui = {}
+// Color, Opacity
+// var defaultColorProps = {
+//   hex: '#194d33',
+//   hsl: { h: 150, s: 0.5, l: 0.2, a: 1  },
+//   hsv: { h: 150, s: 0.66, v: 0.30, a: 1 },
+//   rgba: { r: 25, g: 77, b: 51, a: 1},
+//   a: 1
+// };
+
+var strokecolor = {r: 100, g:100, b:100, a:1.0};
+//var fillcolor = {r: 100, g:100, b:100, a:1.0};
+
+var lattice = {};
+var affineset = {};
 
 
-// Important State Variables
-//--------------------------------------------------------------------------------------------------
-const uiState = {
-  opacity: 1.0,
-  red: 0,
-  green: 0,
-  blue: 0,
-  linewidth: 1.0,
-  newline: true,  // bool for determining to start a new line
-  // variables for panning the canvas:
-  canvasActive: false,
-  canvasPanning: false,
-  canvasCursorM: false,
-  canvasXonPan: 0,
-  canvasYonPan: 0,
-  mouseXonPan: 0,
-  mouseYonPan: 0,
-  drawInterval: 0,
-  // planar symmetry parameters:
-  gridNx: 37,
-  gridNy: 31,
-  gridX0: 800,
-  gridY0: 400,
-  gridspacing: 100,
-  gridrotation: 0,
-  showgrid: false,
-  symmetry: "p4m",
-  //_gridspacing: 0, //for grid rotation, not used right now
-  //_gridrotation: 0, //for grid rotation, not used right now
-  linecapround: false
+// Symmetry Selection UI
+//------------------------------------------------------------------------------
+Vue.component('es-button', {
+  template: `<div class="symsel"
+              v-bind:class="selected"
+              v-on:click="bclick">
+                {{ sym.name }}
+              </div>`,
+  props: ['sym'],
+  methods: {
+    bclick: function(){
+      //console.log("clicked ", this.sym.name);
+      this.$emit("bclick", this.sym.name);
+    }
+  },
+  //data: function(){ return {}; },
+  computed: {
+    selected: function() {
+      return {selected: this.sym.selected};
+    }
+  }
+});
+
+
+var vuesymsel = new Vue({
+  el: '#vuesymsel',
+  data: { selected: allsyms[allsyms.length-1] },
+  computed: {
+    syms: function(){
+      symds=[];
+      for(var sym of allsyms){
+        symds.push({name: sym, selected: (sym==this.selected)});
+      }
+      return symds;
+    }
+  },
+  methods: {
+    changesym: function(symname){
+      //console.log("bclick emitted ", symname);
+      this.selected = symname;
+      for(var sym of this.syms){
+        if(sym.name == symname) {sym.selected=true;}
+        else {sym.selected=false;}
+      }
+      var gridcopy = {x:gridstate.x, y:gridstate.y, d:gridstate.d, t:gridstate.t};
+      cmdstack.push(new SymmOp(symname, gridcopy));
+      rerender(ctx);
+    }
+  },
+
+});
+
+
+// Grid UI
+//------------------------------------------------------------------------------
+Vue.component('es-numfield', {
+  template: `<input type="text"
+              v-on:change="numch"
+              v-bind:value="val"
+              size="3"/>`,
+  props: ['name', 'val'],
+  methods: {
+    numch: function({type, target}){
+      target.blur();
+      //console.log("numch ", this.name, target.value);
+      this.$emit("numch", this.name, target.value);
+    }
+  }
+});
+
+var gridparams = new Vue({
+  el: '#gridparams',
+  data: gridstate,
+  methods: {
+    update: function(name, val){
+      console.log("grid update", name, val);
+      gridstate[name]=Number(val);
+      //console.log(vuesymsel.selected, gridstate);
+      var gridcopy = {x:gridstate.x, y:gridstate.y, d:gridstate.d, t:gridstate.t};
+      cmdstack.push(new SymmOp(vuesymsel.selected, gridcopy));
+      rerender(ctx);
+    }
+  },
+  //hook:
+  updated: function(){console.log("changed", gridstate);}
+});
+
+// Color UI
+//------------------------------------------------------------------------------
+var rgb2hex = function(r,g,b) {
+  var pad = function(n, width=2, z=0) {
+    return (String(z).repeat(width) + String(n)).slice(String(n).length);
+  };
+  var hexr = pad(parseInt(r,10).toString(16).slice(-2));
+  var hexg = pad(parseInt(g,10).toString(16).slice(-2));
+  var hexb = pad(parseInt(b,10).toString(16).slice(-2));
+  return '#'+hexr+hexg+hexb;
 };
 
-// Records state of keys: false is up, true is down
-const keyState = {
-  space: false,
-  shift: false,
-  ctrl: false
+
+colorvue = new Vue({
+  el:"#viewcol",
+  //data: {colors: defaultColorProps},
+  data: strokecolor,
+  computed: {
+    colors: function(){
+      let newColor = {
+        hex: rgb2hex(this.r,this.g,this.b),
+        a: this.a
+      };
+      return newColor;
+      }
+    },
+  components: {
+    'chrome-picker': Chrome
+  },
+  methods: {
+    onUpdate: function(x){
+      //console.log(x.rgba.r, x.rgba.g, x.rgba.b, x.rgba.a);
+      cmdstack.push(new ColorOp(x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
+      rerender(ctx);
+      this.r = x.rgba.r;
+      this.g = x.rgba.g;
+      this.b = x.rgba.b;
+      this.a = x.rgba.a;
+    },
+    // changeValue: function(r,g,b,a){
+    //   let newColor = {
+    //     hex: rgb2hex(r,g,b),
+    //     a: a
+    //   };
+    //   console.log(newColor);
+    //   this.colors = newColor;
+    // }
+  }
+});
+
+//window.colorvue = colorvue;
+
+
+
+
+
+
+// Mouse Events
+//------------------------------------------------------------------------------
+var dispatchMouseDown = function(e) {
+  e.preventDefault(); //?
+  drawTools[curTool].mouseDown(e);
+};
+
+var dispatchMouseUp = function(e) {
+  e.preventDefault(); //?
+  drawTools[curTool].mouseUp(e);
+};
+
+var dispatchMouseMove = function(e) {
+  e.preventDefault(); //?
+  drawTools[curTool].mouseMove(e);
 };
 
 
-// Initial Transform
-//--------------------------------------------------------------------------------------------------
+// Canvas / Context Globals...
+//------------------------------------------------------------------------------
+var livecanvas = {};
+var lctx = {};
+var canvas = {};
+var ctx = {};
 
-const updateTiling = function() {
-    affineset = generateTiling(planarSymmetries[uiState.symmetry],
-                              uiState.gridNx, uiState.gridNy,
-                              uiState.gridspacing, uiState.gridrotation,
-                              uiState.gridX0, uiState.gridY0);
-    lattice = generateLattice(planarSymmetries[uiState.symmetry],
-                              uiState.gridNx, uiState.gridNy,
-                              uiState.gridspacing, uiState.gridrotation,
-                              uiState.gridX0, uiState.gridY0);
+
+// Command Stack
+//------------------------------------------------------------------------------
+var cmdstack = [];
+var redostack = [];
+var rerender = function(ctx, clear=false) {
+  console.log("rerender w. ", cmdstack.length, " ops");
+  if(clear){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  for(var cmd of cmdstack){
+    cmd.render(ctx);
+  }
+};
+var undo = function(){
+  if(cmdstack.length>0){
+    cmd = cmdstack.pop();
+    redostack.push(cmd);
+    rerender(ctx, clear=true);
+  }
+};
+var redo = function(){
+  if(redostack.length>0){
+    cmd = redostack.pop();
+    cmdstack.push(cmd);
+    rerender(ctx, clear=true);
+  }
+};
+
+document.getElementById("undo").onmousedown =
+  function(e) {
+    e.preventDefault();
+    undo();
+  };
+document.getElementById("redo").onmousedown =
+  function(e) {
+    e.preventDefault();
+    redo();
   };
 
-const updateLattice = () =>
-    lattice = generateLattice(planarSymmetries[uiState.symmetry],
-                              uiState.gridNx, uiState.gridNy,
-                              uiState.gridspacing, uiState.gridrotation,
-                              uiState.gridX0, uiState.gridY0)
-  ;
-
-// Build Initial Tiling Set
-updateTiling();
 
 
-// Drawing Object
-//  just a cache of previously drawn points
-//--------------------------------------------------------------------------------------------------
+var memo_generateTiling = _.memoize(generateTiling,
+                                function(){return JSON.stringify(arguments);});
+var memo_generateLattice = _.memoize(generateLattice,
+                                function(){return JSON.stringify(arguments);});
+var updateTiling = function(sym, gridstate) {
+  affineset = memo_generateTiling(planarSymmetries[sym],
+                                  GRIDNX, GRIDNY,
+                                  gridstate.d, gridstate.t,
+                                  gridstate.x, gridstate.y);
+  lattice = memo_generateLattice(planarSymmetries[sym],
+                                 GRIDNX, GRIDNY,
+                                 gridstate.d, gridstate.t,
+                                 gridstate.x, gridstate.y);
+  console.log("affineset: ", sym, " N= ", affineset.length);
+};
 
-class Drawing {
-  constructor() {
-    this.pointCache = new Array();
-    this.drawnP = 0;
+// needed for responsize graphical grid update:
+var updateLattice = function(sym, gridstate) {
+    lattice = memo_generateLattice(planarSymmetries[sym],
+                              GRIDNX, GRIDNY,
+                              gridstate.d, gridstate.t,
+                              gridstate.x, gridstate.y);
+};
+
+class SymmOp {
+  constructor(sym, grid) {
+    this.sym = sym;
+    this.grid = grid;
   }
 
-  addPoint(p) {
-    this.pointCache.push(p);
-    this.drawnP++;
+  render(ctx){
+    //update global storing current affineset... hacky
+    updateTiling(this.sym, this.grid);
+    // HACK: directly mutate global that's watched by vue...
+    gridstate.x = this.grid.x;
+    gridstate.y = this.grid.y;
+    gridstate.d = this.grid.d;
+    gridstate.t = this.grid.t;
   }
 
-  render() {
-    const dp = this.drawnP;
-    const pc = this.pointCache;
-    if (dp > 0) { lastline(pc); }
-    //if (dp > 0) { lastline_quadratic(pc); }
-    //if (dp > 0) { circlepaint(pc); }
+  serialize(){
+    return ["sym", this.sym, this.grid.x, this.grid.y, this.grid.d, this.grid.t];
   }
- 
-  dumpCache() {
-    this.pointCache.length = 0;
+
+  deserialize(data){
+    return new SymmOp(data[1], data[2], data[3], data[4], data[5]);
   }
 }
 
 
-// Drawing Functions
-// these drawing functions should be assoc'd w. renderer, not point...
-//--------------------------------------------------------------------------------------------------
-
-// Strokes lines between last two points in set
-var lastline = function(pointSet) {
-  const ps = pointSet.length;
-  if ((ps > 1) && !uiState.newline) {
-    const p1 = pointSet[ps - 1];
-    const p2 = pointSet[ps - 2];
-    //the below line slows things down, state changes are costly in canvas
-    //ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
-    //ctx.strokeStyle = "rgba( 0,0,0,.5)"
-
-    for (let af of affineset) {
-        const Tp1 = af.on(p1.x, p1.y);
-        const Tp2 = af.on(p2.x, p2.y);
-        //the below line slows things down, state changes are costly in canvas
-        //ctx.lineWidth = p1.linewidth
-        //ctx.lineWidth = uiState.linewidth
-        ctx.line(Tp2[0], Tp2[1], Tp1[0], Tp1[1]);
-    }
-
-  } else if (uiState.newline) { 
-      uiState.newline = false; 
+class ColorOp {
+  constructor(r,g,b,a) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
   }
-};
 
-// Strokes quadratic lines between last two points in set
-const lastline_quadratic = function(pointSet) {
-  const ps = pointSet.length;
-  if ((ps > 1) && !uiState.newline) {
-    const p1 = pointSet[ps - 1];
-    const p2 = pointSet[ps - 2];
-    //the below line slows things down, state changes are costly in canvas
-    //ctx.strokeStyle = "rgba(#{uiState.red},#{uiState.green},#{uiState.blue},#{uiState.opacity})"
-    //ctx.strokeStyle = "rgba(0,0,0,.5)"
-
-    for (let af of affineset) {
-	const Tp1 = af.on(p1.x, p1.y);
-	const Tp2 = af.on(p2.x, p2.y);
-	//the below line slows things down, state changes are costly in canvas
-	//ctx.lineWidth = p1.linewidth
-	//ctx.lineWidth = uiState.linewidth
-	const xc = (Tp1[0] + Tp2[0]) / 2;
-	const yc = (Tp1[1] + Tp2[1]) / 2;
-	ctx.beginPath();
-	ctx.moveTo(Tp1[0], Tp1[1]);
-	ctx.quadraticCurveTo(xc, yc, Tp2[0], Tp2[1]);
-	//ctx.line Tp2[0], Tp2[1], Tp1[0], Tp1[1]
-	ctx.stroke();
-    }
-    
-  } else if (uiState.newline) { 
-      uiState.newline = false; 
+  render(ctx){
+    ctx.strokeStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
+    // HACK: ghetto, fix application to all contexts...
+    lctx.strokeStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
+    // HACK: directly mutate global that's watched by vue...
+    strokecolor.r = this.r;
+    strokecolor.g = this.g;
+    strokecolor.b = this.b;
+    strokecolor.a = this.a;
   }
-};
 
-// Draws circles at each point
-const circlepaint = function(pointSet) {
-  const ps = pointSet.length;
-  const p1 = pointSet[ps - 1];
-  for (let af of affineset) {
-      const Tp1 = af.on(p1.x, p1.y);
-      //ctx.lineWidth = p1.linewidth
+  serialize(){
+    return ["color", r, g, b, a];
+  }
+
+  deserialize(data){
+    return new ColorOp(data[1], data[2], data[3], data[4]);
+  }
+}
+
+//------------------------------------------------------------------------------
+class LineOp {
+  constructor(start, end) {
+    this.start = start;
+    this.end = end;
+  }
+
+  render(ctx){
+    for (let af of affineset) {
+      const Tp1 = af.on(this.start.x, this.start.y);
+      const Tp2 = af.on(this.end.x, this.end.y);
+      ctx.line(Tp1[0], Tp1[1], Tp2[0], Tp2[1]);
+    }
+    //ctx.line(this.start.x, this.start.y, this.end.x, this.end.y);
+  }
+
+  serialize(){
+    return ["line", start, end];
+  }
+
+  deserialize(data){
+    return new LineOp(data[1], data[2]);
+  }
+}
+
+class LineTool {
+  constructor() {
+    this.start = {};
+    this.end = {};
+    this.on = false;
+    this.drawInterval = 0;
+  }
+
+  liverender() {
+    lctx.clearRect(0, 0, canvas.width, canvas.height);
+    //lctx.line(this.start.x, this.start.y, this.end.x, this.end.y);
+    for (let af of affineset) {
+      const Tp1 = af.on(this.start.x, this.start.y);
+      const Tp2 = af.on(this.end.x, this.end.y);
+      lctx.line(Tp1[0], Tp1[1], Tp2[0], Tp2[1]);
+    }
+  }
+
+  commit() {
+    cmdstack.push( new LineOp(this.start, this.end) );
+    rerender(ctx);
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+  }
+
+  //cancel() { lctx.clearRect(0, 0, livecanvas.width, livecanvas.height); }
+
+  mouseDown(e) {
+    e.preventDefault();
+    var rect = canvas.getBoundingClientRect();
+    this.start = { x: e.clientX - rect.left,
+                   y: e.clientY - rect.top};
+    this.on = true;
+  }
+
+  mouseMove(e) {
+    if (this.on) {
+      if (this.drawInterval <= 0) {
+        var rect = canvas.getBoundingClientRect();
+        this.end = { x: e.clientX - rect.left,
+                     y: e.clientY - rect.top};
+        this.liverender();
+        this.drawInterval = 1;
+      }
+      this.drawInterval--;
+    }
+  }
+
+  mouseUp(e) {
+    this.on = false;
+    this.commit();
+    this.start = {};
+    this.end = {};
+  }
+}
+
+
+class CircleOp {
+  constructor(center, radius) {
+    this.center = center;
+    this.radius = radius;
+  }
+
+  render(ctx){
+    for (let af of affineset) {
+      const Tc1 = af.on(this.center.x, this.center.y);
+      const Tr = this.radius; //XXX: not true for scaling trafos! fix!
       ctx.beginPath();
-      ctx.arc(Tp1[0], Tp1[1], uiState.linewidth, 0, 2*PI, false);
-      ctx.fillStyle = `rgba(${uiState.red},${uiState.green},${uiState.blue},${uiState.opacity})`;
-      ctx.fill();
+      ctx.arc(Tc1[0], Tc1[1], Tr, 0, 2*Math.PI);
+      ctx.stroke();
+    }
+    //ctx.beginPath();
+    //ctx.arc(this.center.x, this.center.y, this.radius, 0, 2*Math.PI);
+    //ctx.stroke();
   }
+
+  serialize(){
+    return ["circle", this.center, this.radius];
+  }
+
+  deserialize(data){
+    return new CircleOp(data[1], data[2]);
+  }
+}
+
+class CircleTool {
+  constructor() {
+    this.center = {};
+    this.radius = 0;
+    this.on = false;
+    this.drawInterval = 0;
+  }
+
+  liverender() {
+    lctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let af of affineset) {
+      const Tc1 = af.on(this.center.x, this.center.y);
+      const Tr = this.radius; //XXX: not true for scaling trafos! fix!
+      lctx.beginPath();
+      lctx.arc(Tc1[0], Tc1[1], Tr, 0, 2*Math.PI);
+      lctx.stroke();
+    }
+    //lctx.beginPath();
+    //lctx.arc(this.center.x, this.center.y, this.radius, 0, 2*Math.PI);
+    //lctx.stroke();
+  }
+
+  commit() {
+    cmdstack.push( new CircleOp(this.center, this.radius) );
+    rerender(ctx);
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+  }
+
+  //cancel() { lctx.clearRect(0, 0, livecanvas.width, livecanvas.height); }
+
+  mouseDown(e) {
+    e.preventDefault();
+    var rect = canvas.getBoundingClientRect();
+    this.center = { x: e.clientX - rect.left,
+                   y: e.clientY - rect.top};
+    this.on = true;
+  }
+
+  mouseMove(e) {
+    if (this.on) {
+      if (this.drawInterval <= 0) {
+        var rect = canvas.getBoundingClientRect();
+        var tmp = { x: e.clientX - rect.left,
+                    y: e.clientY - rect.top};
+        this.radius =
+          Math.sqrt(Math.pow(this.center.x-tmp.x, 2) + Math.pow(this.center.y-tmp.y, 2));
+        this.liverender();
+        this.drawInterval = 1;
+      }
+      this.drawInterval--;
+    }
+  }
+
+  mouseUp(e) {
+    this.on = false;
+    this.commit();
+    this.center = {};
+    this.radius = 0;
+  }
+}
+
+
+
+var drawTools = {
+  line: new LineTool(),
+  circle: new CircleTool()
 };
 
-// actually invokes drawing routine for events
-const renderPoint = function(e) {
-  sketch.addPoint({
-    x: e.clientX - canvas.offset().left,
-    y: e.clientY - canvas.offset().top
-  });
-    //linewidth: uiState.linewidth
-  sketch.render();
-};
+var curTool = "line";
+
+document.getElementById("linetool").onmousedown = function(e) { curTool = "line"; };
+document.getElementById("circletool").onmousedown = function(e) { curTool = "circle"; };
+
+
 
 // simple canvas line method
 const drawLine = function(x1, y1, x2, y2) {
+  //console.log("line:", x1, y1, x2, y2);
   this.beginPath();
   this.moveTo(x1, y1);
   this.lineTo(x2, y2);
   this.stroke();
 };
 
-const gridDraw = function() {
-  gridctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-  const v0 = RotationTransform(uiState.gridrotation).onVec(planarSymmetries[uiState.symmetry].vec0);
-  const v1 = RotationTransform(uiState.gridrotation).onVec(planarSymmetries[uiState.symmetry].vec1);
-  const p0 = [uiState.gridX0, uiState.gridY0];
-  const p1 = [(uiState.gridspacing * v0[0]) + uiState.gridX0,
-              (uiState.gridspacing * v0[1]) + uiState.gridY0];
-  const p2 = [(uiState.gridspacing * v1[0]) + uiState.gridX0,
-              (uiState.gridspacing * v1[1]) + uiState.gridY0];
-
-  // Draw Lattice
-  for (let af of lattice) {
-    const Tp0 = af.on(p0[0],p0[1]);
-    const Tp1 = af.on(p1[0],p1[1]);
-    const Tp2 = af.on(p2[0],p2[1]);
-    gridctx.beginPath();
-    gridctx.moveTo(Tp0[0],Tp0[1]);
-    gridctx.lineTo(Tp1[0],Tp1[1]);
-    gridctx.moveTo(Tp0[0],Tp0[1]);
-    gridctx.lineTo(Tp2[0],Tp2[1]);
-    gridctx.stroke();
-  }
-
-  const circR = 20;
-  const c0 = [(p0[0] + gridcanvas.offset().left)-(circR/2),
-              (p0[1] + gridcanvas.offset().top)-(circR/2)];
-  const c1 = [(p1[0] + gridcanvas.offset().left)-(circR/2),
-              (p1[1] + gridcanvas.offset().top)-(circR/2)];
-
-  $('#center-ui'  ).css({top:`${c0[1]}px`, left:`${c0[0]}px`, width:'20px', height:'20px'});
-  $('#rotscale-ui').css({top:`${c1[1]}px`, left:`${c1[0]}px`, width:'20px', height:'20px'});
-};
 
 // Fixes DPI issues with Retina displays on Chrome
 // http://www.html5rocks.com/en/tutorials/canvas/hidpi/
@@ -284,399 +562,47 @@ const pixelFix = function(canvas) {
   }
 };
 
-// Scales the number of "backing pixels" for a given on-screen pixel
-// to a higher value - useful for high-DPI exports
-const setCanvasPixelDensity = function(canvas, ratio) {
-  // get the canvas and context
-  const context = canvas.getContext('2d');
-
-  const oldWidth = canvas.width;
-  const oldHeight = canvas.height;
-  canvas.width = oldWidth * ratio;
-  canvas.height = oldHeight * ratio;
-  canvas.style.width = oldWidth + 'px';
-  canvas.style.height = oldHeight + 'px';
-
-  // now scale the context to counter
-  // the fact that we've manually scaled
-  // our canvas element
-  context.scale(ratio, ratio);
-};
 
 
-// Main GUI initialization function
-//--------------------------------------------------------------------------------------------------
 
-const initGUI = function() {
-  sketch = new Drawing();
-  canvas = $("#sketch");
-  pixelFix(canvas[0]);
+var initGUI = function() {
+  //sketch = new Drawing();
 
+  canvas = document.getElementById("sketchrender");
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
-  ctx = canvas[0].getContext("2d");
+  pixelFix(canvas);
+  ctx = canvas.getContext("2d");
   ctx.line = drawLine;
-  ctx.lineWidth = 0.5;
-  ctx.fillStyle = "rgb(255, 255, 255)";
-  //ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  ctx.lineWidth = 1.0;
+  ctx.fillStyle = "rgb(0, 255, 255)";
+  ctx.strokeStyle = "rgb(0, 255, 255)";
 
-  gridcanvas = $("#gridcanvas");
-  pixelFix(gridcanvas[0]);
-  gridcanvas.width = CANVAS_WIDTH;
-  gridcanvas.height = CANVAS_HEIGHT;
-  gridctx = gridcanvas[0].getContext("2d");
-  gridctx.line = drawLine;
-  gridctx.lineWidth = 0.5;
-  gridctx.fillStyle = "rgba(0,0,0,0.0)";
-  gridctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  gridctx.strokeStyle = "rgba(0,0,0,0.5)";
-  gridcanvas.hide();
-  $('#grid-container').hide();
-  gridDraw();
+  livecanvas = document.getElementById("sketchlive");
+  livecanvas.width = CANVAS_WIDTH;
+  livecanvas.height = CANVAS_HEIGHT;
+  pixelFix(livecanvas);
+  lctx = livecanvas.getContext("2d");
+  lctx.line = drawLine;
+  lctx.lineWidth = 1.0;
+  lctx.fillStyle =   "rgb(0, 255, 255)";
+  lctx.strokeStyle = "rgb(0, 255, 255)";
 
+  livecanvas.onmousedown = dispatchMouseDown;
+  livecanvas.onmouseup   = dispatchMouseUp;
+  livecanvas.onmousemove = dispatchMouseMove;
 
-  canvas.mousedown(onCanvasMousedown);
-  canvas.mouseup(onDocumentMouseup);
-  canvas.mousemove(onDocumentMousemove);
-  $('body').keyup(onDocumentKeyup);
-  $('body').keydown(onDocumentKeydown);
-
-  // center crosshairs
-  //    these belong on a second UI canvas layer
-  //ctx.line(800 - 5, 400, 800 + 5, 400);
-  //ctx.line(800, 400 - 5, 800, 400 + 5);
-
-  const gridUI = $('#grid-container');
-  const centerUI = $('#center-ui');
-  const rotscaleUI = $('#rotscale-ui');
-  centerUI.mousedown(onCenterMousedown);
-  rotscaleUI.mousedown(onRotScaleMousedown);
-  gridUI.mouseup(onGridMouseUp);
-  gridUI.mousemove(onGridMouseMove);
-
-  // Set Up Symmetry Selector Buttons
-  $(".symsel").click( function(){
-    const newsym=$(this).text();
-    uiState.symmetry = newsym;
-    $(".symsel").removeClass('selected');
-    $(this).addClass('selected');
-    updateTiling();
-    gridDraw();
-    console.log("symmetry ", newsym, affineset.length);
-    canvas.focus();
-  });
-
-  // Highlight the initial startup symmetry button
-  $(`.symsel:contains(${uiState.symmetry})`).addClass('selected');
-
-  // Color Picker
-  ColorPicker(
-    $("#color-picker")[0],
-    function(hex, hsv, rgb) {
-	setColor(rgb);
-	ctx.strokeStyle = `rgba(${uiState.red},${uiState.green},${uiState.blue},${uiState.opacity})`;
-    });
-
-  // Opacity Element
-  const opacityui = $("#ui-opacity");
-  opacityui.mousedown(changeOpacity);
-
-  // Line Width Element
-  const linewidthui = $("#ui-linewidth");
-  const linewidthui_ctx=linewidthui[0].getContext("2d");
-  linewidthui_ctx.beginPath();
-  linewidthui_ctx.moveTo(0,0);
-  linewidthui_ctx.lineTo(0,10);
-  linewidthui_ctx.lineTo(200,10);
-  linewidthui_ctx.lineTo(200,0);
-  linewidthui_ctx.closePath();
-  linewidthui_ctx.fillStyle="#fff";
-  linewidthui_ctx.fill();
-  linewidthui_ctx.beginPath();
-  linewidthui_ctx.moveTo(0,0);
-  linewidthui_ctx.lineTo(0,10);
-  linewidthui_ctx.lineTo(200,5);
-  linewidthui_ctx.lineTo(0,0);
-  linewidthui_ctx.closePath();
-  linewidthui_ctx.fillStyle="#000";
-  linewidthui_ctx.fill();
-  linewidthui.mousedown(changeLineWidth);
-
-  // Clear Screen Button
-  $('#clearscreen').click(clearScreen);
-
-  // Save Image Button
-  $('#saveimage').click(saveImage);
-
-  // Show Grid
-  $('#showgrid').click(toggleGrid);
-
-  // Grid Parameters
-  $('input[name="gridspacing"]').change( function(){
-    uiState.gridspacing=Number($(this).val());
-    updateTiling();
-    gridDraw();
-    $(this).blur();
-    });
-
-  $('input[name="xpos"]').change( function(){
-    uiState.gridX0=Number($(this).val());
-    updateTiling();
-    gridDraw();
-    $(this).blur();
-    });
-
-  $('input[name="ypos"]').change( function(){
-    uiState.gridY0=Number($(this).val());
-    updateTiling();
-    gridDraw();
-    $(this).blur();
-    });
-
-  $("input[name='linecapround']").click( function(){
-    const val=$(this).val();
-    if (uiState.linecapround) {
-      ctx.lineCap="butt";
-      $(this).prop('checked', false);
-      uiState.linecapround = false;
-    } else {
-      ctx.lineCap="round";
-      $(this).prop('checked', true);
-      uiState.linecapround = true;
-    }
-  });
-
-  updateGUI();
+  initState();
 };
 
 
-// UI Helper Functions
-//--------------------------------------------------------------------------------------------------
+var initState = function() {
+  cmdstack.push(new ColorOp(strokecolor.r,
+                            strokecolor.g,
+                            strokecolor.b,
+                            strokecolor.a));
 
-var updateGUI = function() {
-  $('input[name="xpos"]').val(uiState.gridX0);
-  $('input[name="ypos"]').val(uiState.gridY0);
-  $('input[name="gridspacing"]').val(uiState.gridspacing);
-  $('input[name="gridrotation"]').val(uiState.gridrotation);
-};
+  cmdstack.push(new SymmOp(allsyms[allsyms.length-1], gridstate));
 
-var toggleGrid = function() {
-  if (uiState.showgrid) {
-    $('#grid-container').hide();
-    gridcanvas.hide();
-  } else {
-    $('#grid-container').show();
-    gridcanvas.show();
-    gridDraw();
-  }
-  uiState.showgrid = (!uiState.showgrid);
-};
-
-var saveImage = function() {
-    canvas[0].toBlob(blob => saveAs(blob, "eschersketch.png"));
-};
-
-var clearScreen = () =>
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-var setColor = function(rgb) {
-    uiState.red = rgb.r;
-    uiState.green = rgb.g;
-    uiState.blue = rgb.b;
-    //console.log("RGB: ", uiState.red, uiState.green, uiState.blue);
-};
-
-var changeOpacity = function(e) {
-  const { left }=$(this).offset();
-  const { top }=$(this).offset();
-  const x = e.clientX - left;
-  const y = e.clientY - top;
-  const h = $(this).height();
-  uiState.opacity = map(y,0,h,1.0,0.0);
-  ctx.strokeStyle = `rgba(${uiState.red},${uiState.green},${uiState.blue},${uiState.opacity})`;
-  //console.log("changeopacity ", x, y, h, uiState.opacity);
-};
-
-var changeLineWidth = function(e) {
-  const x = e.clientX - $(this).offset().left;
-  const y = e.clientY - $(this).offset().top;
-  const h = $(this).height();
-  const w = $(this).width();
-  uiState.linewidth = map(x,0,w,MAX_LINEWIDTH,MIN_LINEWIDTH);
-  ctx.lineWidth = uiState.linewidth;
-  //console.log("changelinewidth ", x, y, h, uiState.linewidth);
-};
-
-// Export init function for invocation
-window.initGUI = initGUI;
-
-
-// Mouse Events
-//--------------------------------------------------------------------------------------------------
-
-var onCanvasMousedown = function(e) {
-  e.preventDefault();
-  if (keyState.space) {
-    uiState.canvasPanning = true;
-    uiState.mouseXonPan = e.clientX;
-    uiState.mouseYonPan = e.clientY;
-    uiState.canvasXonPan = canvas.offset().left;
-    uiState.canvasYonPan = canvas.offset().top;
-    return;
-  }
-  uiState.newline = true;
-  renderPoint(e);
-  uiState.canvasActive = true;
-};
-
-var onDocumentMouseup = function(e) {
-  uiState.canvasPanning = false;
-  uiState.canvasActive = false;
-  uiState.newline = false;
-};
-
-var onDocumentMousemove = function(e) {
-  if (uiState.canvasPanning) {
-    canvas[0].style.left=(((e.clientX - uiState.mouseXonPan) + uiState.canvasXonPan) + "px");
-    canvas[0].style.top=(((e.clientY - uiState.mouseYonPan) + uiState.canvasYonPan) + "px");
-  }
-
-  if (keyState.space && uiState.canvasPanning && !uiState.canvasCursorM) {
-    canvas.css("cursor", "move");
-    uiState.canvasCursorM = true;
-
-  } else if (!uiState.canvasPanning && uiState.canvasCursorM) {
-    canvas.css("cursor", "crosshair");
-    uiState.canvasCursorM = false;
-  }
-
-  if (uiState.canvasActive) {
-    if (uiState.drawInterval <= 0) {
-      // pressure = <use modern pressure lib here>
-      // uiState.linewidth = map(pressure, 0, 1, MAX_LINEWIDTH, MIN_LINEWIDTH);
-      // renderPoint(e);
-      renderPoint(e);
-      uiState.drawInterval = 1;
-    }
-    uiState.drawInterval--;
-  }
-};
-
-var onCenterMousedown = function(e) {
-  e.preventDefault();
-  uiState.recentering = true;
-  uiState.mouseXonPan = e.clientX;
-  uiState.mouseYonPan = e.clientY;
-  uiState.canvasXonPan = uiState.gridX0;
-  uiState.canvasYonPan = uiState.gridY0;
-};
-
-var onRotScaleMousedown = function(e) {
-  e.preventDefault();
-  uiState.rotscaling = true;
-  uiState.mouseXonPan = e.clientX;
-  uiState.mouseYonPan = e.clientY;
-  uiState._gridspacing = uiState.gridspacing;
-  uiState._gridrotation = uiState.gridrotation;
-};
-
-const coordsToAngle = function(x,y) {
-    let phi;
-    if ((x === 0) && (y >= 0)) {
-      phi = PI/2;
-    } else if ((x === 0) && (y < 0)) {
-      phi = -PI/2;
-    } else if (x > 0) {
-      phi = atan(y/x);
-    } else if (x < 0) {
-      phi = atan(y/x) + PI;
-    }
-    return phi;
-  };
-
-var onGridMouseMove = function(e) {
-  e.preventDefault();
-  if (uiState.recentering) {
-    uiState.gridX0 = uiState.canvasXonPan + (e.clientX - uiState.mouseXonPan);
-    uiState.gridY0 = uiState.canvasYonPan + (e.clientY - uiState.mouseYonPan);
-    //canvas[0].style.left = ((e.clientX - uiState.mouseXonPan) + "px");
-    //canvas[0].style.top  = ((e.clientY - uiState.mouseYonPan) + "px");
-    //uiState.recentering  = false;
-    gridDraw();
-  }
-  //uiState.recentering = true;
-  if (uiState.rotscaling) {
-    const v0      = RotationTransform(uiState._gridrotation).onVec(planarSymmetries[uiState.symmetry].vec0);
-    const origPhi = coordsToAngle(uiState._gridspacing*v0[0], uiState._gridspacing*v0[1]);
-    const origR   = uiState._gridspacing * sqrt((v0[0]*v0[0]) + (v0[1]*v0[1]));
-    const deltaX  = (e.clientX - uiState.mouseXonPan) + (uiState._gridspacing * v0[0]);
-    const deltaY  = (e.clientY - uiState.mouseYonPan) + (uiState._gridspacing * v0[1]);
-    const newR    = sqrt((deltaX*deltaX) + (deltaY*deltaY));
-    const newPhi  = coordsToAngle(deltaX, deltaY);
-    uiState.gridspacing = (newR-origR) + uiState._gridspacing;
-    //uiState.gridrotation = -1*(newPhi-origPhi) + uiState._gridrotation;
-    //console.log(deltaR, -1*(newPhi-origPhi));
-    updateLattice();
-    gridDraw();
-  }
-  updateGUI();
-};
-
-var onGridMouseUp = function(e) {
-  e.preventDefault();
-  uiState.recentering = false;
-  uiState.rotscaling = false;
-  updateTiling();
-};
-
-
-// Key Handling
-// ------------------------------------------------------------------------------
-
-var onDocumentKeydown = function(e) {
-  switch (e.keyCode) {
-  case 32: //SPACE BAR
-    keyState.space = true;
-    break;
-  case 16: //SHIFT
-    keyState.shift = true;
-    break;
-  case 17: //CTRL
-    keyState.ctrl = true;
-    break;
-  case 67: // C
-    keyState.c = true;
-    break;
-  //case 83: // S
-  //  if(keyState.ctrl && keyState.shift) {
-  //    saveDrawing();
-  //  }
-  //  break;
-  case 8: case 46:  //backspace, delete
-    if (keyState.ctrl) {
-      sketch.dumpCache();
-      sketch.drawnP = 0;
-    }
-    break;
-  }
-};
-
-var onDocumentKeyup = function(e) {
-  switch (e.keyCode) {
-  case 32: //SPACE BAR
-    keyState.space = false;
-    break;
-  case 16: //SHIFT
-    keyState.shift = false;
-    break;
-  case 17: //CTRL
-    keyState.ctrl = false;
-    break;
-  case 67: // C
-    keyState.c = false;
-    break;
-  case 71: // C
-    toggleGrid();
-    break;
-  }
+  rerender(ctx);
 };

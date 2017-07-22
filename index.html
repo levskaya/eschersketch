@@ -2,122 +2,76 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Eschersketch</title>
+<title>EscherSketch</title>
 
 <!-- CSS -->
 <link rel="stylesheet" type="text/css" href="eschersketch.css">
 
 <!-- Libraries -->
-<script type="text/javascript" src="lib/jquery-1.9.1.min.js"></script>
 <script type="text/javascript" src="lib/underscore-min.js"></script>
-<script type="text/javascript" src="lib/colorpicker.js"></script>
-<script type="text/javascript" src="lib/Blob.js"></script>
-<script type="text/javascript" src="lib/canvas-toBlob.js"></script>
-<script type="text/javascript" src="lib/FileSaver.min.js"></script>
-<link rel="stylesheet" type="text/css" href="lib/colorpicker-themes.css">
-
-<!-- Code -->
+<script type="text/javascript" src="https://unpkg.com/vue"></script>
+<script type="text/javascript" src="lib/vue-color.min.js"></script>
 <script type="text/javascript" src="geo.js"></script>
-<script type="text/javascript" src="eschersketch.js"></script>
 
-<!-- Initialization -->
-<script type="text/javascript">
-   $(function() { initGUI(); });
-</script>
 </head>
 
 
 <body>
+
 <!-- Main Canvas -->
 <div id="sketch-container">
-  <div id="grid-container" style="position:absolute;z-index:2;">
-    <div id="center-ui" class="circle"></div>
-    <div id="rotscale-ui" class="circle">&#8596;</div>
-    <canvas id="gridcanvas" width="1600" height="1200" style=""></canvas>
-  </div>
-  <canvas id="sketch" width="1600" height="1200" style="z-index:1"></canvas>
+  <canvas id="sketchrender" width="1600" height="1200" style="z-index:0"></canvas>
+  <canvas id="sketchlive" width="1600" height="1200" style="z-index:1"></canvas>
 </div>
+
 
 <!-- GUI Elements -->
 <div id="sketch-UI" style="z-index:5">
 <div>
-  <div style="margin-left:100px"><b>Escher</b></div>
-  <div style="margin-right:100px;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);"><b>Sketch</b></div>
-  <div style="margin-left:90px">v0.2</div>
-</div>
-<br>
-<div id="symmetry-selectors">
-  Rotation-free Groups:<br>
-  <div class="symsel">p1</div>
-  <div class="symsel">pm</div>
-  <div class="symsel">cm</div>
-  <div class="symsel">pg</div>
-  <br>180&deg; containing Groups:<br>
-  <div class="symsel">pmg</div>
-  <div class="symsel">pgg</div>
-  <div class="symsel">pmm</div>
-  <div class="symsel">p2</div>
-  <div class="symsel">cmm</div>
-  <br>Square Groups:<br>
-  <div class="symsel">p4</div>
-  <div class="symsel">p4g</div>
-  <div class="symsel">p4m</div>
-  <br>Hexagonal Groups:<br>
-  <div class="symsel">p3</div>
-  <div class="symsel">p6</div>
-  <div class="symsel">p31m</div>
-  <div class="symsel">p3m1</div>
-  <div class="symsel">p6m</div>
-  <br>
+  Escher Sketch v 0.3
 </div>
 
 <br>
-Grid Parameters:
-<div id="affine-parameters">
-<label>X</label> <input name="xpos" size="3"/>
-<label>Y</label> <input name="ypos" size="3"/>
-<label>&Delta;</label> <input name="gridspacing" size="3"/>
-<!--<label>&phi;</label> <input name="gridrotation" size="3"/>-->
+<div id="undo" class="button">UNDO</div>
+<div id="redo" class="button">REDO</div>
+
+<br>
+<div id="linetool" class="button">linetool</div>
+<div id="circletool" class="button">circletool</div>
+<br>
+
+<div id="vuesymsel">
+  <template v-for="sym in syms">
+    <es-button v-bind:sym="sym" v-on:bclick="changesym"></es-button>
+  </template>
+</div>
+
+<br>
+
+<div id="gridparams">
+  <span style="margin:10px;">x</span>
+  <es-numfield name="x" :val="x" @numch="update"></es-numfield><br>
+  <span style="margin:10px;">y</span>
+  <es-numfield name="y" :val="y" @numch="update"></es-numfield><br>
+  <span style="margin:10px;">&Delta;</span>
+  <es-numfield name="d" :val="d" @numch="update"></es-numfield><br>
+  <span style="margin:10px;">&theta;</span>
+  <es-numfield name="t" :val="t" @numch="update"></es-numfield><br>
 </div>
 <div id="showgrid" class="button">Toggle Grid Control</div>
 
-<br><br>
-Color and Transparency:
-<div id="color-picker" class="cp-small"></div>
-<div id="ui-opacity" class="grad"></div>
-<div class="clearfix"></div>
+<div id="viewcol">
+  <chrome-picker :value="colors" @input="onUpdate"></chrome-picker>
+</div>
 
-Line Thickness:
-<div><canvas id="ui-linewidth" width="200" height="10"></canvas></div>
-<input name="linecapround" type="radio"/><label>Round linecap</label>
-<br><br>
-
-<div id="clearscreen" class="button">CLEAR SCREEN</div>
-<div id="saveimage" class="button">SAVE IMAGE</div>
-<br><br>
-
-Also try: <a href="http://levskaya.github.io/polyhedronisme/">Polyhedronisme</a>
-<br>
-<a href="https://github.com/levskaya/eschersketch">Source Code</a><br>
-<a href="http://en.wikipedia.org/wiki/Wallpaper_group">Wallpaper Groups?</a>
-
-<br><br>
-Anselm Levskaya
 
 </div>
 
+<script type="text/javascript" src="eschersketch.js"></script>
+<!-- Initialization -->
+<script type="text/javascript">
+  initGUI();
+</script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-

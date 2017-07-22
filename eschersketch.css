@@ -36,7 +36,11 @@ input {
     height: 100%;
     overflow: hidden;
 }
-#sketch {
+#sketchrender {
+    position: absolute;
+    cursor: crosshair;
+}
+#sketchlive {
     position: absolute;
     cursor: crosshair;
 }
@@ -44,7 +48,7 @@ input {
     position: absolute;
     top: 0px;
     left: 0px;
-    width: 200px;
+    width: 240px;
     height: 100%;
     margin: 5px;
     background: rgba(245,245,245,0.9);

@@ -27,38 +27,48 @@
 
 <!-- GUI Elements -->
 <div id="sketch-UI" style="z-index:5">
-<div>
-  Escher Sketch v 0.3
+<div style="margin-left:100px">
+  <b>Escher</b></div>
+<div style="margin-right:140px;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);">
+  <b>Sketch</b>
 </div>
 
 <br>
-<div id="undo" class="button">UNDO</div>
-<div id="redo" class="button">REDO</div>
+
+<div id="undo" class="button">
+  <img src="svg/ic_skip_previous_black_24px.svg"/>
+</div>
+<div id="redo" class="button">
+  <img src="svg/ic_skip_next_black_24px.svg"/>
+</div>
 
 <br>
-<div id="linetool" class="button">linetool</div>
-<div id="circletool" class="button">circletool</div>
+<b>Drawing Tools</b><br>
+<div id="linetool" class="button">line</div>
+<div id="circletool" class="button">circle</div>
+<div id="penciltool" class="button">pencil</div>
 <br>
 
+<b>Symmetries</b><br>
 <div id="vuesymsel">
   <template v-for="sym in syms">
     <es-button v-bind:sym="sym" v-on:bclick="changesym"></es-button>
   </template>
 </div>
 
-<br>
-
 <div id="gridparams">
-  <span style="margin:10px;">x</span>
-  <es-numfield name="x" :val="x" @numch="update"></es-numfield><br>
-  <span style="margin:10px;">y</span>
-  <es-numfield name="y" :val="y" @numch="update"></es-numfield><br>
-  <span style="margin:10px;">&Delta;</span>
-  <es-numfield name="d" :val="d" @numch="update"></es-numfield><br>
-  <span style="margin:10px;">&theta;</span>
-  <es-numfield name="t" :val="t" @numch="update"></es-numfield><br>
+  <span style="margin:5px;">x</span>
+  <es-numfield name="x" :val="x" @numch="update"></es-numfield>
+  <span style="margin:5px;">y</span>
+  <es-numfield name="y" :val="y" @numch="update"></es-numfield>
+  <span style="margin:5px;">&Delta;</span>
+  <es-numfield name="d" :val="d" @numch="update"></es-numfield>
+  <span style="margin:5px;">&theta;</span>
+  <es-numfield name="t" :val="t" @numch="update"></es-numfield>
 </div>
 <div id="showgrid" class="button">Toggle Grid Control</div>
+
+<br><br>
 
 <div id="viewcol">
   <chrome-picker :value="colors" @input="onUpdate"></chrome-picker>

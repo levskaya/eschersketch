@@ -187,9 +187,7 @@ colorvue = new Vue({
 
 
 
-
-
-// Mouse Events
+// Mouse Events -- dispatched to active Drawing Tool
 //------------------------------------------------------------------------------
 var dispatchMouseDown = function(e) {
   e.preventDefault(); //?
@@ -217,6 +215,15 @@ var ctx = {};
 
 // Command Stack
 //------------------------------------------------------------------------------
+/* - objectify this
+   - think about adding "caching layers" of canvas contexts to speed up render
+     times during redos of complicated scenes
+   - figure out how to fuse context updaters, e.g. color, symmetry, etc, they
+     don't need to be stacked deep in the command stack
+   - when to clear out redo stack?
+   - shoudn't be able to clear the context initialization ops, otherwise redos
+     unstable, keep color/symm inits in place...
+*/
 var cmdstack = [];
 var redostack = [];
 var rerender = function(ctx, clear=false) {
@@ -230,14 +237,14 @@ var rerender = function(ctx, clear=false) {
 };
 var undo = function(){
   if(cmdstack.length>0){
-    cmd = cmdstack.pop();
+    var cmd = cmdstack.pop();
     redostack.push(cmd);
     rerender(ctx, clear=true);
   }
 };
 var redo = function(){
   if(redostack.length>0){
-    cmd = redostack.pop();
+    var cmd = redostack.pop();
     cmdstack.push(cmd);
     rerender(ctx, clear=true);
   }
@@ -256,6 +263,9 @@ document.getElementById("redo").onmousedown =
 
 
 
+//------------------------------------------------------------------------------
+// Context / State Update Ops
+//------------------------------------------------------------------------------
 var memo_generateTiling = _.memoize(generateTiling,
                                 function(){return JSON.stringify(arguments);});
 var memo_generateLattice = _.memoize(generateLattice,
@@ -280,6 +290,8 @@ var updateLattice = function(sym, gridstate) {
                               gridstate.x, gridstate.y);
 };
 
+// SymmOp sets up set of affine trafos for a given symmetry
+//------------------------------------------------------------------------------
 class SymmOp {
   constructor(sym, grid) {
     this.sym = sym;
@@ -305,7 +317,9 @@ class SymmOp {
   }
 }
 
-
+// ColorOp sets stroke color of ctx
+//------------------------------------------------------------------------------
+// XXX: figure out how to do fill color
 class ColorOp {
   constructor(r,g,b,a) {
     this.r = r;
@@ -334,6 +348,36 @@ class ColorOp {
   }
 }
 
+
+//class LineThicknessOp {
+//   constructor(w){
+//  }
+//}
+
+//------------------------------------------------------------------------------
+// Drawing Ops and Tools
+//------------------------------------------------------------------------------
+
+
+// class GridTool {
+//   constructor(x,y,d,t) {
+//     this.x = x;
+//     this.y = y;
+//     this.d = d;
+//     this.t = t;
+//   }
+//
+//   enter(){ // XXX: called when tool first selected
+//     // DRAW GRID & Controls here
+//   }
+//
+//   exit(){ // XXX: called when tool leaves
+//     // Erase GRID & Controls
+//   }
+// }
+
+
+// Draw Single Line Segments
 //------------------------------------------------------------------------------
 class LineOp {
   constructor(start, end) {
@@ -414,7 +458,99 @@ class LineTool {
   }
 }
 
+// Draw Raw Mousepath (Pencil)
+//------------------------------------------------------------------------------
+class PencilOp {
+  constructor(points) {
+    this.points = points;
+  }
 
+  render(ctx){
+    for (let af of affineset) {
+      ctx.beginPath();
+      const Tpt0 = af.on(this.points[0].x, this.points[0].y);
+      ctx.moveTo(Tpt0[0], Tpt0[1]);
+      for (let pt of this.points.slice(1)) {
+        const Tpt = af.on(pt.x, pt.y);
+        ctx.lineTo(Tpt[0], Tpt[1]);
+      }
+      ctx.stroke();
+    }
+  }
+
+  serialize(){
+    return ["pencil", this.points];
+  }
+
+  deserialize(data){
+    return new PencilOp(data[1]);
+  }
+}
+
+class PencilTool {
+  constructor() {
+    this.points = [];
+    this.on = false;
+    this.drawInterval = 0;
+  }
+
+  liverender() {
+    lctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let af of affineset) {
+      lctx.beginPath();
+      const Tpt0 = af.on(this.points[0].x, this.points[0].y);
+      lctx.moveTo(Tpt0[0], Tpt0[1]);
+      for (let pt of this.points.slice(1)) {
+        const Tpt = af.on(pt.x, pt.y);
+        lctx.lineTo(Tpt[0], Tpt[1]);
+      }
+      lctx.stroke();
+    }
+  }
+
+  commit() {
+    cmdstack.push( new PencilOp(this.points) );
+    rerender(ctx);
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+  }
+
+  //cancel() { lctx.clearRect(0, 0, livecanvas.width, livecanvas.height); }
+
+  mouseDown(e) {
+    //e.preventDefault();
+    console.log("penciltool mdown");
+    var rect = canvas.getBoundingClientRect(); //XXX: which canvas appropriate?
+    this.points.push({ x: e.clientX - rect.left,
+                       y: e.clientY - rect.top});
+    this.on = true;
+  }
+
+  mouseMove(e) {
+    if (this.on) {
+    console.log("penciltool mmov");
+      if (this.drawInterval <= 0) {
+        var rect = canvas.getBoundingClientRect();
+        this.points.push({ x: e.clientX - rect.left,
+                           y: e.clientY - rect.top});
+        this.liverender();
+        this.drawInterval = 1;
+      }
+      this.drawInterval--;
+    }
+  }
+
+  mouseUp(e) {
+    console.log("penciltool mup");
+    this.on = false;
+    this.commit();
+    this.points = [];
+  }
+}
+
+
+
+// Draw Circles
+//------------------------------------------------------------------------------
 class CircleOp {
   constructor(center, radius) {
     this.center = center;
@@ -506,17 +642,25 @@ class CircleTool {
 
 
 
+// Set up Globals and UI for calling into Drawing Tools
+//------------------------------------------------------------------------------
 var drawTools = {
   line: new LineTool(),
-  circle: new CircleTool()
+  circle: new CircleTool(),
+  pencil: new PencilTool()
 };
-
 var curTool = "line";
 
+//ghetto:
 document.getElementById("linetool").onmousedown = function(e) { curTool = "line"; };
 document.getElementById("circletool").onmousedown = function(e) { curTool = "circle"; };
+document.getElementById("penciltool").onmousedown = function(e) { curTool = "pencil"; };
 
 
+
+//------------------------------------------------------------------------------
+// Canvas Tweaks
+//------------------------------------------------------------------------------
 
 // simple canvas line method
 const drawLine = function(x1, y1, x2, y2) {
@@ -526,7 +670,6 @@ const drawLine = function(x1, y1, x2, y2) {
   this.lineTo(x2, y2);
   this.stroke();
 };
-
 
 // Fixes DPI issues with Retina displays on Chrome
 // http://www.html5rocks.com/en/tutorials/canvas/hidpi/
@@ -555,9 +698,8 @@ const pixelFix = function(canvas) {
     canvas.style.width = oldWidth + 'px';
     canvas.style.height = oldHeight + 'px';
 
-    // now scale the context to counter
-    // the fact that we've manually scaled
-    // our canvas element
+    // now scale the context to counter the fact that we've
+    // manually scaled our canvas element
     context.scale(ratio, ratio);
   }
 };
@@ -566,7 +708,6 @@ const pixelFix = function(canvas) {
 
 
 var initGUI = function() {
-  //sketch = new Drawing();
 
   canvas = document.getElementById("sketchrender");
   canvas.width = CANVAS_WIDTH;
@@ -595,7 +736,7 @@ var initGUI = function() {
   initState();
 };
 
-
+// should be "reset"
 var initState = function() {
   cmdstack.push(new ColorOp(strokecolor.r,
                             strokecolor.g,

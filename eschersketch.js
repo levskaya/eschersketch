@@ -19,9 +19,11 @@ const allsyms = ['p1','pm','cm','pg',            //rot-free
                  'p4', 'p4g', 'p4m',             //square
                  'p3','p6','p31m','p3m1','p6m']; //hex
 
-var gridstate = {x:800, y:400, d:100, t:0};
-const GRIDNX = 37;
-const GRIDNY = 31;
+var gridstate = {x:800, y:400, d:100, t:0}; // XXX: Nx, Ny should be here too
+//const GRIDNX = 37;
+//const GRIDNY = 31;
+const GRIDNX = 18;
+const GRIDNY = 14;
 
 // Constants
 const CANVAS_WIDTH  = 1600;
@@ -29,14 +31,13 @@ const CANVAS_HEIGHT = 1200;
 const MIN_LINEWIDTH = 0.01;
 const MAX_LINEWIDTH = 4;
 
-// Color, Opacity
-// var defaultColorProps = {
-//   hex: '#194d33',
-//   hsl: { h: 150, s: 0.5, l: 0.2, a: 1  },
-//   hsv: { h: 150, s: 0.66, v: 0.30, a: 1 },
-//   rgba: { r: 25, g: 77, b: 51, a: 1},
-//   a: 1
-// };
+
+var ctxStyle = {
+  lineCap: "butt", // butt, round, square
+  lineJoin: "round", // round, bevel, miter
+  miterLimit: 10.0, // applies to miter setting above
+  lineWidth: 1.0
+};
 
 var strokecolor = {r: 100, g:100, b:100, a:1.0};
 //var fillcolor = {r: 100, g:100, b:100, a:1.0};
@@ -60,14 +61,12 @@ Vue.component('es-button', {
       this.$emit("bclick", this.sym.name);
     }
   },
-  //data: function(){ return {}; },
   computed: {
     selected: function() {
       return {selected: this.sym.selected};
     }
   }
 });
-
 
 var vuesymsel = new Vue({
   el: '#vuesymsel',
@@ -132,6 +131,30 @@ var gridparams = new Vue({
   updated: function(){console.log("changed", gridstate);}
 });
 
+
+// Line Width UI
+//------------------------------------------------------------------------------
+var vuethicksel = new Vue({
+  el: '#linethicksel',
+  data: ctxStyle,
+  //data: {value: 1.0, max:10.0, min:0.1, step:0.1, name:"thicksel"},
+  created: function(){
+    this.max = 10.0;
+    this.min = 0.1;
+    this.step = 0.1;
+    this.name = "thicksel";
+  },
+  methods: {
+    changethick: function({type, target}){
+      console.log("changethick ", this.name, target.value);
+      //this.$emit("changethick", this.name, target.value);
+      cmdstack.push(new StyleOp({lineWidth: target.value}));
+      rerender(ctx);
+    }
+  }
+});
+
+
 // Color UI
 //------------------------------------------------------------------------------
 var rgb2hex = function(r,g,b) {
@@ -162,7 +185,7 @@ colorvue = new Vue({
     'chrome-picker': Chrome
   },
   methods: {
-    onUpdate: function(x){
+    onUpdate: _.debounce(function(x){
       //console.log(x.rgba.r, x.rgba.g, x.rgba.b, x.rgba.a);
       cmdstack.push(new ColorOp(x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
       rerender(ctx);
@@ -170,7 +193,7 @@ colorvue = new Vue({
       this.g = x.rgba.g;
       this.b = x.rgba.b;
       this.a = x.rgba.a;
-    },
+    }, 200),
     // changeValue: function(r,g,b,a){
     //   let newColor = {
     //     hex: rgb2hex(r,g,b),
@@ -212,7 +235,6 @@ var lctx = {};
 var canvas = {};
 var ctx = {};
 
-
 // Command Stack
 //------------------------------------------------------------------------------
 /* - objectify this
@@ -226,8 +248,8 @@ var ctx = {};
 */
 var cmdstack = [];
 var redostack = [];
-var rerender = function(ctx, clear=false) {
-  console.log("rerender w. ", cmdstack.length, " ops");
+var rerender = function(ctx, clear=true) {
+  //console.log("rerender w. ", cmdstack.length, " ops");
   if(clear){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
@@ -239,14 +261,14 @@ var undo = function(){
   if(cmdstack.length>0){
     var cmd = cmdstack.pop();
     redostack.push(cmd);
-    rerender(ctx, clear=true);
+    rerender(ctx);
   }
 };
 var redo = function(){
   if(redostack.length>0){
     var cmd = redostack.pop();
     cmdstack.push(cmd);
-    rerender(ctx, clear=true);
+    rerender(ctx);
   }
 };
 
@@ -279,7 +301,7 @@ var updateTiling = function(sym, gridstate) {
                                  GRIDNX, GRIDNY,
                                  gridstate.d, gridstate.t,
                                  gridstate.x, gridstate.y);
-  console.log("affineset: ", sym, " N= ", affineset.length);
+  //console.log("affineset: ", sym, " N= ", affineset.length);
 };
 
 // needed for responsize graphical grid update:
@@ -340,11 +362,43 @@ class ColorOp {
   }
 
   serialize(){
-    return ["color", r, g, b, a];
+    return ["color", this.r, this.g, this.b, this.a];
   }
 
   deserialize(data){
     return new ColorOp(data[1], data[2], data[3], data[4]);
+  }
+}
+
+class StyleOp {
+  /*
+    lineCap	Sets or returns the style of the end caps for a line
+    lineJoin	Sets or returns the type of corner created, when two lines meet
+    lineWidth	Sets or returns the current line width
+    miterLimit  Sets or returns the maximum miter length
+  */
+  constructor(styleProps) {
+    //console.log(styleProps);
+    this.styleProps = styleProps;
+  }
+
+  render(ctx){
+    for(var prop of Object.keys(this.styleProps)){
+      //console.log(prop);
+      ctx[prop] = this.styleProps[prop];
+      // HACK: ghetto, fix application to all contexts...
+      lctx[prop] = this.styleProps[prop];
+      // HACK: directly mutate global that's watched by vue...
+      ctxStyle[prop] = this.styleProps[prop];
+    }
+  }
+
+  serialize(){
+    return ["style", this.styleProps];
+  }
+
+  deserialize(data){
+    return new StyleOp(data[1]);
   }
 }
 
@@ -395,7 +449,7 @@ class LineOp {
   }
 
   serialize(){
-    return ["line", start, end];
+    return ["line", this.start, this.end];
   }
 
   deserialize(data){
@@ -656,6 +710,22 @@ document.getElementById("linetool").onmousedown = function(e) { curTool = "line"
 document.getElementById("circletool").onmousedown = function(e) { curTool = "circle"; };
 document.getElementById("penciltool").onmousedown = function(e) { curTool = "pencil"; };
 
+document.getElementById("saveSVG").onmousedown = function(e) {
+  // canvas2svg fake context:
+  C2Sctx = new C2S(canvas.width, canvas.height);
+  C2Sctx.line = drawLine;
+  rerender(C2Sctx);
+  //serialize your SVG
+  var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
+  //save text blob as SVG
+  var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
+  saveAs(blob, "eschersketch.svg");
+};
+
+document.getElementById("savePNG").onmousedown = function(e) {
+    canvas.toBlob(blob => saveAs(blob, "eschersketch.png"));
+};
+
 
 
 //------------------------------------------------------------------------------
@@ -715,9 +785,7 @@ var initGUI = function() {
   pixelFix(canvas);
   ctx = canvas.getContext("2d");
   ctx.line = drawLine;
-  ctx.lineWidth = 1.0;
-  ctx.fillStyle = "rgb(0, 255, 255)";
-  ctx.strokeStyle = "rgb(0, 255, 255)";
+  //ctx.fillStyle = "rgb(0, 255, 255)";
 
   livecanvas = document.getElementById("sketchlive");
   livecanvas.width = CANVAS_WIDTH;
@@ -725,9 +793,7 @@ var initGUI = function() {
   pixelFix(livecanvas);
   lctx = livecanvas.getContext("2d");
   lctx.line = drawLine;
-  lctx.lineWidth = 1.0;
-  lctx.fillStyle =   "rgb(0, 255, 255)";
-  lctx.strokeStyle = "rgb(0, 255, 255)";
+  //lctx.fillStyle =   "rgb(0, 255, 255)";
 
   livecanvas.onmousedown = dispatchMouseDown;
   livecanvas.onmouseup   = dispatchMouseUp;
@@ -744,6 +810,18 @@ var initState = function() {
                             strokecolor.a));
 
   cmdstack.push(new SymmOp(allsyms[allsyms.length-1], gridstate));
+  cmdstack.push(new StyleOp({
+    lineCap: "butt",
+    lineJoin: "round",
+    miterLimit: 10.0,
+    lineWidth: 1.0}));
 
   rerender(ctx);
 };
+
+
+//var blob = new Blob(["Hello, world!"], {type: "text/plain;charset=utf-8"});
+//FileSaver.saveAs(blob, "hello world.txt");
+
+//var blob = new Blob(["Hello, world!"], {type: "image/svg+xml"});
+//FileSaver.saveAs(blob, "eschersketch.svg");

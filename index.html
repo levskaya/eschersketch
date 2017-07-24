@@ -9,13 +9,18 @@
 
 <!-- Libraries -->
 <script type="text/javascript" src="lib/underscore-min.js"></script>
-<script type="text/javascript" src="https://unpkg.com/vue"></script>
+<script type="text/javascript" src="lib/vue@2.4.2.js"></script>
 <script type="text/javascript" src="lib/vue-color.min.js"></script>
+
+<!-- Export Libs-->
+<script type="text/javascript" src="lib/canvas2svg.js"></script>
+<script type="text/javascript" src="lib/canvas-toBlob.js"></script>
+<script type="text/javascript" src="lib/FileSaver.min.js"></script>
+
+<!-- JS -->
 <script type="text/javascript" src="geo.js"></script>
 
 </head>
-
-
 <body>
 
 <!-- Main Canvas -->
@@ -24,61 +29,90 @@
   <canvas id="sketchlive" width="1600" height="1200" style="z-index:1"></canvas>
 </div>
 
-
 <!-- GUI Elements -->
 <div id="sketch-UI" style="z-index:5">
-<div style="margin-left:100px">
-  <b>Escher</b></div>
-<div style="margin-right:140px;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);">
-  <b>Sketch</b>
-</div>
+  <div class="Aligner" style="margin-left:-10px;">
+    <div class="Aligner-item">
+      <span style="font-variant: small-caps;margin-right:10px;">escher</span>
+    </div>
+    <div class="Aligner-item">
+      <img src="svg/es_logo.svg" height="50px" style="margin-top:6px;"/>
+    </div>
+    <div class="Aligner-item">
+      <span style="font-variant: small-caps;margin-left:10px;">sketch</span>
+    </div>
+  </div>
+  <!--
+    <div style="margin-left:100px;font-variant: small-caps;">
+    <b>escher</b></div>
+  <div style="margin-right:140px;font-variant: small-caps;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);">
+    <b>sketch</b>
+  </div>
+-->
 
-<br>
+  <span style="font-variant: small-caps;">undo / redo</span><br>
+  <div id="undo" class="button">
+    <img src="svg/ic_skip_previous_black_24px.svg"/>
+  </div>
+  <div id="redo" class="button">
+    <img src="svg/ic_skip_next_black_24px.svg"/>
+  </div>
+  <br><hr>
 
-<div id="undo" class="button">
-  <img src="svg/ic_skip_previous_black_24px.svg"/>
-</div>
-<div id="redo" class="button">
-  <img src="svg/ic_skip_next_black_24px.svg"/>
-</div>
+  <span style="font-variant: small-caps;">drawing tools</span><br>
+  <div id="linetool" class="button">line</div>
+  <div id="circletool" class="button">circle</div>
+  <div id="penciltool" class="button">pencil</div>
+  <br><hr>
 
-<br>
-<b>Drawing Tools</b><br>
-<div id="linetool" class="button">line</div>
-<div id="circletool" class="button">circle</div>
-<div id="penciltool" class="button">pencil</div>
-<br>
+  <span style="font-variant: small-caps;">symmetries</span><br>
+  <div id="vuesymsel">
+    <template v-for="sym in syms">
+      <es-button v-bind:sym="sym" v-on:bclick="changesym"></es-button>
+    </template>
+  </div>
 
-<b>Symmetries</b><br>
-<div id="vuesymsel">
-  <template v-for="sym in syms">
-    <es-button v-bind:sym="sym" v-on:bclick="changesym"></es-button>
-  </template>
-</div>
+  <div id="gridparams">
+    <span style="margin:5px;">x</span>
+    <es-numfield name="x" :val="x" @numch="update"></es-numfield>
+    <span style="margin:5px;">y</span>
+    <es-numfield name="y" :val="y" @numch="update"></es-numfield>
+    <span style="margin:5px;">&Delta;</span>
+    <es-numfield name="d" :val="d" @numch="update"></es-numfield>
+    <span style="margin:5px;">&theta;</span>
+    <es-numfield name="t" :val="t" @numch="update"></es-numfield>
+    <!--
+        <span style="margin:5px;">Nx</span>
+        <es-numfield name="Nx" :val="Nx" @numch="update"></es-numfield>
+        <span style="margin:5px;">Ny</span>
+        <es-numfield name="Ny" :val="Ny" @numch="update"></es-numfield>
+    -->
 
-<div id="gridparams">
-  <span style="margin:5px;">x</span>
-  <es-numfield name="x" :val="x" @numch="update"></es-numfield>
-  <span style="margin:5px;">y</span>
-  <es-numfield name="y" :val="y" @numch="update"></es-numfield>
-  <span style="margin:5px;">&Delta;</span>
-  <es-numfield name="d" :val="d" @numch="update"></es-numfield>
-  <span style="margin:5px;">&theta;</span>
-  <es-numfield name="t" :val="t" @numch="update"></es-numfield>
-</div>
-<div id="showgrid" class="button">Toggle Grid Control</div>
+  </div>
+  <div id="showgrid" class="button">Toggle Grid Control</div>
 
-<br><br>
+  <br><hr>
 
-<div id="viewcol">
-  <chrome-picker :value="colors" @input="onUpdate"></chrome-picker>
-</div>
+  <span style="font-variant: small-caps;">line width</span>
+  <div id="linethicksel">
+    <input type="range" :value="lineWidth"
+           :min="min" :max="max" :step="step" :name="name" @change="changethick">
+    <span>{{lineWidth}}</span>
+  </div>
+
+  <div id="viewcol">
+    <chrome-picker :value="colors" @input="onUpdate"></chrome-picker>
+  </div>
+  <br><hr>
+
+  <div id="saveSVG" class="button">Save SVG</div>
+  <div id="savePNG" class="button">Save PNG</div>
+
+</div> <!-- /sketch-UI  -->
 
 
-</div>
-
+<!-- Main JS File and Init -->
 <script type="text/javascript" src="eschersketch.js"></script>
-<!-- Initialization -->
 <script type="text/javascript">
   initGUI();
 </script>

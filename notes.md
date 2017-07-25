@@ -1,3 +1,12 @@
+# Eschersketch Notes
+
+## Bugs
+
+- modified lines around 437 of canvas2svg.js - the IE fix section that fixes
+  xmnls uses a regex that hits recursion depth on our huge SVG files...
+  so commented out that fix
+
+
 ## Vue
 
 vue.js updating canvas via _directives_:
@@ -6,7 +15,21 @@ https://jsfiddle.net/mani04/r4mbh6nu/1/
 simpler color picker, not quite as nice:
 https://codepen.io/getflourish/pen/NbxByK
 
-## design
+CAVEATS!!!
+
+    vm.items[indexOfItem] = newValue  won't update reactive array!
+must use Vue.set:
+    Vue.set(example1.items, indexOfItem, newValue)
+No:
+    vm.items.length = newLength
+Yes:
+    example1.items.splice(newLength)
+
+nice keyboard event modifiers, etc.:
+https://vuejs.org/v2/guide/events.html
+
+
+## Design
 
 icons:
     https://useiconic.com/open
@@ -16,10 +39,10 @@ icons:
 sliders (input range) styling:
     http://brennaobrien.com/blog/2014/05/style-input-type-range-in-every-browser.html
 
-## tools
+## Tools
 
 - freehand lines, pressure-sensitive (width or color intensity)
-- circle/ellipse
+- ellipse
 - free polygon
 - rectangle any orientation (fat line)
 - bezier
@@ -28,11 +51,19 @@ sliders (input range) styling:
 - sprite transfer
   https://devbutze.blogspot.com/2014/02/html5-canvas-offscreen-rendering.html
 
-## canvas layering
+## Symmetries
+
+- add hex-grid / tri-grid "symmetries"... ?
+- add rosette-group symms
+- add frieze symms ?
+- other nonlinear scaling symms
+- spherical? hyperbolic?
+
+## Canvas Layering
 
 https://www.ibm.com/developerworks/library/wa-canvashtml5layering/
 
-## command stack
+## Command Stack
 
 command-stack:
  - init
@@ -53,6 +84,16 @@ command-stack:
  - color: r,g,b
  - poly: [x0,y0,x1,y1,...xN,yN] //autocloses
 
+example command stack of very pretty pattern:
+["color",100,100,100,1]
+["sym","p6m",800,400,100,0]
+["style",{"lineCap":"butt","lineJoin":"round","miterLimit":10,"lineWidth":1}]
+<-- these are constant at init
+["line",{"x":579,"y":268},{"x":753,"y":234}]
+["color",232,109,109,0.65]
+["line",{"x":574,"y":273},{"x":594,"y":374}]
+
+
 this would work, but live-update of lines, poly, etc. would be slow as shit if we redraw,
 so need a transparent live-layer canvas for live redraws of the new element eg.
 
@@ -65,7 +106,7 @@ undo/redo force redraws for now
 
 additional optimization for lots of symmetry redraws: draw a smaller set of nearby tiled symms for live redraw, and draw the whole set only upon commit
 
-# tile export
+# Tile Export
 
 Export the lattice tile (not smallest repeating unit, lattice
 tiles are easy to tile in a cartesian manner for designers)
@@ -74,11 +115,3 @@ Have a way of redrawing at higher res?
 SVG - easy enough to do an OKish export from the command stack
 
 
-example command stack of very pretty pattern:
-["color",100,100,100,1]
-["sym","p6m",800,400,100,0]
-["style",{"lineCap":"butt","lineJoin":"round","miterLimit":10,"lineWidth":1}]
-<-- these are constant at init
-["line",{"x":579,"y":268},{"x":753,"y":234}]
-["color",232,109,109,0.65]
-["line",{"x":574,"y":273},{"x":594,"y":374}]

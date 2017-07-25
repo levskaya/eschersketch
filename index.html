@@ -31,6 +31,7 @@
 
 <!-- GUI Elements -->
 <div id="sketch-UI" style="z-index:5">
+  <!-- Logo -->
   <div class="Aligner" style="margin-left:-10px;">
     <div class="Aligner-item">
       <span style="font-variant: small-caps;margin-right:10px;">escher</span>
@@ -42,36 +43,33 @@
       <span style="font-variant: small-caps;margin-left:10px;">sketch</span>
     </div>
   </div>
-  <!--
-    <div style="margin-left:100px;font-variant: small-caps;">
-    <b>escher</b></div>
-  <div style="margin-right:140px;font-variant: small-caps;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);">
-    <b>sketch</b>
-  </div>
--->
 
-  <span style="font-variant: small-caps;">undo / redo</span><br>
+  <!-- State Control -->
+  <!--<span style="font-variant: small-caps;">undo / redo</span><br>-->
   <div id="undo" class="button">
-    <img src="svg/ic_skip_previous_black_24px.svg"/>
+    <img src="svg/ic_skip_previous_black_24px.svg"/> undo
   </div>
   <div id="redo" class="button">
-    <img src="svg/ic_skip_next_black_24px.svg"/>
+    redo <img src="svg/ic_skip_next_black_24px.svg"/>
   </div>
   <br><hr>
 
+  <!-- Tool Selection -->
   <span style="font-variant: small-caps;">drawing tools</span><br>
   <div id="linetool" class="button">line</div>
   <div id="circletool" class="button">circle</div>
   <div id="penciltool" class="button">pencil</div>
   <br><hr>
 
+  <!-- Symmetry Selection -->
   <span style="font-variant: small-caps;">symmetries</span><br>
   <div id="vuesymsel">
     <template v-for="sym in syms">
-      <es-button v-bind:sym="sym" v-on:bclick="changesym"></es-button>
+      <es-button :sym="sym" @bclick="changesym"></es-button>
     </template>
   </div>
 
+  <!-- Grid Control -->
   <div id="gridparams">
     <span style="margin:5px;">x</span>
     <es-numfield name="x" :val="x" @numch="update"></es-numfield>
@@ -79,8 +77,10 @@
     <es-numfield name="y" :val="y" @numch="update"></es-numfield>
     <span style="margin:5px;">&Delta;</span>
     <es-numfield name="d" :val="d" @numch="update"></es-numfield>
-    <span style="margin:5px;">&theta;</span>
-    <es-numfield name="t" :val="t" @numch="update"></es-numfield>
+    <div class="button" @click="halveD">&frac12;</div>
+    <div class="button" @click="doubleD">2x</div>
+    <!--<span style="margin:5px;">&theta;</span>
+    <es-numfield name="t" :val="t" @numch="update"></es-numfield>-->
     <!--
         <span style="margin:5px;">Nx</span>
         <es-numfield name="Nx" :val="Nx" @numch="update"></es-numfield>
@@ -89,7 +89,7 @@
     -->
 
   </div>
-  <div id="showgrid" class="button">Toggle Grid Control</div>
+  <div id="showgrid" class="button">Grid Tool</div>
 
   <br><hr>
 
@@ -100,8 +100,15 @@
     <span>{{lineWidth}}</span>
   </div>
 
-  <div id="viewcol">
-    <chrome-picker :value="colors" @input="onUpdate"></chrome-picker>
+  <div id="colorcontainer">
+    <div class="button" id="showstroke">stroke</div>
+    <div class="button" id="showfill">fill</div>
+  <div id="strokecolor">
+    <chrome-picker :value="colors" @input="onUpdate" key="foo"></chrome-picker>
+  </div>
+  <div id="fillcolor">
+    <chrome-picker :value="colors" @input="onUpdate" key="bar"></chrome-picker>
+  </div>
   </div>
   <br><hr>
 

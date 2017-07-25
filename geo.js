@@ -424,22 +424,22 @@ const multiRosette3 = function(n1, n2, n3, a, d, skew, x, y) {
 //--------------------------------------------------------------------------------------------------
 
 const generateLattice = function(spec, nx, ny, d, phi, x, y) {
-    const transset = [];
-    const { vec0 } = spec;
-    const { vec1 } = spec;
-    // Build set of translations
-    for (var i = -floor(nx/2); i <= nx/2; i++) {
-	for (var j = -floor(ny/2); j <= ny/2; j++) {
-	    transset.push(TranslationTransform(((i*vec0[0]) + (j*vec1[0]))*d, 
-					       ((i*vec0[1]) + (j*vec1[1]))*d));
-	}
+  const transset = [];
+  const { vec0 } = spec;
+  const { vec1 } = spec;
+  // Build set of translations
+  for (var i = -floor(nx/2); i <= nx/2; i++) {
+    for (var j = -floor(ny/2); j <= ny/2; j++) {
+      transset.push(TranslationTransform(((i*vec0[0]) + (j*vec1[0]))*d,
+					 ((i*vec0[1]) + (j*vec1[1]))*d));
     }
-    // return lattice
-    //transset
-    // global rotation
-    const globalRot = RotationAbout(phi, 0, 0);
-    //affinesetproduct([globalRot], transset)
-    return transformAffineSet(globalRot, transset);
+  }
+  // Lattice Rotation
+  // - this is broken, gives a slight but noticeable pixel shift
+  //   even w. phi=0, 0,0  wtf, roundoff error in similarity trafo?
+  //const globalRot = RotationAbout(phi, 0, 0);
+  //return transformAffineSet(globalRot, transset);
+  return transset;
 };
 
 
@@ -449,9 +449,9 @@ const generateLattice = function(spec, nx, ny, d, phi, x, y) {
 const generateTiling = function(spec, nx, ny, d, phi, x, y) {
   let rotset = [];
   let refset = [];
-  const glideset = [];
+  let glideset = [];
   let Afset = [];
-  const transset = [];
+  let transset = [];
   const { rots } = spec;
   const { refs } = spec;
   const { vec0 } = spec;
@@ -486,17 +486,22 @@ const generateTiling = function(spec, nx, ny, d, phi, x, y) {
   Afset = Afset.concat(glideset);
 
   // Build set of translations
-  for (var i = -floor(nx/2); i <= nx/2; i++){ 
+  for (var i = -floor(nx/2); i <= nx/2; i++){
       for (var j = -floor(ny/2); j <= ny/2; j++) {
-      transset.push(TranslationTransform(((i*vec0[0]) + (j*vec1[0]))*d, ((i*vec0[1]) + (j*vec1[1]))*d));
+        transset.push(TranslationTransform(((i*vec0[0]) + (j*vec1[0]))*d,
+                                           ((i*vec0[1]) + (j*vec1[1]))*d));
     }
   }
 
   // Cartesian product of compositions
   const wholeset = affinesetproduct(transset, Afset);
 
-  // Global rotation
-  const globalRot = RotationAbout(phi, 0, 0);
+  // Global rotation: doesn't preserve IdentityTransform,
+  // so in eschersketch pointer doesn't map to itself, too confusing!
+  // have to transform the underlying spec itself to construct a rotated
+  // grid that includes identity
+  // const globalRot = RotationAbout(phi, x, y);
+  const globalRot = IdentityTransform();
   return transformAffineSet(globalRot, wholeset);
 };
 

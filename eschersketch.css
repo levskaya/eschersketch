@@ -1,9 +1,11 @@
-/*
- Eschersketch - A drawing program for exploring symmetrical designs
+/*------------------------------------------------------------------------------
+  Eschersketch - A drawing program for exploring symmetrical designs
 
- Copyright (c) 2017 Anselm Levskaya (http://anselmlevskaya.com)
- Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php) license.
-*/
+  Copyright (c) 2017 Anselm Levskaya (http://anselmlevskaya.com)
+  Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
+  license.
+-------------------------------------------------------------------------------*/
+
 @charset "utf-8";
 
 body {
@@ -72,6 +74,7 @@ input {
     background: #eeeeee;
     text-indent:0px;
     text-align: center;
+    //font-variant: small-caps;
     border-radius: 2px;
     margin: 2px;
     padding: 3px;
@@ -86,6 +89,7 @@ input {
     text-indent:0px;
     background: #eeeeee;
     text-align: center;
+    font-variant: small-caps;
     border-radius: 2px;
     margin: 2px;
     padding: 3px;

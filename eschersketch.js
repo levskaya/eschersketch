@@ -18,6 +18,7 @@ const allsyms = ['p1','pm','cm','pg',            //rot-free
                  'pmg','pgg','pmm','p2','cmm',   //180deg containing
                  'p4', 'p4g', 'p4m',             //square
                  'p3','p6','p31m','p3m1','p6m']; //hex
+var selectedsym = 'p6m';
 
 var gridstate = {x:800, y:400, d:100, t:0}; // XXX: Nx, Ny should be here too
 //const GRIDNX = 37;
@@ -40,7 +41,7 @@ var ctxStyle = {
 };
 
 var strokecolor = {r: 100, g:100, b:100, a:1.0};
-//var fillcolor = {r: 100, g:100, b:100, a:1.0};
+var fillcolor =   {r: 100, g:100, b:100, a:0.0};
 
 var lattice = {};
 var affineset = {};
@@ -50,8 +51,8 @@ var affineset = {};
 //------------------------------------------------------------------------------
 Vue.component('es-button', {
   template: `<div class="symsel"
-              v-bind:class="selected"
-              v-on:click="bclick">
+              :class="selected"
+              @click="bclick">
                 {{ sym.name }}
               </div>`,
   props: ['sym'],
@@ -70,7 +71,7 @@ Vue.component('es-button', {
 
 var vuesymsel = new Vue({
   el: '#vuesymsel',
-  data: { selected: allsyms[allsyms.length-1] },
+  data: { selected: selectedsym },
   computed: {
     syms: function(){
       symds=[];
@@ -83,6 +84,7 @@ var vuesymsel = new Vue({
   methods: {
     changesym: function(symname){
       //console.log("bclick emitted ", symname);
+      selectedsym = symname; //global
       this.selected = symname;
       for(var sym of this.syms){
         if(sym.name == symname) {sym.selected=true;}
@@ -91,9 +93,11 @@ var vuesymsel = new Vue({
       var gridcopy = {x:gridstate.x, y:gridstate.y, d:gridstate.d, t:gridstate.t};
       cmdstack.push(new SymmOp(symname, gridcopy));
       rerender(ctx);
+
+      //HACK: if the gridtool is active, update canvas if the grid ui is altered
+      if(curTool=="grid"){ drawTools["grid"].enter()};
     }
   },
-
 });
 
 
@@ -101,8 +105,8 @@ var vuesymsel = new Vue({
 //------------------------------------------------------------------------------
 Vue.component('es-numfield', {
   template: `<input type="text"
-              v-on:change="numch"
-              v-bind:value="val"
+              @change="numch"
+              :value="val"
               size="3"/>`,
   props: ['name', 'val'],
   methods: {
@@ -119,16 +123,20 @@ var gridparams = new Vue({
   data: gridstate,
   methods: {
     update: function(name, val){
-      console.log("grid update", name, val);
+      //console.log("grid update", name, val);
       gridstate[name]=Number(val);
       //console.log(vuesymsel.selected, gridstate);
       var gridcopy = {x:gridstate.x, y:gridstate.y, d:gridstate.d, t:gridstate.t};
       cmdstack.push(new SymmOp(vuesymsel.selected, gridcopy));
       rerender(ctx);
-    }
+
+      //HACK: if the gridtool is active, update canvas if the grid ui is altered
+      if(curTool=="grid"){ drawTools["grid"].enter()};
+    },
+    halveD: function(){ this.update("d", this.d/2.0); },
+    doubleD: function(){ this.update("d", this.d*2.0); },
   },
-  //hook:
-  updated: function(){console.log("changed", gridstate);}
+  //updated: function(){console.log("gridstate changed", gridstate);}
 });
 
 
@@ -146,7 +154,7 @@ var vuethicksel = new Vue({
   },
   methods: {
     changethick: function({type, target}){
-      console.log("changethick ", this.name, target.value);
+      //console.log("changethick ", this.name, target.value);
       //this.$emit("changethick", this.name, target.value);
       cmdstack.push(new StyleOp({lineWidth: target.value}));
       rerender(ctx);
@@ -168,9 +176,8 @@ var rgb2hex = function(r,g,b) {
 };
 
 
-colorvue = new Vue({
-  el:"#viewcol",
-  //data: {colors: defaultColorProps},
+strokecolorvue = new Vue({
+  el:"#strokecolor",
   data: strokecolor,
   computed: {
     colors: function(){
@@ -186,26 +193,54 @@ colorvue = new Vue({
   },
   methods: {
     onUpdate: _.debounce(function(x){
-      //console.log(x.rgba.r, x.rgba.g, x.rgba.b, x.rgba.a);
-      cmdstack.push(new ColorOp(x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
+      //console.log("stroke",x.rgba.r, x.rgba.g, x.rgba.b, x.rgba.a);
+      cmdstack.push(new ColorOp("stroke",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
       rerender(ctx);
       this.r = x.rgba.r;
       this.g = x.rgba.g;
       this.b = x.rgba.b;
       this.a = x.rgba.a;
-    }, 200),
-    // changeValue: function(r,g,b,a){
-    //   let newColor = {
-    //     hex: rgb2hex(r,g,b),
-    //     a: a
-    //   };
-    //   console.log(newColor);
-    //   this.colors = newColor;
-    // }
+    }, 200)
   }
 });
 
-//window.colorvue = colorvue;
+fillcolorvue = new Vue({
+  el:"#fillcolor",
+  data: fillcolor,
+  computed: {
+    colors: function(){
+      let newColor = {
+        hex: rgb2hex(this.r,this.g,this.b),
+        a: this.a
+      };
+      return newColor;
+      }
+    },
+  components: {
+    'chrome-picker': Chrome
+  },
+  methods: {
+    onUpdate: _.debounce(function(x){
+      //console.log("fill",x.rgba.r, x.rgba.g, x.rgba.b, x.rgba.a);
+      cmdstack.push(new ColorOp("fill",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
+      rerender(ctx);
+      this.r = x.rgba.r;
+      this.g = x.rgba.g;
+      this.b = x.rgba.b;
+      this.a = x.rgba.a;
+    }, 200)
+  }
+});
+
+document.getElementById("showstroke").onmousedown = function(e) {
+  document.getElementById("fillcolor").style.display="none";
+  document.getElementById("strokecolor").style.display="block";
+};
+document.getElementById("showfill").onmousedown = function(e) {
+  document.getElementById("strokecolor").style.display="none";
+  document.getElementById("fillcolor").style.display="block";
+};
+
 
 
 
@@ -249,7 +284,7 @@ var ctx = {};
 var cmdstack = [];
 var redostack = [];
 var rerender = function(ctx, clear=true) {
-  //console.log("rerender w. ", cmdstack.length, " ops");
+  console.log("rerendering ", cmdstack.length, " ops");
   if(clear){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
@@ -257,8 +292,9 @@ var rerender = function(ctx, clear=true) {
     cmd.render(ctx);
   }
 };
+var undo_init_bound = 0;
 var undo = function(){
-  if(cmdstack.length>0){
+  if(cmdstack.length > undo_init_bound){
     var cmd = cmdstack.pop();
     redostack.push(cmd);
     rerender(ctx);
@@ -324,10 +360,14 @@ class SymmOp {
     //update global storing current affineset... hacky
     updateTiling(this.sym, this.grid);
     // HACK: directly mutate global that's watched by vue...
+    selectedsym = this.sym;
     gridstate.x = this.grid.x;
     gridstate.y = this.grid.y;
     gridstate.d = this.grid.d;
     gridstate.t = this.grid.t;
+
+    //HACK: if the gridtool is active, update canvas if the grid ui is altered
+    if(curTool=="grid"){ drawTools["grid"].enter()};
   }
 
   serialize(){
@@ -339,11 +379,12 @@ class SymmOp {
   }
 }
 
+
 // ColorOp sets stroke color of ctx
 //------------------------------------------------------------------------------
-// XXX: figure out how to do fill color
 class ColorOp {
-  constructor(r,g,b,a) {
+  constructor(target,r,g,b,a) {
+    this.target = target; // "fill" or "stroke"
     this.r = r;
     this.g = g;
     this.b = b;
@@ -351,22 +392,34 @@ class ColorOp {
   }
 
   render(ctx){
-    ctx.strokeStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
-    // HACK: ghetto, fix application to all contexts...
-    lctx.strokeStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
-    // HACK: directly mutate global that's watched by vue...
-    strokecolor.r = this.r;
-    strokecolor.g = this.g;
-    strokecolor.b = this.b;
-    strokecolor.a = this.a;
+    if(this.target == "stroke") {
+      ctx.strokeStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
+      // HACK: ghetto, fix application to all contexts...
+      lctx.strokeStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
+      // HACK: directly mutate global that's watched by vue...
+      strokecolor.r = this.r;
+      strokecolor.g = this.g;
+      strokecolor.b = this.b;
+      strokecolor.a = this.a;
+    }
+    else if(this.target == "fill") {
+      ctx.fillStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
+      // HACK: ghetto, fix application to all contexts...
+      lctx.fillStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
+      // HACK: directly mutate global that's watched by vue...
+      fillcolor.r = this.r;
+      fillcolor.g = this.g;
+      fillcolor.b = this.b;
+      fillcolor.a = this.a;
+    }
   }
 
   serialize(){
-    return ["color", this.r, this.g, this.b, this.a];
+    return ["color", this.target, this.r, this.g, this.b, this.a];
   }
 
   deserialize(data){
-    return new ColorOp(data[1], data[2], data[3], data[4]);
+    return new ColorOp(data[1], data[2], data[3], data[4], data[5]);
   }
 }
 
@@ -403,32 +456,139 @@ class StyleOp {
 }
 
 
-//class LineThicknessOp {
-//   constructor(w){
-//  }
-//}
 
 //------------------------------------------------------------------------------
 // Drawing Ops and Tools
 //------------------------------------------------------------------------------
+var l2dist = function(pt0, pt1){
+  return Math.sqrt(Math.pow(pt1[0]-pt0[0],2)+Math.pow(pt1[1]-pt0[1],2));
+};
 
+class GridTool {
+  constructor() {
+    this.x = gridstate.x;
+    this.y = gridstate.y;
+    this.d = gridstate.d;
+    this.t = gridstate.t;
+    this.p0 = [0,0];
+    this.p1 = [0,0];
+    this.pR = 10;
+    this.state = "off";
+  }
 
-// class GridTool {
-//   constructor(x,y,d,t) {
-//     this.x = x;
-//     this.y = y;
-//     this.d = d;
-//     this.t = t;
-//   }
-//
-//   enter(){ // XXX: called when tool first selected
-//     // DRAW GRID & Controls here
-//   }
-//
-//   exit(){ // XXX: called when tool leaves
-//     // Erase GRID & Controls
-//   }
-// }
+  enter(){
+    this.x = gridstate.x;
+    this.y = gridstate.y;
+    this.d = gridstate.d;
+    this.t = gridstate.t;
+    this.liverender();
+  }
+
+  exit(){
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+  }
+
+  commit(){
+    cmdstack.push(new SymmOp(selectedsym, {x: this.x, y: this.y, d: this.d, t: this.t}));
+    rerender(ctx);
+  }
+
+  mouseDown(e) {
+    e.preventDefault();
+    let rect = livecanvas.getBoundingClientRect();
+    let pt = [e.clientX-rect.left, e.clientY-rect.top];
+    if(l2dist(pt,this.p0)<this.pR){
+      this.state = "move";
+    }
+    if(l2dist(pt,this.p1)<this.pR){
+      this.state = "scale";
+    }
+  }
+
+  mouseMove(e) {
+    let rect = livecanvas.getBoundingClientRect();
+    let pt = [e.clientX-rect.left, e.clientY-rect.top];
+    // dynamic mouse-pointer logic
+    if(l2dist(pt, this.p0)<this.pR && this.state == "off"){
+      livecanvas.style.cursor="all-scroll";
+    } else if(l2dist(pt, this.p1)<this.pR && this.state == "off"){
+      livecanvas.style.cursor="ew-resize";
+    } else if(this.state == "off"){
+      livecanvas.style.cursor="crosshair";
+    } else {
+      livecanvas.style.cursor="none";
+    }
+
+    if (this.state == "move") {
+      this.x = pt[0];
+      this.y = pt[1];
+      this.liverender();
+    }
+    if (this.state == "scale") {
+      let dist = l2dist(pt, this.p0);
+      //grid vector not unit vectors! so we correct:
+      let alpha = l2dist(this.p1, this.p0)/this.d;
+      this.d = dist/alpha;
+      this.liverender();
+    }
+  }
+
+  mouseUp(e) {
+    if(this.state != "off"){
+      this.commit();
+      this.state = "off";
+      this.liverender();
+    }
+  }
+
+  liverender() {
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    //const v0 = RotationTransform(this.t).onVec(planarSymmetries[selectedsym].vec0);
+    //const v1 = RotationTransform(this.t).onVec(planarSymmetries[selectedsym].vec1);
+    const v0 = planarSymmetries[selectedsym].vec0;
+    const v1 = planarSymmetries[selectedsym].vec1;
+    let p0 = [this.x, this.y];
+    let p1 = [(this.d * v0[0]) + this.x, (this.d * v0[1]) + this.y];
+    let p2 = [(this.d * v1[0]) + this.x, (this.d * v1[1]) + this.y];
+    this.p0 = p0; //save for canvas hit-detection
+    this.p1 = p1;
+
+    let newlattice = generateLattice(planarSymmetries[selectedsym],
+                                  GRIDNX, GRIDNY,
+                                  this.d, this.t,
+                                  this.x, this.y);
+    // Draw Lattice
+    for (let af of newlattice) {
+      let Tp0 = af.on(p0[0],p0[1]);
+      let Tp1 = af.on(p1[0],p1[1]);
+      let Tp2 = af.on(p2[0],p2[1]);
+      lctx.beginPath();
+      lctx.moveTo(Tp0[0],Tp0[1]);
+      lctx.lineTo(Tp1[0],Tp1[1]);
+      lctx.moveTo(Tp0[0],Tp0[1]);
+      lctx.lineTo(Tp2[0],Tp2[1]);
+      lctx.stroke();
+    }
+
+    const circR = this.pR;
+    lctx.save();
+    lctx.fillStyle = "rgba(0,0,0,0.1)";
+    lctx.lineWidth = 4.0;
+    if(this.state == "move"){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
+    else {lctx.strokeStyle = "rgba(0,0,0,0.5)";}
+    lctx.beginPath();
+    lctx.arc(p0[0], p0[1], circR, 0, 2*Math.PI);
+    lctx.stroke();
+    lctx.fill();
+    if(this.state == "scale"){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
+    else {lctx.strokeStyle = "rgba(0,0,0,0.5)";}
+    lctx.beginPath();
+    lctx.arc(p1[0], p1[1], circR, 0, 2*Math.PI);
+    lctx.stroke();
+    lctx.fill();
+    lctx.restore();
+  }
+}
 
 
 // Draw Single Line Segments
@@ -445,7 +605,6 @@ class LineOp {
       const Tp2 = af.on(this.end.x, this.end.y);
       ctx.line(Tp1[0], Tp1[1], Tp2[0], Tp2[1]);
     }
-    //ctx.line(this.start.x, this.start.y, this.end.x, this.end.y);
   }
 
   serialize(){
@@ -467,7 +626,6 @@ class LineTool {
 
   liverender() {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
-    //lctx.line(this.start.x, this.start.y, this.end.x, this.end.y);
     for (let af of affineset) {
       const Tp1 = af.on(this.start.x, this.start.y);
       const Tp2 = af.on(this.end.x, this.end.y);
@@ -618,10 +776,8 @@ class CircleOp {
       ctx.beginPath();
       ctx.arc(Tc1[0], Tc1[1], Tr, 0, 2*Math.PI);
       ctx.stroke();
+      ctx.fill();
     }
-    //ctx.beginPath();
-    //ctx.arc(this.center.x, this.center.y, this.radius, 0, 2*Math.PI);
-    //ctx.stroke();
   }
 
   serialize(){
@@ -649,10 +805,8 @@ class CircleTool {
       lctx.beginPath();
       lctx.arc(Tc1[0], Tc1[1], Tr, 0, 2*Math.PI);
       lctx.stroke();
+      lctx.fill();
     }
-    //lctx.beginPath();
-    //lctx.arc(this.center.x, this.center.y, this.radius, 0, 2*Math.PI);
-    //lctx.stroke();
   }
 
   commit() {
@@ -701,15 +855,38 @@ class CircleTool {
 var drawTools = {
   line: new LineTool(),
   circle: new CircleTool(),
-  pencil: new PencilTool()
+  pencil: new PencilTool(),
+  grid: new GridTool()
 };
+
 var curTool = "line";
 
-//ghetto:
-document.getElementById("linetool").onmousedown = function(e) { curTool = "line"; };
-document.getElementById("circletool").onmousedown = function(e) { curTool = "circle"; };
-document.getElementById("penciltool").onmousedown = function(e) { curTool = "pencil"; };
+var changeTool = function(toolName){
+  let oldTool = drawTools[curTool];
+  if('exit' in oldTool){
+    oldTool.exit();
+  }
+  // update global
+  curTool = toolName;
+  let newTool = drawTools[toolName];
+  if('enter' in newTool){
+    newTool.enter();
+  }
+};
 
+
+// tmp: directly link selectors to changeTool
+document.getElementById("linetool").onmousedown   = function(e) { changeTool("line"); };
+document.getElementById("circletool").onmousedown = function(e) { changeTool("circle"); };
+document.getElementById("penciltool").onmousedown = function(e) { changeTool("pencil"); };
+document.getElementById("showgrid").onmousedown   = function(e) { changeTool("grid"); };
+
+
+// Set up Save SVG / Save PNG
+//------------------------------------------------------------------------------
+// XXX: this can take a long damn time with a complicated scene! At minimum should
+// do redraws with smaller grid Nx,Ny by default or just restrict SVG export to
+// tile?
 document.getElementById("saveSVG").onmousedown = function(e) {
   // canvas2svg fake context:
   C2Sctx = new C2S(canvas.width, canvas.height);
@@ -776,7 +953,6 @@ const pixelFix = function(canvas) {
 
 
 
-
 var initGUI = function() {
 
   canvas = document.getElementById("sketchrender");
@@ -800,28 +976,59 @@ var initGUI = function() {
   livecanvas.onmousemove = dispatchMouseMove;
 
   initState();
+
+  doHACKS();
+
+  // style init...
+  document.getElementById("fillcolor").style.display="none";
+  document.getElementById("strokecolor").style.display="block";
+
 };
 
 // should be "reset"
 var initState = function() {
-  cmdstack.push(new ColorOp(strokecolor.r,
-                            strokecolor.g,
-                            strokecolor.b,
-                            strokecolor.a));
+  cmdstack.push(new ColorOp(
+    "stroke",
+    strokecolor.r,
+    strokecolor.g,
+    strokecolor.b,
+    strokecolor.a));
 
-  cmdstack.push(new SymmOp(allsyms[allsyms.length-1], gridstate));
+  cmdstack.push(new ColorOp(
+    "fill",
+    fillcolor.r,
+    fillcolor.g,
+    fillcolor.b,
+    fillcolor.a));
+
   cmdstack.push(new StyleOp({
     lineCap: "butt",
     lineJoin: "round",
     miterLimit: 10.0,
     lineWidth: 1.0}));
 
+  var gridcopy = {x:gridstate.x, y:gridstate.y, d:gridstate.d, t:gridstate.t};
+  cmdstack.push(new SymmOp(
+    allsyms[allsyms.length-1],
+    gridcopy));
+
+  // set global undo boundary so these initial
+  // settings don't get lost (needed for drawstate stability
+  // during reset on redraw)
+  undo_init_bound = 4;
+
   rerender(ctx);
 };
 
-
-//var blob = new Blob(["Hello, world!"], {type: "text/plain;charset=utf-8"});
-//FileSaver.saveAs(blob, "hello world.txt");
-
-//var blob = new Blob(["Hello, world!"], {type: "image/svg+xml"});
-//FileSaver.saveAs(blob, "eschersketch.svg");
+// Temporary HACKs (remove this shite)
+var doHACKS = function() {
+  //harmonize vue color picker style... need to fix in source...
+  var _els = document.getElementsByClassName("vue-color__chrome");
+  for(let _el of _els){
+    _el.style.boxShadow="none";
+  }
+  _els = document.getElementsByClassName("vue-color__chrome__chrome-body");
+  for(let _el of _els){
+    _el.style.backgroundColor="#f9f9f9";
+  }
+};

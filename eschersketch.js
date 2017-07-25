@@ -13,6 +13,9 @@
 // Imports
 const { Chrome } = VueColor;
 
+//Event Bus -- use Vuex instead?
+var bus = new Vue();
+
 // Symmetries
 const allsyms = ['p1','pm','cm','pg',            //rot-free
                  'pmg','pgg','pmm','p2','cmm',   //180deg containing
@@ -104,22 +107,19 @@ var vuesymsel = new Vue({
 // Grid UI
 //------------------------------------------------------------------------------
 Vue.component('es-numfield', {
-  template: `<input type="text"
-              @change="numch"
-              :value="val"
-              size="3"/>`,
+  template: `<input type="text" @change="numchange" :value="val" size="3"/>`,
   props: ['name', 'val'],
   methods: {
-    numch: function({type, target}){
+    numchange: function({type, target}){
       target.blur();
-      //console.log("numch ", this.name, target.value);
-      this.$emit("numch", this.name, target.value);
+      //console.log("numchange ", this.name, target.value);
+      this.$emit("numchange", this.name, target.value);
     }
   }
 });
 
-var gridparams = new Vue({
-  el: '#gridparams',
+var gridUI = new Vue({
+  el: '#gridUI',
   data: gridstate,
   methods: {
     update: function(name, val){
@@ -142,15 +142,15 @@ var gridparams = new Vue({
 
 // Line Width UI
 //------------------------------------------------------------------------------
-var vuethicksel = new Vue({
-  el: '#linethicksel',
+var thicknessUI = new Vue({
+  el: '#thicknessUI',
   data: ctxStyle,
-  //data: {value: 1.0, max:10.0, min:0.1, step:0.1, name:"thicksel"},
+  //data: {value: 1.0, max:10.0, min:0.1, step:0.1, name:"thicknessUI"},
   created: function(){
     this.max = 10.0;
     this.min = 0.1;
     this.step = 0.1;
-    this.name = "thicksel";
+    this.name = "thicknessUI";
   },
   methods: {
     changethick: function({type, target}){
@@ -262,6 +262,20 @@ var dispatchMouseMove = function(e) {
   drawTools[curTool].mouseMove(e);
 };
 
+var dispatchMouseLeave = function(e) {
+  if("mouseLeave" in drawTools[curTool]) {
+    drawTools[curTool].mouseLeave(e);
+  }
+};
+
+var dispatchKeyDown = function(e) {
+  //e.preventDefault(); //?
+  //console.log(e);
+  if("keyDown" in drawTools[curTool]) {
+    drawTools[curTool].keyDown(e);
+  }
+};
+
 
 // Canvas / Context Globals...
 //------------------------------------------------------------------------------
@@ -294,6 +308,8 @@ var rerender = function(ctx, clear=true) {
 };
 var undo_init_bound = 0;
 var undo = function(){
+  //make sure stateful drawing tool isn't left in a weird spot
+  if('exit' in drawTools[curTool]) {drawTools[curTool].exit();}
   if(cmdstack.length > undo_init_bound){
     var cmd = cmdstack.pop();
     redostack.push(cmd);
@@ -307,6 +323,12 @@ var redo = function(){
     rerender(ctx);
   }
 };
+var reset = function(){
+  //make sure stateful drawing tool isn't left in a weird spot
+  if('exit' in drawTools[curTool]) {drawTools[curTool].exit();}
+  cmdstack = [];
+  initState();
+};
 
 document.getElementById("undo").onmousedown =
   function(e) {
@@ -318,7 +340,25 @@ document.getElementById("redo").onmousedown =
     e.preventDefault();
     redo();
   };
-
+document.getElementById("reset").onmousedown =
+  function(e) {
+    e.preventDefault();
+    if(e.target.classList.contains('armed')){
+      reset();
+      e.target.classList.remove('armed');
+      e.target.innerHTML = "reset"
+    } else {
+      e.target.classList.add('armed');
+      e.target.innerHTML = "reset?!"
+    }
+  };
+document.getElementById("reset").onmouseleave =
+  function(e) {
+    if(e.target.classList.contains('armed')){
+      e.target.classList.remove('armed');
+      e.target.innerHTML = "reset";
+    }
+  };
 
 
 //------------------------------------------------------------------------------
@@ -466,10 +506,7 @@ var l2dist = function(pt0, pt1){
 
 class GridTool {
   constructor() {
-    this.x = gridstate.x;
-    this.y = gridstate.y;
-    this.d = gridstate.d;
-    this.t = gridstate.t;
+    Object.assign(this, gridstate); //x,y,d,t
     this.p0 = [0,0];
     this.p1 = [0,0];
     this.pR = 10;
@@ -477,10 +514,7 @@ class GridTool {
   }
 
   enter(){
-    this.x = gridstate.x;
-    this.y = gridstate.y;
-    this.d = gridstate.d;
-    this.t = gridstate.t;
+    Object.assign(this, gridstate); //x,y,d,t
     this.liverender();
   }
 
@@ -616,12 +650,13 @@ class LineOp {
   }
 }
 
-class LineTool {
+class FancyLineTool {
   constructor() {
     this.start = {};
     this.end = {};
-    this.on = false;
+    this.state = "init";
     this.drawInterval = 0;
+    this.pR = 4
   }
 
   liverender() {
@@ -631,6 +666,19 @@ class LineTool {
       const Tp2 = af.on(this.end.x, this.end.y);
       lctx.line(Tp1[0], Tp1[1], Tp2[0], Tp2[1]);
     }
+    lctx.save();
+    lctx.fillStyle = "rgba(255,0,0,0.2)";
+    lctx.lineWidth = 1.0;
+    lctx.strokeStyle = "rgba(255,0,0,1.0)";
+    lctx.beginPath();
+    lctx.arc(this.start.x-1, this.start.y-1, this.pR, 0, 2*Math.PI);
+    lctx.stroke();
+    lctx.fill();
+    lctx.beginPath();
+    lctx.arc(this.end.x-1, this.end.y-1, this.pR, 0, 2*Math.PI);
+    lctx.stroke();
+    lctx.fill();
+    lctx.restore();
   }
 
   commit() {
@@ -639,39 +687,85 @@ class LineTool {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
-  //cancel() { lctx.clearRect(0, 0, livecanvas.width, livecanvas.height); }
+  cancel() {
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.state = "init";
+    this.start = {};
+    this.end = {};
+  }
 
   mouseDown(e) {
-    e.preventDefault();
-    var rect = canvas.getBoundingClientRect();
-    this.start = { x: e.clientX - rect.left,
-                   y: e.clientY - rect.top};
-    this.on = true;
+    let rect = livecanvas.getBoundingClientRect();
+    let pt = [e.clientX-rect.left, e.clientY-rect.top];
+    if(l2dist(pt,[this.start.x,this.start.y])<this.pR) {
+      this.state = "moveStart";
+    } else if(l2dist(pt,[this.end.x,this.end.y])<this.pR) {
+      this.state = "moveEnd";
+    } else {
+      if(this.state=="off") {
+        this.commit();
+      }
+      this.state = "newLine";
+      this.start = { x: pt[0], y: pt[1] };
+    }
   }
 
   mouseMove(e) {
-    if (this.on) {
+    let rect = livecanvas.getBoundingClientRect();
+    let pt = [e.clientX-rect.left, e.clientY-rect.top];
+    if (this.state == "newLine") {
       if (this.drawInterval <= 0) {
-        var rect = canvas.getBoundingClientRect();
-        this.end = { x: e.clientX - rect.left,
-                     y: e.clientY - rect.top};
+        this.end = { x: pt[0], y: pt[1] };
         this.liverender();
         this.drawInterval = 1;
       }
       this.drawInterval--;
     }
+    else if (this.state == "moveStart") {
+      this.start = { x: pt[0], y: pt[1] };
+      this.liverender();
+    }
+    else if (this.state == "moveEnd") {
+      this.end = { x: pt[0], y: pt[1] };
+      this.liverender();
+    }
   }
 
   mouseUp(e) {
-    this.on = false;
-    this.commit();
-    this.start = {};
-    this.end = {};
+    this.state = "off";
+  }
+
+  mouseLeave(e) {
+    this.exit();
+  }
+
+  keyDown(e) {
+    console.log("recvd", e);
+    if(e.code == "Enter"){
+      this.state = "off";
+      this.commit();
+      this.start = {};
+      this.end = {};
+    } else if(e.code=="Escape"){
+      this.cancel();
+    }
+  }
+
+  exit(){
+    if(this.state=="off") {
+      this.commit();
+      this.start = {};
+      this.end = {};
+      this.state = "init";
+    }
   }
 }
 
+
+
 // Draw Raw Mousepath (Pencil)
 //------------------------------------------------------------------------------
+//TODO: add smoothing factor
 class PencilOp {
   constructor(points) {
     this.points = points;
@@ -730,7 +824,7 @@ class PencilTool {
 
   mouseDown(e) {
     //e.preventDefault();
-    console.log("penciltool mdown");
+    //console.log("penciltool mdown");
     var rect = canvas.getBoundingClientRect(); //XXX: which canvas appropriate?
     this.points.push({ x: e.clientX - rect.left,
                        y: e.clientY - rect.top});
@@ -739,7 +833,7 @@ class PencilTool {
 
   mouseMove(e) {
     if (this.on) {
-    console.log("penciltool mmov");
+      //console.log("penciltool mmov");
       if (this.drawInterval <= 0) {
         var rect = canvas.getBoundingClientRect();
         this.points.push({ x: e.clientX - rect.left,
@@ -752,7 +846,7 @@ class PencilTool {
   }
 
   mouseUp(e) {
-    console.log("penciltool mup");
+    //console.log("penciltool mup");
     this.on = false;
     this.commit();
     this.points = [];
@@ -853,7 +947,7 @@ class CircleTool {
 // Set up Globals and UI for calling into Drawing Tools
 //------------------------------------------------------------------------------
 var drawTools = {
-  line: new LineTool(),
+  line: new FancyLineTool(),
   circle: new CircleTool(),
   pencil: new PencilTool(),
   grid: new GridTool()
@@ -874,12 +968,28 @@ var changeTool = function(toolName){
   }
 };
 
+//HACK : need to vueify the rest of the UI...
+var exclusiveClassToggle = function(target, className){
+  let _els = document.getElementsByClassName(className);
+  for(let _el of _els){
+    _el.classList.remove(className);
+  }
+  target.classList.add(className);
+};
 
 // tmp: directly link selectors to changeTool
-document.getElementById("linetool").onmousedown   = function(e) { changeTool("line"); };
-document.getElementById("circletool").onmousedown = function(e) { changeTool("circle"); };
-document.getElementById("penciltool").onmousedown = function(e) { changeTool("pencil"); };
-document.getElementById("showgrid").onmousedown   = function(e) { changeTool("grid"); };
+document.getElementById("linetool").onmousedown   = function(e) {
+  exclusiveClassToggle(e.target, "tool-selected");
+  changeTool("line"); };
+document.getElementById("circletool").onmousedown = function(e) {
+  exclusiveClassToggle(e.target, "tool-selected");
+  changeTool("circle"); };
+document.getElementById("penciltool").onmousedown = function(e) {
+  exclusiveClassToggle(e.target, "tool-selected");
+  changeTool("pencil"); };
+document.getElementById("showgrid").onmousedown   = function(e) {
+  exclusiveClassToggle(e.target, "tool-selected");
+  changeTool("grid"); };
 
 
 // Set up Save SVG / Save PNG
@@ -952,39 +1062,6 @@ const pixelFix = function(canvas) {
 };
 
 
-
-var initGUI = function() {
-
-  canvas = document.getElementById("sketchrender");
-  canvas.width = CANVAS_WIDTH;
-  canvas.height = CANVAS_HEIGHT;
-  pixelFix(canvas);
-  ctx = canvas.getContext("2d");
-  ctx.line = drawLine;
-  //ctx.fillStyle = "rgb(0, 255, 255)";
-
-  livecanvas = document.getElementById("sketchlive");
-  livecanvas.width = CANVAS_WIDTH;
-  livecanvas.height = CANVAS_HEIGHT;
-  pixelFix(livecanvas);
-  lctx = livecanvas.getContext("2d");
-  lctx.line = drawLine;
-  //lctx.fillStyle =   "rgb(0, 255, 255)";
-
-  livecanvas.onmousedown = dispatchMouseDown;
-  livecanvas.onmouseup   = dispatchMouseUp;
-  livecanvas.onmousemove = dispatchMouseMove;
-
-  initState();
-
-  doHACKS();
-
-  // style init...
-  document.getElementById("fillcolor").style.display="none";
-  document.getElementById("strokecolor").style.display="block";
-
-};
-
 // should be "reset"
 var initState = function() {
   cmdstack.push(new ColorOp(
@@ -1019,6 +1096,42 @@ var initState = function() {
 
   rerender(ctx);
 };
+
+
+var initGUI = function() {
+
+  canvas = document.getElementById("sketchrender");
+  canvas.width = CANVAS_WIDTH;
+  canvas.height = CANVAS_HEIGHT;
+  pixelFix(canvas);
+  ctx = canvas.getContext("2d");
+  ctx.line = drawLine;
+  //ctx.fillStyle = "rgb(0, 255, 255)";
+
+  livecanvas = document.getElementById("sketchlive");
+  livecanvas.width = CANVAS_WIDTH;
+  livecanvas.height = CANVAS_HEIGHT;
+  pixelFix(livecanvas);
+  lctx = livecanvas.getContext("2d");
+  lctx.line = drawLine;
+  //lctx.fillStyle =   "rgb(0, 255, 255)";
+
+  livecanvas.onmousedown = dispatchMouseDown;
+  livecanvas.onmouseup   = dispatchMouseUp;
+  livecanvas.onmousemove = dispatchMouseMove;
+  livecanvas.onmouseleave = dispatchMouseLeave;
+  document.getElementsByTagName("body")[0].onkeydown = dispatchKeyDown;
+
+  initState();
+
+  doHACKS();
+
+  // style init...
+  document.getElementById("fillcolor").style.display="none";
+  document.getElementById("strokecolor").style.display="block";
+
+};
+
 
 // Temporary HACKs (remove this shite)
 var doHACKS = function() {

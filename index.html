@@ -52,6 +52,10 @@
   <div id="redo" class="button">
     redo <img src="svg/ic_skip_next_black_24px.svg"/>
   </div>
+  <div id="reset" class="button">
+    reset
+  </div>
+
   <br><hr>
 
   <!-- Tool Selection -->
@@ -70,22 +74,22 @@
   </div>
 
   <!-- Grid Control -->
-  <div id="gridparams">
+  <div id="gridUI">
     <span style="margin:5px;">x</span>
-    <es-numfield name="x" :val="x" @numch="update"></es-numfield>
+    <es-numfield name="x" :val="x" @numchange="update"></es-numfield>
     <span style="margin:5px;">y</span>
-    <es-numfield name="y" :val="y" @numch="update"></es-numfield>
+    <es-numfield name="y" :val="y" @numchange="update"></es-numfield>
     <span style="margin:5px;">&Delta;</span>
-    <es-numfield name="d" :val="d" @numch="update"></es-numfield>
+    <es-numfield name="d" :val="d" @numchange="update"></es-numfield>
     <div class="button" @click="halveD">&frac12;</div>
     <div class="button" @click="doubleD">2x</div>
     <!--<span style="margin:5px;">&theta;</span>
-    <es-numfield name="t" :val="t" @numch="update"></es-numfield>-->
+    <es-numfield name="t" :val="t" @numchange="update"></es-numfield>-->
     <!--
         <span style="margin:5px;">Nx</span>
-        <es-numfield name="Nx" :val="Nx" @numch="update"></es-numfield>
+        <es-numfield name="Nx" :val="Nx" @numchange="update"></es-numfield>
         <span style="margin:5px;">Ny</span>
-        <es-numfield name="Ny" :val="Ny" @numch="update"></es-numfield>
+        <es-numfield name="Ny" :val="Ny" @numchange="update"></es-numfield>
     -->
 
   </div>
@@ -94,7 +98,7 @@
   <br><hr>
 
   <span style="font-variant: small-caps;">line width</span>
-  <div id="linethicksel">
+  <div id="thicknessUI">
     <input type="range" :value="lineWidth"
            :min="min" :max="max" :step="step" :name="name" @change="changethick">
     <span>{{lineWidth}}</span>

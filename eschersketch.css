@@ -113,7 +113,9 @@ input {
 	border-bottom: 10px solid transparent;
 	border-right :10px solid black;
 }
+.tool-selected { background: rgba(250,150,150,0.6); }
 .selected { background: rgba(250,150,150,0.6); }
+.armed { background: rgba(255,0,0,0.6); }
 .grad {
     background-image: linear-gradient(to bottom, #000, #fff);
     background-image: -webkit-linear-gradient(top, #000, #fff);

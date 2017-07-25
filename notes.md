@@ -106,12 +106,17 @@ undo/redo force redraws for now
 
 additional optimization for lots of symmetry redraws: draw a smaller set of nearby tiled symms for live redraw, and draw the whole set only upon commit
 
-# Tile Export
+## Export
 
 Export the lattice tile (not smallest repeating unit, lattice
 tiles are easy to tile in a cartesian manner for designers)
 Have a way of redrawing at higher res?
 
-SVG - easy enough to do an OKish export from the command stack
+SVG
+- current canvas2svg can take a while and makes huge, repetitive files... should strongly limit
+  Nx,Ny repeats of grid, or create custom serializer that creates a "def" object around a single
+  untransformed set of graphical objects and then renders symmetries with <use> elements with
+  matrix SVG trafos
+
 
 

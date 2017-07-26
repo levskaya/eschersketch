@@ -527,7 +527,7 @@ const planarSymmetries = {
   hexgrid: {
     rots: [],
     refs: [],
-    vec0: [ sqrt(3)/2, 1.5 ],
+    vec0: [ sqrt(3)/2, -1.5 ],
     vec1: [ sqrt(3), 0.0]
   },
 

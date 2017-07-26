@@ -1,11 +1,29 @@
 # Eschersketch Notes
 
+## MVP
+- polygon tool
+- bezier tool
+- arc tool?
+- rosette groups UI and identity (no trafo)
+- gridsize nx,ny limit to some max so as not to crash browser...
+- tile png export
+- tile svg export (clipping) if easy... later if hard
+- refactor to be hackable later...
+- touch events if not insane
+
+later...
+- UI improvement
+- frieze groups
+- color-rot wallpaper groups?
+
 ## Bugs
 
 - modified lines around 437 of canvas2svg.js - the IE fix section that fixes
   xmnls uses a regex that hits recursion depth on our huge SVG files...
   so commented out that fix
 
+- colorpicker flakes if fillcolor, strokecolor RGBs are same on init... seems fine
+  if they're set different.
 
 ## Vue
 
@@ -16,7 +34,7 @@ simpler color picker, not quite as nice:
 https://codepen.io/getflourish/pen/NbxByK
 
 CAVEATS!!!
-
+ARRAY CAVEATS:
     vm.items[indexOfItem] = newValue  won't update reactive array!
 must use Vue.set:
     Vue.set(example1.items, indexOfItem, newValue)
@@ -24,6 +42,25 @@ No:
     vm.items.length = newLength
 Yes:
     example1.items.splice(newLength)
+
+OBJECT CAVEATS:
+var vm = new Vue({
+  data: {
+    a: 1
+  }
+})
+// `vm.a` is now reactive
+vm.b = 2
+// `vm.b` is NOT reactive
+
+instead use
+Vue.set(vm.someObject, 'b', 2)
+or
+this.$set(this.someObject, 'b', 2)
+
+careful with objects
+// instead of `Object.assign(this.someObject, { a: 1, b: 2 })`
+this.someObject = Object.assign({}, this.someObject, { a: 1, b: 2 })
 
 nice keyboard event modifiers, etc.:
 https://vuejs.org/v2/guide/events.html
@@ -40,20 +77,23 @@ sliders (input range) styling:
     http://brennaobrien.com/blog/2014/05/style-input-type-range-in-every-browser.html
 
 ## Tools
-
 - freehand lines, pressure-sensitive (width or color intensity)
 - ellipse
 - free polygon
 - rectangle any orientation (fat line)
 - bezier
-- magic-wand - tricky but doable, good for coloring-in serendipitous regions:
+- magic-wand - tricky but doable, good for coloring-in serendipitous regions
+  ALREADY MADE:
+  https://jsfiddle.net/Tamersoul/dr7Dw/
+  https://github.com/Tamersoul/magic-wand-js
+  exposition:
   http://losingfight.com/blog/2007/08/28/how-to-implement-a-magic-wand-tool/
-- sprite transfer
+  OK this doesn't really work easy... pixel ops don't really work in a precise
+  vector environment...
+- sprite transfer?
   https://devbutze.blogspot.com/2014/02/html5-canvas-offscreen-rendering.html
 
 ## Symmetries
-
-- add hex-grid / tri-grid "symmetries"... ?
 - add rosette-group symms
 - add frieze symms ?
 - other nonlinear scaling symms

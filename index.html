@@ -88,13 +88,11 @@
     <es-numfield name="d" :val="d" @numchange="update"></es-numfield>
     <div class="button" @click="halveD">&frac12;</div>
     <div class="button" @click="doubleD">2x</div>
-    <!--<span style="margin:5px;">&theta;</span>
-    <es-numfield name="t" :val="t" @numchange="update"></es-numfield>-->
     <!--
-        <span style="margin:5px;">Nx</span>
-        <es-numfield name="Nx" :val="Nx" @numchange="update"></es-numfield>
-        <span style="margin:5px;">Ny</span>
-        <es-numfield name="Ny" :val="Ny" @numchange="update"></es-numfield>
+    <span style="margin:5px;">Nx</span>
+    <es-numfield name="Nx" :val="Nx" @numchange="update"></es-numfield>
+    <span style="margin:5px;">Ny</span>
+    <es-numfield name="Ny" :val="Ny" @numchange="update"></es-numfield>
     -->
 
   </div>
@@ -110,7 +108,7 @@
   </div>
 
   <div id="colorcontainer">
-    <div class="button" id="showstroke">stroke</div>
+    <div class="button selected" id="showstroke">stroke</div>
     <div class="button" id="showfill">fill</div>
   <div id="strokecolor">
     <chrome-picker :value="colors" @input="onUpdate" key="foo"></chrome-picker>

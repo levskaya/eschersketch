@@ -14,10 +14,10 @@
 const { Chrome } = VueColor;
 
 //Event Bus -- use Vuex instead?
-var bus = new Vue();
+//var bus = new Vue();
 
 // Symmetries
-const allsyms = ['p1','diagonalgrid','pm','cm','pg',            //rot-free
+const allsyms = ['p1','diagonalgrid','pm','cm','pg', //rot-free
                  'pmg','pgg','pmm','p2','cmm',   //180deg containing
                  'p4', 'p4g', 'p4m',             //square
                  'hexgrid','p3','p6','p31m','p3m1','p6m']; //hex
@@ -35,8 +35,9 @@ const CANVAS_HEIGHT = 1200;
 const MIN_LINEWIDTH = 0.01;
 const MAX_LINEWIDTH = 4;
 
-//stores the rescaling ratio used by pixelFix, needed for pixel-level manipulation
-var pixelratio = 1;
+// stores the rescaling ratio used by pixelFix,
+// needed for pixel-level manipulation
+//var pixelratio = 1;
 
 var ctxStyle = {
   lineCap: "butt", // butt, round, square
@@ -54,10 +55,9 @@ var affineset = {};
 
 // Math Functions
 //------------------------------------------------------------------------------
-var l2norm = pt =>
-    Math.sqrt(Math.pow(pt[0],2) + Math.pow(pt[1],2));
-var l2dist = (pt0, pt1) =>
-    Math.sqrt(Math.pow(pt1[0]-pt0[0],2)+Math.pow(pt1[1]-pt0[1],2));
+var l2norm = pt => Math.sqrt(Math.pow(pt[0],2) + Math.pow(pt[1],2));
+var l2dist = (pt0, pt1) => Math.sqrt(Math.pow(pt1[0]-pt0[0],2) +
+                                    Math.pow(pt1[1]-pt0[1],2));
 var sub2      = (pt1, pt0)  => [pt1[0]-pt0[0], pt1[1]-pt0[1]];
 var add2      = (pt1, pt0)  => [pt1[0]+pt0[0], pt1[1]+pt0[1]];
 var scalar2   = (pt, alpha) => [pt[0]*alpha, pt[1]*alpha];
@@ -78,7 +78,6 @@ Vue.component('es-button', {
   props: ['sym'],
   methods: {
     bclick: function(){
-      //console.log("clicked ", this.sym.name);
       this.$emit("bclick", this.sym.name);
     }
   },
@@ -103,7 +102,6 @@ var vuesymsel = new Vue({
   },
   methods: {
     changesym: function(symname){
-      //console.log("bclick emitted ", symname);
       selectedsym = symname; //global
       this.selected = symname;
       for(var sym of this.syms){
@@ -129,7 +127,6 @@ Vue.component('es-numfield', {
   methods: {
     numchange: function({type, target}){
       target.blur();
-      //console.log("numchange ", this.name, target.value);
       this.$emit("numchange", this.name, target.value);
     }
   }
@@ -140,9 +137,7 @@ var gridUI = new Vue({
   data: gridstate,
   methods: {
     update: function(name, val){
-      //console.log("grid update", name, val);
       gridstate[name]=Number(val);
-      //console.log(vuesymsel.selected, gridstate);
       var gridcopy = {x:gridstate.x, y:gridstate.y, d:gridstate.d, t:gridstate.t};
       cmdstack.push(new SymmOp(vuesymsel.selected, gridcopy));
       rerender(ctx);
@@ -153,7 +148,6 @@ var gridUI = new Vue({
     halveD: function(){ this.update("d", this.d/2.0); },
     doubleD: function(){ this.update("d", this.d*2.0); },
   },
-  //updated: function(){console.log("gridstate changed", gridstate);}
 });
 
 
@@ -162,7 +156,6 @@ var gridUI = new Vue({
 var thicknessUI = new Vue({
   el: '#thicknessUI',
   data: ctxStyle,
-  //data: {value: 1.0, max:10.0, min:0.1, step:0.1, name:"thicknessUI"},
   created: function(){
     this.max = 10.0;
     this.min = 0.1;
@@ -171,8 +164,6 @@ var thicknessUI = new Vue({
   },
   methods: {
     changethick: function({type, target}){
-      //console.log("changethick ", this.name, target.value);
-      //this.$emit("changethick", this.name, target.value);
       cmdstack.push(new StyleOp({lineWidth: target.value}));
       rerender(ctx);
     }
@@ -210,7 +201,6 @@ strokecolorvue = new Vue({
   },
   methods: {
     onUpdate: _.debounce(function(x){
-      //console.log("stroke",x.rgba.r, x.rgba.g, x.rgba.b, x.rgba.a);
       cmdstack.push(new ColorOp("stroke",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
       rerender(ctx);
       this.r = x.rgba.r;
@@ -238,7 +228,6 @@ fillcolorvue = new Vue({
   },
   methods: {
     onUpdate: _.debounce(function(x){
-      //console.log("fill",x.rgba.r, x.rgba.g, x.rgba.b, x.rgba.a);
       cmdstack.push(new ColorOp("fill",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
       rerender(ctx);
       this.r = x.rgba.r;
@@ -250,16 +239,17 @@ fillcolorvue = new Vue({
 });
 
 document.getElementById("showstroke").onmousedown = function(e) {
+  document.getElementById("showstroke").classList.add("selected");
+  document.getElementById("showfill").classList.remove("selected");
   document.getElementById("fillcolor").style.display="none";
   document.getElementById("strokecolor").style.display="block";
 };
 document.getElementById("showfill").onmousedown = function(e) {
+  document.getElementById("showstroke").classList.remove("selected");
+  document.getElementById("showfill").classList.add("selected");
   document.getElementById("strokecolor").style.display="none";
   document.getElementById("fillcolor").style.display="block";
 };
-
-
-
 
 
 // Mouse Events -- dispatched to active Drawing Tool
@@ -286,8 +276,6 @@ var dispatchMouseLeave = function(e) {
 };
 
 var dispatchKeyDown = function(e) {
-  //e.preventDefault(); //?
-  //console.log(e);
   if("keyDown" in drawTools[curTool]) {
     drawTools[curTool].keyDown(e);
   }
@@ -394,7 +382,6 @@ var updateTiling = function(sym, gridstate) {
                                  GRIDNX, GRIDNY,
                                  gridstate.d, gridstate.t,
                                  gridstate.x, gridstate.y);
-  //console.log("affineset: ", sym, " N= ", affineset.length);
 };
 
 // needed for responsize graphical grid update:
@@ -418,6 +405,8 @@ class SymmOp {
     updateTiling(this.sym, this.grid);
     // HACK: directly mutate global that's watched by vue...
     selectedsym = this.sym;
+    // HACK: directly mutate vue...
+    vuesymsel.$data.selected = this.sym;
     gridstate.x = this.grid.x;
     gridstate.y = this.grid.y;
     gridstate.d = this.grid.d;
@@ -488,13 +477,11 @@ class StyleOp {
     miterLimit  Sets or returns the maximum miter length
   */
   constructor(styleProps) {
-    //console.log(styleProps);
     this.styleProps = styleProps;
   }
 
   render(ctx){
     for(var prop of Object.keys(this.styleProps)){
-      //console.log(prop);
       ctx[prop] = this.styleProps[prop];
       // HACK: ghetto, fix application to all contexts...
       lctx[prop] = this.styleProps[prop];
@@ -523,7 +510,7 @@ class GridTool {
     Object.assign(this, gridstate); //x,y,d,t
     this.p0 = [0,0];
     this.p1 = [0,0];
-    this.pR = 10;
+    this.hitRadius = 10;
     this.state = "off";
   }
 
@@ -545,10 +532,10 @@ class GridTool {
     e.preventDefault();
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
-    if(l2dist(pt,this.p0)<this.pR){
+    if(l2dist(pt,this.p0)<this.hitRadius){
       this.state = "move";
     }
-    if(l2dist(pt,this.p1)<this.pR){
+    if(l2dist(pt,this.p1)<this.hitRadius){
       this.state = "scale";
     }
   }
@@ -557,9 +544,9 @@ class GridTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
     // dynamic mouse-pointer logic
-    if(l2dist(pt, this.p0)<this.pR && this.state == "off"){
+    if(l2dist(pt, this.p0)<this.hitRadius && this.state == "off"){
       livecanvas.style.cursor="all-scroll";
-    } else if(l2dist(pt, this.p1)<this.pR && this.state == "off"){
+    } else if(l2dist(pt, this.p1)<this.hitRadius && this.state == "off"){
       livecanvas.style.cursor="ew-resize";
     } else if(this.state == "off"){
       livecanvas.style.cursor="crosshair";
@@ -621,7 +608,7 @@ class GridTool {
     }
     lctx.restore();
 
-    const circR = this.pR;
+    const circR = this.hitRadius;
     lctx.save();
     lctx.fillStyle = "rgba(0,0,0,0.1)";
     lctx.lineWidth = 4.0;
@@ -654,7 +641,10 @@ class LineOp {
     for (let af of affineset) {
       const Tp1 = af.on(this.start.x, this.start.y);
       const Tp2 = af.on(this.end.x, this.end.y);
-      ctx.line(Tp1[0], Tp1[1], Tp2[0], Tp2[1]);
+      ctx.beginPath();
+      ctx.moveTo(Tp1[0], Tp1[1]);
+      ctx.lineTo(Tp2[0], Tp2[1]);
+      ctx.stroke();
     }
   }
 
@@ -673,7 +663,7 @@ class FancyLineTool {
     this.end = {};
     this.state = "init";
     this.drawInterval = 0;
-    this.pR = 4
+    this.hitRadius = 4
   }
 
   liverender() {
@@ -681,18 +671,21 @@ class FancyLineTool {
     for (let af of affineset) {
       const Tp1 = af.on(this.start.x, this.start.y);
       const Tp2 = af.on(this.end.x, this.end.y);
-      lctx.line(Tp1[0], Tp1[1], Tp2[0], Tp2[1]);
+      lctx.beginPath();
+      lctx.moveTo(Tp1[0], Tp1[1]);
+      lctx.lineTo(Tp2[0], Tp2[1]);
+      lctx.stroke();
     }
     lctx.save();
     lctx.fillStyle = "rgba(255,0,0,0.2)";
     lctx.lineWidth = 1.0;
     lctx.strokeStyle = "rgba(255,0,0,1.0)";
     lctx.beginPath();
-    lctx.arc(this.start.x-1, this.start.y-1, this.pR, 0, 2*Math.PI);
+    lctx.arc(this.start.x-1, this.start.y-1, this.hitRadius, 0, 2*Math.PI);
     lctx.stroke();
     lctx.fill();
     lctx.beginPath();
-    lctx.arc(this.end.x-1, this.end.y-1, this.pR, 0, 2*Math.PI);
+    lctx.arc(this.end.x-1, this.end.y-1, this.hitRadius, 0, 2*Math.PI);
     lctx.stroke();
     lctx.fill();
     lctx.restore();
@@ -714,9 +707,9 @@ class FancyLineTool {
   mouseDown(e) {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
-    if(l2dist(pt,[this.start.x,this.start.y])<this.pR) {
+    if(l2dist(pt,[this.start.x,this.start.y])<this.hitRadius) {
       this.state = "moveStart";
-    } else if(l2dist(pt,[this.end.x,this.end.y])<this.pR) {
+    } else if(l2dist(pt,[this.end.x,this.end.y])<this.hitRadius) {
       this.state = "moveEnd";
     } else {
       if(this.state=="off") {
@@ -757,7 +750,6 @@ class FancyLineTool {
   }
 
   keyDown(e) {
-    console.log("recvd", e);
     if(e.code == "Enter"){
       this.state = "off";
       this.commit();
@@ -837,12 +829,8 @@ class PencilTool {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
-  //cancel() { lctx.clearRect(0, 0, livecanvas.width, livecanvas.height); }
-
   mouseDown(e) {
-    //e.preventDefault();
-    //console.log("penciltool mdown");
-    var rect = canvas.getBoundingClientRect(); //XXX: which canvas appropriate?
+    var rect = livecanvas.getBoundingClientRect();
     this.points.push({ x: e.clientX - rect.left,
                        y: e.clientY - rect.top});
     this.on = true;
@@ -850,9 +838,8 @@ class PencilTool {
 
   mouseMove(e) {
     if (this.on) {
-      //console.log("penciltool mmov");
       if (this.drawInterval <= 0) {
-        var rect = canvas.getBoundingClientRect();
+        var rect = livecanvas.getBoundingClientRect();
         this.points.push({ x: e.clientX - rect.left,
                            y: e.clientY - rect.top});
         this.liverender();
@@ -863,7 +850,6 @@ class PencilTool {
   }
 
   mouseUp(e) {
-    //console.log("penciltool mup");
     this.on = false;
     this.commit();
     this.points = [];
@@ -909,7 +895,7 @@ class PolyTool {
     this.points = [];
     this.state = _INIT;
     this.selected = -1;
-    this.pR = 4;
+    this.hitRadius = 4;
   }
 
   liverender() {
@@ -927,7 +913,6 @@ class PolyTool {
         lctx.fill();
       }
     }
-
     // draw handles
     lctx.save();
     lctx.lineWidth = 1.0;
@@ -935,7 +920,7 @@ class PolyTool {
     lctx.strokeStyle = "rgba(255,0,0,1.0)";
     for(let pt of this.points) {
       lctx.beginPath();
-      lctx.arc(pt[0]-1, pt[1]-1, this.pR, 0, 2*Math.PI);
+      lctx.arc(pt[0]-1, pt[1]-1, this.hitRadius, 0, 2*Math.PI);
       lctx.stroke();
       lctx.fill();
     }
@@ -961,7 +946,7 @@ class PolyTool {
     if(this.state == _OFF) {
       let onPoint=false;
       for(let idx=0; idx<this.points.length; idx++) {
-        if(l2dist(pt,this.points[idx])<this.pR) {
+        if(l2dist(pt,this.points[idx])<this.hitRadius) {
           this.state = _MOVE;
           this.selected = idx;
           onPoint = true;
@@ -1012,7 +997,6 @@ class PolyTool {
   }
 
   keyDown(e) {
-    console.log("poly recvd", e);
     if(e.code == "Enter"){
       this.state = _OFF;
       this.commit();
@@ -1087,7 +1071,7 @@ class BezierTool {
     this.state = _INIT;
     this.cpoint = [];
     this.opselected = [];
-    this.pR = 4;
+    this.hitRadius = 4;
   }
 
   liverender() {
@@ -1123,14 +1107,14 @@ class BezierTool {
     for(let op of this.ops) {
       if(op[0] == "M") {
         lctx.beginPath();
-        lctx.arc(op[1], op[2], this.pR, 0, 2*Math.PI);
+        lctx.arc(op[1], op[2], this.hitRadius, 0, 2*Math.PI);
         lctx.stroke();
         lctx.fill();
         lastpt = [op[1], op[2]];
       }
       else if(op[0] == "L") {
         lctx.beginPath();
-        lctx.arc(op[1], op[2], this.pR, 0, 2*Math.PI);
+        lctx.arc(op[1], op[2], this.hitRadius, 0, 2*Math.PI);
         lctx.stroke();
         lctx.fill();
         lastpt = [op[1], op[2]];
@@ -1138,18 +1122,18 @@ class BezierTool {
       else if(op[0] == "C") {
         //endpoint
         lctx.beginPath();
-        lctx.arc(op[5], op[6], this.pR, 0, 2*Math.PI);
+        lctx.arc(op[5], op[6], this.hitRadius, 0, 2*Math.PI);
         lctx.stroke();
         lctx.fill();
         //control points
         lctx.save();
         lctx.fillStyle = "rgba(255,0,0,1.0)";
         lctx.beginPath();
-        lctx.arc(op[1], op[2], this.pR-2, 0, 2*Math.PI);
+        lctx.arc(op[1], op[2], this.hitRadius-2, 0, 2*Math.PI);
         lctx.stroke();
         lctx.fill();
         lctx.beginPath();
-        lctx.arc(op[3], op[4], this.pR-2, 0, 2*Math.PI);
+        lctx.arc(op[3], op[4], this.hitRadius-2, 0, 2*Math.PI);
         lctx.stroke();
         lctx.fill();
         // handle lines for control points
@@ -1169,7 +1153,7 @@ class BezierTool {
       lctx.save();
       lctx.fillStyle = "rgba(255,0,0,1.0)";
       lctx.beginPath();
-      lctx.arc(this.cpoint[0], this.cpoint[1], this.pR-2, 0, 2*Math.PI);
+      lctx.arc(this.cpoint[0], this.cpoint[1], this.hitRadius-2, 0, 2*Math.PI);
       lctx.stroke();
       lctx.fill();
       // handle line
@@ -1198,7 +1182,7 @@ class BezierTool {
       for(let idx=0; idx<this.ops.length; idx++) {
         let op = this.ops[idx];
         if(op[0]=="M" || op[0] == "L") {
-          if(l2dist(pt, [op[1],op[2]])<this.pR) {
+          if(l2dist(pt, [op[1],op[2]])<this.hitRadius) {
             this.state = _MOVE;
             this.opselected = [[idx,0,'v']];
             onPoint = true;
@@ -1216,7 +1200,7 @@ class BezierTool {
         }
         else if(op[0]=="C") {
           // curve endpoint
-          if(l2dist(pt, [op[5], op[6]])<this.pR) {
+          if(l2dist(pt, [op[5], op[6]])<this.hitRadius) {
             this.state = _MOVE;
             this.opselected = [[idx,2,'v']];
             onPoint = true;
@@ -1233,7 +1217,7 @@ class BezierTool {
           }
 
           // curve control-points - overlap ruled out by above cases
-          if(l2dist(pt, [op[1], op[2]])<this.pR) {
+          if(l2dist(pt, [op[1], op[2]])<this.hitRadius) {
             this.state = _MOVE;
             this.opselected = [[idx,0,'c']];
             onPoint = true;
@@ -1242,7 +1226,7 @@ class BezierTool {
             }
             break;
           }
-          if(l2dist(pt, [op[3], op[4]])<this.pR) {
+          if(l2dist(pt, [op[3], op[4]])<this.hitRadius) {
             this.state = _MOVE;
             this.opselected = [[idx,1,'c']];
             onPoint = true;
@@ -1258,7 +1242,7 @@ class BezierTool {
       }
       // check hit on temporary, dangling endpoint
       if(this.cpoint.length > 0){
-        if(l2dist(pt, this.cpoint) < this.pR){
+        if(l2dist(pt, this.cpoint) < this.hitRadius){
           this.state = _MOVE;
           this.opselected = [[0,0,'t']];
           onPoint = true;
@@ -1422,7 +1406,6 @@ class BezierTool {
     this.state = _OFF;
     this.opselected = [];
     this.liverender();
-    //console.log(this.ops);
   }
 
   mouseLeave(e) {
@@ -1430,7 +1413,6 @@ class BezierTool {
   }
 
   keyDown(e) {
-    console.log("poly recvd", e);
     if(e.code == "Enter"){
       this.state = _OFF;
       this.exit();
@@ -1523,8 +1505,6 @@ class CircleTool {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
-  //cancel() { lctx.clearRect(0, 0, livecanvas.width, livecanvas.height); }
-
   mouseDown(e) {
     e.preventDefault();
     var rect = canvas.getBoundingClientRect();
@@ -1555,8 +1535,6 @@ class CircleTool {
     this.radius = 0;
   }
 }
-
-
 
 
 
@@ -1624,7 +1602,7 @@ document.getElementById("beziertool").onmousedown   = function(e) {
 document.getElementById("saveSVG").onmousedown = function(e) {
   // canvas2svg fake context:
   C2Sctx = new C2S(canvas.width, canvas.height);
-  C2Sctx.line = drawLine;
+  //C2Sctx.line = drawLine;
   rerender(C2Sctx);
   //serialize your SVG
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
@@ -1643,14 +1621,6 @@ document.getElementById("savePNG").onmousedown = function(e) {
 // Canvas Tweaks
 //------------------------------------------------------------------------------
 
-// simple canvas line method
-const drawLine = function(x1, y1, x2, y2) {
-  //console.log("line:", x1, y1, x2, y2);
-  this.beginPath();
-  this.moveTo(x1, y1);
-  this.lineTo(x2, y2);
-  this.stroke();
-};
 
 // Fixes DPI issues with Retina displays on Chrome
 // http://www.html5rocks.com/en/tutorials/canvas/hidpi/
@@ -1731,20 +1701,16 @@ var initGUI = function() {
   canvas.height = CANVAS_HEIGHT;
   pixelFix(canvas);
   ctx = canvas.getContext("2d");
-  ctx.line = drawLine;
-  //ctx.fillStyle = "rgb(0, 255, 255)";
 
   livecanvas = document.getElementById("sketchlive");
   livecanvas.width = CANVAS_WIDTH;
   livecanvas.height = CANVAS_HEIGHT;
   pixelFix(livecanvas);
   lctx = livecanvas.getContext("2d");
-  lctx.line = drawLine;
-  //lctx.fillStyle =   "rgb(0, 255, 255)";
 
-  livecanvas.onmousedown = dispatchMouseDown;
-  livecanvas.onmouseup   = dispatchMouseUp;
-  livecanvas.onmousemove = dispatchMouseMove;
+  livecanvas.onmousedown  = dispatchMouseDown;
+  livecanvas.onmouseup    = dispatchMouseUp;
+  livecanvas.onmousemove  = dispatchMouseMove;
   livecanvas.onmouseleave = dispatchMouseLeave;
   document.getElementsByTagName("body")[0].onkeydown = dispatchKeyDown;
 

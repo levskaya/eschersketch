@@ -21,7 +21,7 @@ const { min, max, abs, sqrt, floor, round, sin, cos, tan, acos, asin, atan, pow,
 const sign = // sign func -> -1, 1
     function(x) { if (x < 0) { return -1; } else { return 1; } };
 const map =  // linear map of i-range onto o-range
-    (value, istart, istop, ostart, ostop) => 
+    (value, istart, istop, ostart, ostop) =>
     ostart + (((ostop - ostart) * (value - istart)) / (istop - istart));
 
 
@@ -100,7 +100,7 @@ class Point2d {
   }
 }
 
-const radialPoint = 
+const radialPoint =
     (r, theta) => new Point2d(r * cos(theta), r * sin(theta));
 
 
@@ -237,7 +237,7 @@ class AffineTransform {
 // Common Affine Transforms
 //--------------------------------------------------------------------------------------------------
 
-const IdentityTransform = 
+const IdentityTransform =
     () => new AffineTransform(1, 0, 0, 1, 0, 0);
 
 const ScalingTransform = function(scale, scaley) {
@@ -245,25 +245,25 @@ const ScalingTransform = function(scale, scaley) {
   return new AffineTransform(scale, 0, 0, scaley, 0, 0);
 };
 
-const RotationTransform = 
+const RotationTransform =
     angle => new AffineTransform(Math.cos(angle), Math.sin(angle), -1 * Math.sin(angle), Math.cos(angle), 0, 0);
 
-const TranslationTransform = 
+const TranslationTransform =
     (dx, dy) => new AffineTransform(1, 0, 0, 1, dx, dy);
 
-const ReflectionTransform = 
+const ReflectionTransform =
     angle => new AffineTransform(Math.cos(2 * angle), Math.sin(2 * angle), Math.sin(2 * angle), -1 * Math.cos(2 * angle), 0, 0);
 
-const ScalingAbout = 
+const ScalingAbout =
     (scale, px, py) => TranslationTransform(px, py).multiply(ScalingTransform(scale)).multiply(TranslationTransform(-px, -py));
 
-const RotationAbout = 
+const RotationAbout =
     (angle, px, py) => TranslationTransform(px, py).multiply(RotationTransform(angle)).multiply(TranslationTransform(-px, -py));
 
-const ReflectionAbout = 
+const ReflectionAbout =
     (angle, px, py) => TranslationTransform(px, py).multiply(ReflectionTransform(angle)).multiply(TranslationTransform(-px, -py));
 
-const GlideTransform = 
+const GlideTransform =
     (angle, distance, px, py) => ReflectionAbout(angle, px, py).multiply(TranslationTransform(distance * cos(angle), distance * sin(angle)));
 
 
@@ -277,14 +277,14 @@ const setProduct = function(X, Y, prodfunc) {
   ), []);
 };
 
-const affinesetproduct = 
+const affinesetproduct =
     (Afset1, Afset2) => setProduct(Afset1, Afset2, (x, y) => x.multiply(y));
 
 const transformAffineSet = function(transformAf, Afset) {
   // similarity transform A -> U A U^-1
   const newAfset = [];
   const invtransformAf = transformAf.inverse();
-  for (let Af of Afset) { 
+  for (let Af of Afset) {
     newAfset.push(transformAf.multiply(Af).multiply(invtransformAf));
   }
   return newAfset;
@@ -316,7 +316,7 @@ const uniques = function(ar, eqfunc) {
   return newar;
 };
 
-const uniqueaffineset = 
+const uniqueaffineset =
     Afset => uniques(Afset, (x, y) => x.sameAs(y));
 
 const findclosure = function(Afset, recursion_limit) {

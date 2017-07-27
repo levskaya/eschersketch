@@ -56,19 +56,7 @@ input {
     margin: 5px;
     background: rgba(245,245,245,0.9);
 }
-#ui-opacity {
-    float:left;
-    margin-right:5px;
-    margin-top:5px;
-    height:100px;
-    width:15px;
-}
-/*
-#symmetry-selectors {
-    width:200px;
-    //font-family:serif;
-}
-*/
+
 .symsel {
     outline:1px solid #ddd;
     background: #eeeeee;
@@ -98,31 +86,16 @@ input {
     cursor:pointer;
     color:#666;
 }
-.circle {
-    position:absolute;
-	border-radius: 50%;
-    background:black;
-    color: white;
-    text-align:center;
-    /*display:block;*/
+
+.tool-selected {
+    background: rgba(250,150,150,0.6);
 }
-.arrow {
-	width: 0px;
-	height: 0px;
-	border-top: 10px solid transparent;
-	border-bottom: 10px solid transparent;
-	border-right :10px solid black;
+.selected {
+    background: rgba(250,150,150,0.6);
 }
-.tool-selected { background: rgba(250,150,150,0.6); }
-.selected { background: rgba(250,150,150,0.6); }
-.armed { background: rgba(255,0,0,0.6); }
-.grad {
-    background-image: linear-gradient(to bottom, #000, #fff);
-    background-image: -webkit-linear-gradient(top, #000, #fff);
+.armed {
+    background: rgba(255,0,0,0.6);
 }
-.grad-red   { background-image: linear-gradient(to bottom, #f00, #fff);}
-.grad-green { background-image: linear-gradient(to bottom, #0f0, #fff);}
-.grad-blue  { background-image: linear-gradient(to bottom, #00f, #fff);}
 
 .clearfix:after {
     clear: both;
@@ -137,15 +110,12 @@ input {
   align-items: center;
   justify-content: center;
 }
-
 .Aligner-item {
   max-width: 50%;
 }
-
 .Aligner-item--top {
   align-self: flex-start;
 }
-
 .Aligner-item--bottom {
   align-self: flex-end;
 }

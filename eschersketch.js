@@ -52,6 +52,21 @@ var lattice = {};
 var affineset = {};
 
 
+// Math Functions
+//------------------------------------------------------------------------------
+var l2norm = pt =>
+    Math.sqrt(Math.pow(pt[0],2) + Math.pow(pt[1],2));
+var l2dist = (pt0, pt1) =>
+    Math.sqrt(Math.pow(pt1[0]-pt0[0],2)+Math.pow(pt1[1]-pt0[1],2));
+var sub2      = (pt1, pt0)  => [pt1[0]-pt0[0], pt1[1]-pt0[1]];
+var add2      = (pt1, pt0)  => [pt1[0]+pt0[0], pt1[1]+pt0[1]];
+var scalar2   = (pt, alpha) => [pt[0]*alpha, pt[1]*alpha];
+var normalize = (pt)        => scalar2(pt, 1.0/l2norm(pt));
+// reflect pt1 through pt0
+var reflectPoint = (pt0, pt1) => sub2(pt0, sub2(pt1, pt0));
+
+
+
 // Symmetry Selection UI
 //------------------------------------------------------------------------------
 Vue.component('es-button', {
@@ -502,9 +517,6 @@ class StyleOp {
 //------------------------------------------------------------------------------
 // Drawing Ops and Tools
 //------------------------------------------------------------------------------
-var l2dist = function(pt0, pt1){
-  return Math.sqrt(Math.pow(pt1[0]-pt0[0],2)+Math.pow(pt1[1]-pt0[1],2));
-};
 
 class GridTool {
   constructor() {
@@ -594,6 +606,8 @@ class GridTool {
                                   this.d, this.t,
                                   this.x, this.y);
     // Draw Lattice
+    lctx.save();
+    lctx.strokeStyle = "rgba(0,0,0,1.0)";
     for (let af of newlattice) {
       let Tp0 = af.on(p0[0],p0[1]);
       let Tp1 = af.on(p1[0],p1[1]);
@@ -605,6 +619,7 @@ class GridTool {
       lctx.lineTo(Tp2[0],Tp2[1]);
       lctx.stroke();
     }
+    lctx.restore();
 
     const circR = this.pR;
     lctx.save();
@@ -1030,16 +1045,13 @@ class PolyTool {
 
 class BezierOp {
   constructor(ops) {
-    this.ops = ops;
+    this.ops = ops; //array of ["M",x,y] or ["L",x,y] or ["C",xc1,yc1,xc2,yc2,x,y]
   }
-  //["M",x,y]
-  //["L",x,y]
-  //["C",x,y,xc1,yc1,x]
 
   render(ctx) {
     for (let af of affineset) {
+      ctx.beginPath();
       for(let op of this.ops){
-        ctx.beginPath();
         if(op[0] == "M") {
           let Tpt = af.on(op[1], op[2]);
           ctx.moveTo(Tpt[0], Tpt[1]);
@@ -1182,28 +1194,22 @@ class BezierTool {
     else if(this.state == _OFF) { // EXTANT PATH
       //-----------------------------------------------------------------------------
       // Adjustment of existing points
-      // control-points and endpoints can overlap at discontinuities!
-      // 4 possibilities:
-      // - no overlap of control points
-      // - previous control point, current endpoint
-      // - current endpoint and next control point
-      // - previous control point, current endpoint and next
-      //   control point can all overlap
       let onPoint=false;
       for(let idx=0; idx<this.ops.length; idx++) {
         let op = this.ops[idx];
         if(op[0]=="M" || op[0] == "L") {
           if(l2dist(pt, [op[1],op[2]])<this.pR) {
             this.state = _MOVE;
-            this.opselected = [[idx,0]];
-            //this.ptselected = 0;
+            this.opselected = [[idx,0,'v']];
             onPoint = true;
 
             // does this endpoint overlap with a following control point?
             if(idx+1 < this.ops.length && this.ops[idx+1][0]=="C") {
               let nextop = this.ops[idx+1];
-              let overlap = l2dist([op[1], op[2]], [nextop[1], nextop[2]]) < 1.0e-6;
-              if(overlap){ this.opselected.push([idx+1,0]); }
+              this.opselected.push([idx+1,0,'c']);
+            }
+            if(idx+1 >= this.ops.length && this.cpoint.length > 0) {
+              this.opselected.push([0,0,'t']);
             }
             break;
           }
@@ -1212,35 +1218,52 @@ class BezierTool {
           // curve endpoint
           if(l2dist(pt, [op[5], op[6]])<this.pR) {
             this.state = _MOVE;
-            this.opselected = [[idx,2]];
+            this.opselected = [[idx,2,'v']];
             onPoint = true;
 
-            // does this endpoint overlap with it's previous control point?
-            let overlap1 = l2dist([op[3], op[4]], [op[5], op[6]]) < 1.0e-6;
-            if(overlap1){ this.opselected.push([idx,1]); }
-
-            // does this endpoint overlap with a following control point?
+            // select associated endpoints
+            this.opselected.push([idx,1,'c']);
             if(idx+1 < this.ops.length && this.ops[idx+1][0]=="C"){
-              let nextop = this.ops[idx+1];
-              let overlap2 = l2dist([op[5], op[6]], [nextop[1], nextop[2]]) < 1.0e-6;
-              if(overlap2){ this.opselected.push([idx+1,0]); }
+              this.opselected.push([idx+1,0,'c']);
             }
-
+            if(idx+1 >= this.ops.length && this.cpoint.length > 0) {
+              this.opselected.push([0,0,'t']);
+            }
             break;
           }
 
           // curve control-points - overlap ruled out by above cases
           if(l2dist(pt, [op[1], op[2]])<this.pR) {
             this.state = _MOVE;
-            this.opselected = [[idx, 0]];
+            this.opselected = [[idx,0,'c']];
             onPoint = true;
+            if(this.ops[idx-1][0]=="C"){
+              this.opselected.push([idx-1,1,'c']);
+            }
             break;
           }
           if(l2dist(pt, [op[3], op[4]])<this.pR) {
             this.state = _MOVE;
-            this.opselected = [[idx, 1]];
+            this.opselected = [[idx,1,'c']];
             onPoint = true;
+            if(idx+1 < this.ops.length && this.ops[idx+1][0]=="C"){
+              this.opselected.push([idx+1,0,'c']);
+            }
+            if(idx+1 >= this.ops.length && this.cpoint.length > 0) {
+              this.opselected.push([0,0,'t']);
+            }
             break;
+          }
+        }
+      }
+      // check hit on temporary, dangling endpoint
+      if(this.cpoint.length > 0){
+        if(l2dist(pt, this.cpoint) < this.pR){
+          this.state = _MOVE;
+          this.opselected = [[0,0,'t']];
+          onPoint = true;
+          if(this.ops[this.ops.length-1][0]=="C"){
+            this.opselected.push([this.ops.length-1,1,'c']);
           }
         }
       }
@@ -1270,12 +1293,6 @@ class BezierTool {
     else if(op[0]=="C"){return [op[5],op[6]];}
   }
 
-  reflectPoint(pt0, pt1){
-    let dx = pt1[0] - pt0[0];
-    let dy = pt1[1] - pt0[1];
-    return [pt0[0]-dx, pt0[1]-dy];
-  }
-
   //could simplify this by not using L ops at all, just twiddling C ops
   //then at end of commit() convert C ops representing lines to L ops... i think?
   mouseMove(e) {
@@ -1293,7 +1310,7 @@ class BezierTool {
         let prevop = this.ops[this.ops.length-2];
         let thispt = this.getOpEndPoint(thisop); //line endpoint
         let prevpt = this.getOpEndPoint(prevop); //line startpoint
-        let reflpt = this.reflectPoint(thispt, pt);
+        let reflpt = reflectPoint(thispt, pt);
         this.ops[this.ops.length-1]=["C",
                                      prevpt[0], prevpt[1],
                                      reflpt[0], reflpt[1],
@@ -1304,7 +1321,7 @@ class BezierTool {
       else if(this.ops[this.ops.length-1][0]=="C"){
         let thisop = this.ops[this.ops.length-1];
         let thispt = this.getOpEndPoint(thisop); //line endpoint
-        let reflpt = this.reflectPoint(thispt, pt);
+        let reflpt = reflectPoint(thispt, pt);
         this.ops[this.ops.length-1]=["C",
                                      thisop[1], thisop[2],
                                      reflpt[0], reflpt[1],
@@ -1314,15 +1331,90 @@ class BezierTool {
       }
     }
     else if(this.state == _MOVE) {
-      //console.log(this.opselected);
-      for(let hit of this.opselected){
-        let idx = hit[0];
-        let ptidx = hit[1];
-        //console.log("hit",hit[0],hit[1]);
+      let firstHit = this.opselected[0];
+      // vertex move -------------------------------------------------
+      if(firstHit[2]=='v') {
+        let idx = firstHit[0];
+        let ptidx = firstHit[1];
+        let oldpt = [this.ops[idx][2*ptidx + 1],
+                     this.ops[idx][2*ptidx + 2]];
+        let delta = [pt[0]-oldpt[0], pt[1]-oldpt[1]];
         this.ops[idx][2*ptidx + 1] = pt[0];
         this.ops[idx][2*ptidx + 2] = pt[1];
+
+        for(let hit of this.opselected.slice(1)){
+          let idx = hit[0];
+          let ptidx = hit[1];
+          let pttype = hit[2];
+          if(pttype == "c") {
+            this.ops[idx][2*ptidx + 1] += delta[0];
+            this.ops[idx][2*ptidx + 2] += delta[1];
+          }
+          else if(pttype == "t") {
+            this.cpoint[0] += delta[0];
+            this.cpoint[1] += delta[1];
+          }
+        }
+        this.liverender();
       }
-      this.liverender();
+      // control point move -------------------------------------------
+      // must maintain continuity
+      else if(firstHit[2]=='c') {
+        let idx = firstHit[0];
+        let ptidx = firstHit[1];
+        //let oldpt = [this.ops[idx][2*ptidx + 1],
+        //             this.ops[idx][2*ptidx + 2]];
+        //let delta = sub2(pt, oldpt);
+        this.ops[idx][2*ptidx + 1] = pt[0];
+        this.ops[idx][2*ptidx + 2] = pt[1];
+        if(this.opselected.length===2){
+          let secondHit = this.opselected[1];
+          if(secondHit[2]=='c') {
+            let idx2 = secondHit[0];
+            let ptidx2 = secondHit[1];
+            let oppositept = [this.ops[idx2][2*ptidx2 + 1],
+                              this.ops[idx2][2*ptidx2 + 2]];
+            let centerpt = [this.ops[Math.min(idx,idx2)][5],
+                            this.ops[Math.min(idx,idx2)][6]];
+            let reflectVec = normalize(reflectPoint([0,0],sub2(pt, centerpt)));
+            let alpha = l2norm(sub2(oppositept, centerpt));
+            let newpt = add2(scalar2(reflectVec,alpha), centerpt);
+            this.ops[idx2][2*ptidx2 + 1] = newpt[0];
+            this.ops[idx2][2*ptidx2 + 2] = newpt[1];
+          }
+          else if(secondHit[2]=='t') {
+            let oppositept = this.cpoint;
+            let centerpt = [this.ops[this.ops.length-1][5],
+                            this.ops[this.ops.length-1][6]];
+            let reflectVec = normalize(reflectPoint([0,0],sub2(pt, centerpt)));
+            let alpha = l2norm(sub2(oppositept, centerpt));
+            let newpt = add2(scalar2(reflectVec,alpha), centerpt);
+            this.cpoint[0] = newpt[0];
+            this.cpoint[1] = newpt[1];
+          }
+        }
+        this.liverender();
+      }
+      // control point move on dangling point --------------------------------
+      else if(firstHit[2]=='t') {
+        //let oldpt = [this.cpoint[0], this.cpoint[1]];
+        //let delta = sub2(pt, oldpt);
+        this.cpoint = pt;
+        if(this.opselected.length===2){
+          let secondHit = this.opselected[1];
+          let idx2 = secondHit[0];
+          let ptidx2 = secondHit[1];
+          let oppositept = [this.ops[idx2][2*ptidx2 + 1],
+                            this.ops[idx2][2*ptidx2 + 2]];
+          let centerpt = [this.ops[idx2][5], this.ops[idx2][6]];
+          let reflectVec = normalize(reflectPoint([0,0],sub2(pt, centerpt)));
+          let alpha = l2norm(sub2(oppositept, centerpt));
+          let newpt = add2(scalar2(reflectVec,alpha), centerpt);
+          this.ops[idx2][2*ptidx2 + 1] = newpt[0];
+          this.ops[idx2][2*ptidx2 + 2] = newpt[1];
+        }
+        this.liverender();
+      }
     }
   }
 

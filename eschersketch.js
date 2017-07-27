@@ -1029,34 +1029,39 @@ class PolyTool {
 
 
 class BezierOp {
-  constructor(points) {
-    this.points = points;
+  constructor(ops) {
+    this.ops = ops;
   }
+  //["M",x,y]
+  //["L",x,y]
+  //["C",x,y,xc1,yc1,x]
 
   render(ctx) {
     for (let af of affineset) {
-      ctx.beginPath();
-      if(this.points.length >= 4) {
-        let Tpt = af.on(this.points[0][0], this.points[0][1]);
-        ctx.moveTo(Tpt[0], Tpt[1]);
-        for(let idx=1; idx < this.points.length; idx+=3) {
-          if(this.points.length-idx < 3){ break; }
-          let pt0 = this.points[idx];
-          let pt1 = this.points[idx+1];
-          let pt2 = this.points[idx+2];
-          let Tpt0 = af.on(pt0[0], pt0[1]);
-          let Tpt1 = af.on(pt1[0], pt1[1]);
-          let Tpt2 = af.on(pt2[0], pt2[1]);
-          ctx.bezierCurveTo(Tpt0[0], Tpt0[1], Tpt1[0], Tpt1[1], Tpt2[0], Tpt2[1] );
+      for(let op of this.ops){
+        ctx.beginPath();
+        if(op[0] == "M") {
+          let Tpt = af.on(op[1], op[2]);
+          ctx.moveTo(Tpt[0], Tpt[1]);
         }
-        ctx.stroke();
-        ctx.fill();
+        else if(op[0] == "L") {
+          let Tpt = af.on(op[1], op[2]);
+          ctx.lineTo(Tpt[0], Tpt[1]);
+        }
+        else if(op[0] == "C"){
+          let Tpt0 = af.on(op[1], op[2]);
+          let Tpt1 = af.on(op[3], op[4]);
+          let Tpt2 = af.on(op[5], op[6]);
+          ctx.bezierCurveTo(Tpt0[0], Tpt0[1], Tpt1[0], Tpt1[1], Tpt2[0], Tpt2[1]);
+        }
       }
+      ctx.stroke();
+      ctx.fill();
     }
   }
 
   serialize() {
-    return ["bezier", this.points];
+    return ["bezier", this.ops];
   }
 
   deserialize(data) {
@@ -1066,9 +1071,11 @@ class BezierOp {
 
 class BezierTool {
   constructor() {
-    this.points = [];
+    this.cpoint = [];
+    this.ops = [];
     this.state = _INIT;
-    this.selected = -1;
+    this.opselected = -1;
+    this.ptselected = -1;
     this.pR = 4;
   }
 
@@ -1076,40 +1083,96 @@ class BezierTool {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let af of affineset) {
       lctx.beginPath();
-      if(this.points.length >= 4) {
-        let Tpt = af.on(this.points[0][0], this.points[0][1]);
-        lctx.moveTo(Tpt[0], Tpt[1]);
-        for(let idx=1; idx < this.points.length; idx+=3) {
-          if(this.points.length-idx < 3){ break; }
-          let pt0 = this.points[idx];
-          let pt1 = this.points[idx+1];
-          let pt2 = this.points[idx+2];
-          let Tpt0 = af.on(pt0[0], pt0[1]);
-          let Tpt1 = af.on(pt1[0], pt1[1]);
-          let Tpt2 = af.on(pt2[0], pt2[1]);
-          lctx.bezierCurveTo(Tpt0[0], Tpt0[1], Tpt1[0], Tpt1[1], Tpt2[0], Tpt2[1] );
+      for(let op of this.ops){
+        if(op[0] === "M") {
+          let Tpt = af.on(op[1], op[2]);
+          lctx.moveTo(Tpt[0], Tpt[1]);
         }
-        lctx.stroke();
-        lctx.fill();
+        else if(op[0] === "L") {
+          let Tpt = af.on(op[1], op[2]);
+          lctx.lineTo(Tpt[0], Tpt[1]);
+        }
+        else if(op[0] === "C"){
+          let Tpt0 = af.on(op[1], op[2]);
+          let Tpt1 = af.on(op[3], op[4]);
+          let Tpt2 = af.on(op[5], op[6]);
+          lctx.bezierCurveTo(Tpt0[0], Tpt0[1], Tpt1[0], Tpt1[1], Tpt2[0], Tpt2[1]);
+        }
       }
+      lctx.stroke();
+      lctx.fill();
     }
 
+    let lastpt = [];
     // draw handles
     lctx.save();
     lctx.lineWidth = 1.0;
     lctx.fillStyle   = "rgba(255,0,0,0.2)";
     lctx.strokeStyle = "rgba(255,0,0,1.0)";
-    for(let pt of this.points) {
+    for(let op of this.ops) {
+      if(op[0] == "M") {
+        lctx.beginPath();
+        lctx.arc(op[1], op[2], this.pR, 0, 2*Math.PI);
+        lctx.stroke();
+        lctx.fill();
+        lastpt = [op[1], op[2]];
+      }
+      else if(op[0] == "L") {
+        lctx.beginPath();
+        lctx.arc(op[1], op[2], this.pR, 0, 2*Math.PI);
+        lctx.stroke();
+        lctx.fill();
+        lastpt = [op[1], op[2]];
+      }
+      else if(op[0] == "C") {
+        //endpoint
+        lctx.beginPath();
+        lctx.arc(op[5], op[6], this.pR, 0, 2*Math.PI);
+        lctx.stroke();
+        lctx.fill();
+        //control points
+        lctx.save();
+        lctx.fillStyle = "rgba(255,0,0,1.0)";
+        lctx.beginPath();
+        lctx.arc(op[1], op[2], this.pR-2, 0, 2*Math.PI);
+        lctx.stroke();
+        lctx.fill();
+        lctx.beginPath();
+        lctx.arc(op[3], op[4], this.pR-2, 0, 2*Math.PI);
+        lctx.stroke();
+        lctx.fill();
+        // handle lines for control points
+        lctx.beginPath();
+        lctx.moveTo(lastpt[0],lastpt[1]);
+        lctx.lineTo(op[1],op[2]);
+        lctx.stroke();
+        lctx.beginPath();
+        lctx.moveTo(op[3],op[4]);
+        lctx.lineTo(op[5],op[6]);
+        lctx.stroke();
+        lctx.restore();
+        lastpt = [op[5], op[6]];
+      }
+    }
+    if(this.cpoint.length > 0){ //temp control point render
+      lctx.save();
+      lctx.fillStyle   = "rgba(255,0,0,1.0)";
       lctx.beginPath();
-      lctx.arc(pt[0]-1, pt[1]-1, this.pR, 0, 2*Math.PI);
+      lctx.arc(this.cpoint[0], this.cpoint[1], this.pR-2, 0, 2*Math.PI);
       lctx.stroke();
       lctx.fill();
+      // handle line
+      lctx.beginPath();
+      lctx.moveTo(lastpt[0],lastpt[1]);
+      lctx.lineTo(this.cpoint[0],this.cpoint[1]);
+      lctx.stroke();
+      lctx.restore();
     }
     lctx.restore();
   }
 
   commit() {
-    cmdstack.push( new BezierOp(this.points) );
+    cmdstack.push( new BezierOp(this.ops) );
     rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
@@ -1117,7 +1180,7 @@ class BezierTool {
   cancel() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.state = _INIT;
-    this.points = [];
+    this.ops = [];
   }
 
   mouseDown(e) {
@@ -1126,7 +1189,8 @@ class BezierTool {
 
     if(this.state == _OFF) {
       let onPoint=false;
-      for(let idx=0; idx<this.points.length; idx++) {
+      /*
+        for(let idx=0; idx<this.points.length; idx++) {
         if(l2dist(pt,this.points[idx])<this.pR) {
           this.state = _MOVE;
           this.selected = idx;
@@ -1134,49 +1198,104 @@ class BezierTool {
           break;
         }
       }
+      */
+      // Not moving any previous points, controlpoints:
       if(!onPoint){
-        this.state = _ON;
-        this.selected = this.points.length;
-        this.points.push( [pt[0], pt[1]] );
-        this.liverender();
+        if(this.cpoint.length === 0) {
+          this.state = _ON;
+          this.opselected = this.ops.length;
+          this.ops.push( ["L", pt[0], pt[1]] );
+          this.liverender();
+        } else {
+          this.state = _ON;
+          this.opselected = this.ops.length;
+          this.ops.push( ["C",
+                             this.cpoint[0], this.cpoint[1],
+                             pt[0], pt[1],
+                             pt[0], pt[1] ] );
+          this.cpoint = []; //clear tmp control pt
+          this.liverender();
+        }
       }
     }
     else if(this.state == _INIT) {
       this.state = _ON;
-      this.points = [ [pt[0], pt[1]] ];
-      this.selected = 0; //?
+      this.ops = [ ["M", pt[0], pt[1]] ];
+      this.opselected = 0; //?
       this.liverender();
     }
-    else if(this.state == _ON) {
-      this.selected += 1;//this.state + 1;
-      this.points.push( [pt[0], pt[1]] );
-      this.liverender();
-    }
+    //else if(this.state == _ON) {
+    //  this.opselected += 1;//this.state + 1;
+    //  this.ops.push( ["L", pt[0], pt[1]] );
+    //  this.liverender();
+    //}
   }
 
+  getOpEndPoint(op){
+    if(op[0]=="M"){return [op[1],op[2]];}
+    else if(op[0]=="L"){return [op[1],op[2]];}
+    else if(op[0]=="C"){return [op[5],op[6]];}
+  }
+
+  reflectPoint(pt0, pt1){
+    let dx = pt1[0] - pt0[0];
+    let dy = pt1[1] - pt0[1];
+    return [pt0[0]-dx, pt0[1]-dy];
+  }
+
+  //could simplify this by not using L ops at all, just twiddling C ops
+  //then at end of commit() convert C ops representing lines to L ops... i think?
   mouseMove(e) {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
 
     if (this.state == _ON) {
-      this.points[this.points.length-1] = [pt[0], pt[1]];
-      this.liverender();
+      if(this.ops[this.ops.length-1][0]=="M"){
+        this.cpoint = [pt[0], pt[1]]; //tmp pt
+        this.liverender();
+      }
+      //complicated, upconvert line operation to curve operation
+      else if(this.ops[this.ops.length-1][0]=="L"){
+        let thisop = this.ops[this.ops.length-1];
+        let prevop = this.ops[this.ops.length-2];
+        let thispt = this.getOpEndPoint(thisop); //line endpoint
+        let prevpt = this.getOpEndPoint(prevop); //line startpoint
+        let reflpt = this.reflectPoint(thispt, pt);
+        this.ops[this.ops.length-1]=["C",
+                                     prevpt[0], prevpt[1],
+                                     reflpt[0], reflpt[1],
+                                     thispt[0], thispt[1]];
+        this.cpoint = [pt[0], pt[1]]; //tmp pt
+        this.liverender();
+      }
+      else if(this.ops[this.ops.length-1][0]=="C"){
+        let thisop = this.ops[this.ops.length-1];
+        let thispt = this.getOpEndPoint(thisop); //line endpoint
+        let reflpt = this.reflectPoint(thispt, pt);
+        this.ops[this.ops.length-1]=["C",
+                                     thisop[1], thisop[2],
+                                     reflpt[0], reflpt[1],
+                                     thispt[0], thispt[1]];
+        this.cpoint = [pt[0], pt[1]]; //tmp pt
+        this.liverender();
+      }
     }
-    if (this.state == _MOVE) {
-      this.points[this.selected] = [pt[0], pt[1]];
-      this.liverender();
-    }
-
+    //if (this.state == _MOVE) {
+    //  this.points[this.selected] = [pt[0], pt[1]];
+    //  this.liverender();
+    //}
   }
 
   mouseUp(e) {
     this.state = _OFF;
+    this.liverender();
+    console.log(this.ops);
   }
 
   mouseLeave(e) {
     this.exit();
   }
-
+/*
   keyDown(e) {
     console.log("poly recvd", e);
     if(e.code == "Enter"){
@@ -1195,14 +1314,13 @@ class BezierTool {
       }
     }
   }
-
+*/
   exit(){
     if(this.state==_OFF) {
-      if(this.points.length >2){
-        this.commit();
-      }
-      this.points = [];
-      this.selected = 0;
+      this.commit();
+      this.ops = [];
+      this.opselected = 0;
+      this.cpoint = [];
       this.state = _INIT;
     }
   }

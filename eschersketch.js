@@ -300,7 +300,7 @@ var ctx = {};
 var cmdstack = [];
 var redostack = [];
 var rerender = function(ctx, clear=true) {
-  console.log("rerendering ", cmdstack.length, " ops");
+  //console.log("rerendering ", cmdstack.length, " ops");
   if(clear){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
@@ -1071,11 +1071,10 @@ class BezierOp {
 
 class BezierTool {
   constructor() {
-    this.cpoint = [];
     this.ops = [];
     this.state = _INIT;
-    this.opselected = -1;
-    this.ptselected = -1;
+    this.cpoint = [];
+    this.opselected = [];
     this.pR = 4;
   }
 
@@ -1156,7 +1155,7 @@ class BezierTool {
     }
     if(this.cpoint.length > 0){ //temp control point render
       lctx.save();
-      lctx.fillStyle   = "rgba(255,0,0,1.0)";
+      lctx.fillStyle = "rgba(255,0,0,1.0)";
       lctx.beginPath();
       lctx.arc(this.cpoint[0], this.cpoint[1], this.pR-2, 0, 2*Math.PI);
       lctx.stroke();
@@ -1171,44 +1170,89 @@ class BezierTool {
     lctx.restore();
   }
 
-  commit() {
-    cmdstack.push( new BezierOp(this.ops) );
-    rerender(ctx);
-    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-  }
-
-  cancel() {
-    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.state = _INIT;
-    this.ops = [];
-  }
-
   mouseDown(e) {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
 
-    if(this.state == _OFF) {
+    if(this.state == _INIT) { // NEW PATH
+      this.state = _ON;
+      this.ops = [ ["M", pt[0], pt[1]] ];
+      this.liverender();
+    }
+    else if(this.state == _OFF) { // EXTANT PATH
+      //-----------------------------------------------------------------------------
+      // Adjustment of existing points
+      // control-points and endpoints can overlap at discontinuities!
+      // 4 possibilities:
+      // - no overlap of control points
+      // - previous control point, current endpoint
+      // - current endpoint and next control point
+      // - previous control point, current endpoint and next
+      //   control point can all overlap
       let onPoint=false;
-      /*
-        for(let idx=0; idx<this.points.length; idx++) {
-        if(l2dist(pt,this.points[idx])<this.pR) {
-          this.state = _MOVE;
-          this.selected = idx;
-          onPoint = true;
-          break;
+      for(let idx=0; idx<this.ops.length; idx++) {
+        let op = this.ops[idx];
+        if(op[0]=="M" || op[0] == "L") {
+          if(l2dist(pt, [op[1],op[2]])<this.pR) {
+            this.state = _MOVE;
+            this.opselected = [[idx,0]];
+            //this.ptselected = 0;
+            onPoint = true;
+
+            // does this endpoint overlap with a following control point?
+            if(idx+1 < this.ops.length && this.ops[idx+1][0]=="C") {
+              let nextop = this.ops[idx+1];
+              let overlap = l2dist([op[1], op[2]], [nextop[1], nextop[2]]) < 1.0e-6;
+              if(overlap){ this.opselected.push([idx+1,0]); }
+            }
+            break;
+          }
+        }
+        else if(op[0]=="C") {
+          // curve endpoint
+          if(l2dist(pt, [op[5], op[6]])<this.pR) {
+            this.state = _MOVE;
+            this.opselected = [[idx,2]];
+            onPoint = true;
+
+            // does this endpoint overlap with it's previous control point?
+            let overlap1 = l2dist([op[3], op[4]], [op[5], op[6]]) < 1.0e-6;
+            if(overlap1){ this.opselected.push([idx,1]); }
+
+            // does this endpoint overlap with a following control point?
+            if(idx+1 < this.ops.length && this.ops[idx+1][0]=="C"){
+              let nextop = this.ops[idx+1];
+              let overlap2 = l2dist([op[5], op[6]], [nextop[1], nextop[2]]) < 1.0e-6;
+              if(overlap2){ this.opselected.push([idx+1,0]); }
+            }
+
+            break;
+          }
+
+          // curve control-points - overlap ruled out by above cases
+          if(l2dist(pt, [op[1], op[2]])<this.pR) {
+            this.state = _MOVE;
+            this.opselected = [[idx, 0]];
+            onPoint = true;
+            break;
+          }
+          if(l2dist(pt, [op[3], op[4]])<this.pR) {
+            this.state = _MOVE;
+            this.opselected = [[idx, 1]];
+            onPoint = true;
+            break;
+          }
         }
       }
-      */
-      // Not moving any previous points, controlpoints:
+      //-----------------------------------------------------------------------------
+      // Adding New Points
       if(!onPoint){
         if(this.cpoint.length === 0) {
           this.state = _ON;
-          this.opselected = this.ops.length;
           this.ops.push( ["L", pt[0], pt[1]] );
           this.liverender();
         } else {
           this.state = _ON;
-          this.opselected = this.ops.length;
           this.ops.push( ["C",
                              this.cpoint[0], this.cpoint[1],
                              pt[0], pt[1],
@@ -1218,17 +1262,6 @@ class BezierTool {
         }
       }
     }
-    else if(this.state == _INIT) {
-      this.state = _ON;
-      this.ops = [ ["M", pt[0], pt[1]] ];
-      this.opselected = 0; //?
-      this.liverender();
-    }
-    //else if(this.state == _ON) {
-    //  this.opselected += 1;//this.state + 1;
-    //  this.ops.push( ["L", pt[0], pt[1]] );
-    //  this.liverender();
-    //}
   }
 
   getOpEndPoint(op){
@@ -1280,46 +1313,63 @@ class BezierTool {
         this.liverender();
       }
     }
-    //if (this.state == _MOVE) {
-    //  this.points[this.selected] = [pt[0], pt[1]];
-    //  this.liverender();
-    //}
+    else if(this.state == _MOVE) {
+      //console.log(this.opselected);
+      for(let hit of this.opselected){
+        let idx = hit[0];
+        let ptidx = hit[1];
+        //console.log("hit",hit[0],hit[1]);
+        this.ops[idx][2*ptidx + 1] = pt[0];
+        this.ops[idx][2*ptidx + 2] = pt[1];
+      }
+      this.liverender();
+    }
   }
 
   mouseUp(e) {
     this.state = _OFF;
+    this.opselected = [];
     this.liverender();
-    console.log(this.ops);
+    //console.log(this.ops);
   }
 
   mouseLeave(e) {
     this.exit();
   }
-/*
+
   keyDown(e) {
     console.log("poly recvd", e);
     if(e.code == "Enter"){
       this.state = _OFF;
-      this.commit();
-      this.points = [];
-      this.selected = 0;
+      this.exit();
     } else if(e.code=="Escape"){
       this.cancel();
     } else if(e.code=="KeyD"){
-      if(this.points.length > 1 &&
+      if(this.ops.length > 1 &&
          this.state == _OFF) {
-        this.points.pop();
-        this.selected -= 1;
+        this.ops.pop();
         this.liverender();
       }
     }
   }
-*/
+
+  commit() {
+    cmdstack.push( new BezierOp(this.ops) );
+    rerender(ctx);
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+  }
+
+  cancel() {
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.state = _INIT;
+    this.ops = [];
+  }
+
   exit(){
-    if(this.state==_OFF) {
+    if(this.state==_OFF) { // remove conditional?
       this.commit();
       this.ops = [];
-      this.opselected = 0;
+      this.opselected = [];
       this.cpoint = [];
       this.state = _INIT;
     }

@@ -6,26 +6,18 @@
   </div>
 </template>
 <script>
-//import es_numfield from './es_numfield';
-//import {_} from 'underscore';
-import {gS} from '../main.js';
-
-const MIN_LINEWIDTH = 0.1;
-const MAX_LINEWIDTH = 10;
-const DELTA_LINEWIDTH = 0.1;
+import {gS, gConstants} from '../main.js';
 
 export default {
   props: ['lineWidth'],
   created: function(){
-    this.max = MAX_LINEWIDTH;
-    this.min = MIN_LINEWIDTH;
-    this.step = DELTA_LINEWIDTH;
-    this.name = "thicknessUI";
+    this.max = gConstants.MAX_LINEWIDTH;
+    this.min = gConstants.MIN_LINEWIDTH;
+    this.step = gConstants.DELTA_LINEWIDTH;
+    this.name = "styleUI";
   },
   methods: {
     changethick: function({type, target}){
-      //gS.cmdstack.push(new StyleOp({lineWidth: target.value}));
-      //rerender(ctx);
       gS.$emit('styleUpdate', {lineWidth: target.value});
     }
   }

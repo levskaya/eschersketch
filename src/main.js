@@ -11,66 +11,53 @@
 //------------------------------------------------------------------------------
 
 // Imports
-import Vue from 'vue';
-import { Chrome } from 'vue-color';
 import { _ } from 'underscore';
+import Vue from 'vue';
+import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
-import { generateTiling, generateLattice, planarSymmetries} from './geo';
+import {generateTiling, generateLattice, planarSymmetries} from './geo';
+
+import {pixelFix, setCanvasPixelDensity} from './canvas_utils';
 
 // Constants
-const CANVAS_WIDTH  = 1600;
-const CANVAS_HEIGHT = 1200;
-//const MIN_LINEWIDTH = 0.1;
-//const MAX_LINEWIDTH = 10;
-//const DELTA_LINEWIDTH = 0.1;
-
-//Event Bus -- use Vuex instead?
-var bus = new Vue();
-
-// Symmetries
-const allsyms = ['p1','diagonalgrid','pm','cm','pg', //rot-free
-                 'pmg','pgg','pmm','p2','cmm',   //180deg containing
-                 'p4', 'p4g', 'p4m',             //square
-                 'hexgrid','p3','p6','p31m','p3m1','p6m']; //hex
-var selectedsym = 'p6m';
-
-const GRIDNX = 18;
-const GRIDNY = 14;
-// grid Nx, Ny should NOT be too large, should clamp.
-var _gridstate = {x:800, y:400, d:100, t:0, Nx:18, Ny:14};
-
-// stores the rescaling ratio used by pixelFix,
-// needed for pixel-level manipulation
-var pixelratio = 1;
-
-var _ctxStyle = {
-  lineCap: "butt", // butt, round, square
-  lineJoin: "round", // round, bevel, miter
-  miterLimit: 10.0, // applies to miter setting above
-  lineWidth: 1.0
+export const gConstants = {
+  CANVAS_WIDTH:     1600,
+  CANVAS_HEIGHT:    1200,
+  MIN_LINEWIDTH:    0.1,
+  MAX_LINEWIDTH:    10,
+  DELTA_LINEWIDTH:  0.1,
+  GRIDNX:           18,
+  GRIDNY:           14,
+  INITSYM:          'p6m',
+  // All Symmetries made available
+  ALLSYMS:          ['p1','diagonalgrid','pm','cm','pg', //rot-free
+                     'pmg','pgg','pmm','p2','cmm',   //180deg containing
+                     'p4', 'p4g', 'p4m',             //square
+                     'hexgrid','p3','p6','p31m','p3m1','p6m'] //hex
 };
-var _strokecolor = {r: 100, g:100, b:100, a:1.0};
-var _fillcolor =   {r: 200, g:100, b:100, a:0.0};
 
-// stores symmetry affine transforms
-var lattice = {};
-var affineset = {};
-
-
+// gS = global State, holds the UI state
+// as well as acting as top-level event bus
 export const gS = new Vue({
   data: {
     // Symmetry State
     //-------------------------------
-    symstate: {sym: selectedsym},
-    gridstate: _gridstate,
+    symstate: {sym: gConstants.INITSYM},
+    // grid Nx, Ny should NOT be too large, should clamp.
+    gridstate: {x:800, y:400, d:100, t:0, Nx:18, Ny:14},
     // Style State
     //-------------------------------
-    ctxStyle: _ctxStyle,
-    fillcolor: _fillcolor,
-    strokecolor: _strokecolor,
+    ctxStyle: {
+      lineCap: "butt", // butt, round, square
+      lineJoin: "round", // round, bevel, miter
+      miterLimit: 10.0, // applies to miter setting above
+      lineWidth: 1.0
+    },
+    fillcolor:   {target: "fill",   r: 200, g:100, b:100, a:0.0},
+    strokecolor: {target: "stroke", r: 100, g:100, b:100, a:1.0},
     // Global Command and Redo Stacks
     //-------------------------------
-    cmdstack: [],
+    cmdstack: [], //<-- needed in here?
     redostack: [],
   }
 });
@@ -85,9 +72,15 @@ gS.$on('styleUpdate',
          gS.cmdstack.push(new StyleOp(_.clone(updateDict)));
          rerender(ctx);
        });
+gS.$on('colorUpdate',
+       function(clr) {
+         gS.cmdstack.push(new ColorOp(clr.target, clr.r, clr.g, clr.b, clr.a));
+         rerender(ctx);
+       });
 
+// HACK: for debugging
 window.gS=gS;
-//window._=_;
+
 
 
 // Canvas / Context Globals
@@ -96,6 +89,14 @@ var livecanvas = {};
 var lctx = {};
 var canvas = {};
 var ctx = {};
+
+// stores the rescaling ratio used by pixelFix,
+// needed for pixel-level manipulation
+var pixelratio = 1;
+
+// stores symmetry affine transforms
+var lattice = {};
+var affineset = {};
 
 
 // Math Functions
@@ -111,7 +112,6 @@ var normalize = (pt)        => scalar2(pt, 1.0/l2norm(pt));
 var reflectPoint = (pt0, pt1) => sub2(pt0, sub2(pt1, pt0));
 
 
-
 // Symmetry Selection UI
 //------------------------------------------------------------------------------
 import symmetryUi from './components/symmetryUI';
@@ -119,7 +119,7 @@ var vueSym = new Vue({
   el: '#symUI',
   template: '<symmetry-ui :selected="selected" :allsyms="allsyms"/>',
   components: { symmetryUi },
-  data: { selected: gS.symstate , 'allsyms': allsyms}
+  data: { selected: gS.symstate , 'allsyms': gConstants.ALLSYMS}
 });
 
 // Grid UI
@@ -132,95 +132,28 @@ var vueGrid = new Vue({
   data: gS.gridstate
 });
 
-// Line Width UI
+// Line Styling UI
 //------------------------------------------------------------------------------
-import thicknessUi from './components/thicknessUI';
-var vueThickness = new Vue({
-  el: '#thicknessUI',
-  template: '<thickness-ui :lineWidth="lineWidth"/>',
-  components: {thicknessUi},
+import styleUi from './components/styleUI';
+var vueStyle = new Vue({
+  el: '#styleUI',
+  template: '<style-ui :lineWidth="lineWidth"/>',
+  components: {styleUi},
   data: gS.ctxStyle
 });
 
 // Color UI
 //------------------------------------------------------------------------------
-var rgb2hex = function(r,g,b) {
-  var pad = function(n, width=2, z=0) {
-    return (String(z).repeat(width) + String(n)).slice(String(n).length);
-  };
-  var hexr = pad(parseInt(r,10).toString(16).slice(-2));
-  var hexg = pad(parseInt(g,10).toString(16).slice(-2));
-  var hexb = pad(parseInt(b,10).toString(16).slice(-2));
-  return '#'+hexr+hexg+hexb;
-};
-
-
-var strokecolorvue = new Vue({
-  el:"#strokecolor",
-  data: gS.strokecolor,
-  computed: {
-    colors: function(){
-      let newColor = {
-        hex: rgb2hex(this.r,this.g,this.b),
-        a: this.a
-      };
-      return newColor;
-      }
-    },
-  components: {
-    'chrome-picker': Chrome
-  },
-  methods: {
-    onUpdate: _.debounce(function(x){
-      gS.cmdstack.push(new ColorOp("stroke",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
-      rerender(ctx);
-      this.r = x.rgba.r;
-      this.g = x.rgba.g;
-      this.b = x.rgba.b;
-      this.a = x.rgba.a;
-    }, 200)
-  }
+import colorUi from './components/colorUI';
+var vueColor = new Vue({
+  el: '#colorUI',
+  template: '<color-ui :strokeColor="strokeColor" :fillColor="fillColor"/>',
+  components: {colorUi},
+  data: {strokeColor: gS.strokecolor,
+         fillColor: gS.fillcolor}
 });
 
-var fillcolorvue = new Vue({
-  el:"#fillcolor",
-  data: gS.fillcolor,
-  computed: {
-    colors: function(){
-      let newColor = {
-        hex: rgb2hex(this.r,this.g,this.b),
-        a: this.a
-      };
-      return newColor;
-      }
-    },
-  components: {
-    'chrome-picker': Chrome
-  },
-  methods: {
-    onUpdate: _.debounce(function(x){
-      gS.cmdstack.push(new ColorOp("fill",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
-      rerender(ctx);
-      this.r = x.rgba.r;
-      this.g = x.rgba.g;
-      this.b = x.rgba.b;
-      this.a = x.rgba.a;
-    }, 200)
-  }
-});
 
-document.getElementById("showstroke").onmousedown = function(e) {
-  document.getElementById("showstroke").classList.add("selected");
-  document.getElementById("showfill").classList.remove("selected");
-  document.getElementById("fillcolor").style.display="none";
-  document.getElementById("strokecolor").style.display="block";
-};
-document.getElementById("showfill").onmousedown = function(e) {
-  document.getElementById("showstroke").classList.remove("selected");
-  document.getElementById("showfill").classList.add("selected");
-  document.getElementById("strokecolor").style.display="none";
-  document.getElementById("fillcolor").style.display="block";
-};
 
 
 // Mouse Events -- dispatched to active Drawing Tool
@@ -339,11 +272,11 @@ var memo_generateLattice = _.memoize(generateLattice,
                                 function(){return JSON.stringify(arguments);});
 var updateTiling = function(sym, gridstate) {
   affineset = memo_generateTiling(planarSymmetries[sym],
-                                  GRIDNX, GRIDNY,
+                                  gConstants.GRIDNX, gConstants.GRIDNY,
                                   gridstate.d, gridstate.t,
                                   gridstate.x, gridstate.y);
   lattice = memo_generateLattice(planarSymmetries[sym],
-                                 GRIDNX, GRIDNY,
+                                 gConstants.GRIDNX, gConstants.GRIDNY,
                                  gridstate.d, gridstate.t,
                                  gridstate.x, gridstate.y);
 };
@@ -432,10 +365,7 @@ class StyleOp {
     miterLimit  Sets or returns the maximum miter length
   */
   constructor(styleProps) {
-    this.styleProps = _.clone(_ctxStyle); //default style
-    for(var prop of Object.keys(styleProps)){
-      this.styleProps[prop] = styleProps[prop];
-    }
+    this.styleProps = Object.assign({}, gS.ctxStyle, styleProps);
   }
 
   render(ctx){
@@ -547,7 +477,7 @@ class GridTool {
     this.p1 = p1;
 
     let newlattice = generateLattice(planarSymmetries[gS.symstate.sym],
-                                  GRIDNX, GRIDNY,
+                                  gConstants.GRIDNX, gConstants.GRIDNY,
                                   this.d, this.t,
                                   this.x, this.y);
     // Draw Lattice
@@ -1556,58 +1486,19 @@ document.getElementById("saveSVG").onmousedown = function(e) {
   // canvas2svg fake context:
   var C2Sctx = new C2S(canvas.width, canvas.height);
   rerender(C2Sctx);
-  //serialize your SVG
+  //serialize the SVG
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
   //save text blob as SVG
   var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
   saveAs(blob, "eschersketch.svg");
 };
 
+// TODO : allow arbitrary upscaling of canvas pixel backing density using
+//        setCanvasPixelDensity
 document.getElementById("savePNG").onmousedown = function(e) {
     canvas.toBlob(blob => saveAs(blob, "eschersketch.png"));
 };
 
-
-
-//------------------------------------------------------------------------------
-// Canvas Tweaks
-//------------------------------------------------------------------------------
-
-
-// Fixes DPI issues with Retina displays on Chrome
-// http://www.html5rocks.com/en/tutorials/canvas/hidpi/
-const pixelFix = function(canvas) {
-  // get the canvas and context
-  const context = canvas.getContext('2d');
-
-  // finally query the various pixel ratios
-  const devicePixelRatio = window.devicePixelRatio || 1;
-  const backingStoreRatio = context.webkitBackingStorePixelRatio ||
-    context.mozBackingStorePixelRatio ||
-    context.msBackingStorePixelRatio ||
-    context.oBackingStorePixelRatio ||
-    context.backingStorePixelRatio || 1;
-
-  const ratio = devicePixelRatio / backingStoreRatio;
-  //console.log("pixel ratio", ratio);
-  //HACK: set global
-  pixelratio = ratio;
-
-  // upscale the canvas if the two ratios don't match
-  if (devicePixelRatio !== backingStoreRatio) {
-
-    const oldWidth = canvas.width;
-    const oldHeight = canvas.height;
-    canvas.width = oldWidth * ratio;
-    canvas.height = oldHeight * ratio;
-    canvas.style.width = oldWidth + 'px';
-    canvas.style.height = oldHeight + 'px';
-
-    // now scale the context to counter the fact that we've
-    // manually scaled our canvas element
-    context.scale(ratio, ratio);
-  }
-};
 
 
 // should be "reset"
@@ -1633,7 +1524,7 @@ var initState = function() {
     lineWidth: 1.0}));
 
   gS.cmdstack.push(new SymmOp(
-    selectedsym,
+    gConstants.INITSYM,
     _.clone(gS.gridstate)));
 
   // set global undo boundary so these initial
@@ -1648,14 +1539,14 @@ var initState = function() {
 var initGUI = function() {
 
   canvas = document.getElementById("sketchrender");
-  canvas.width = CANVAS_WIDTH;
-  canvas.height = CANVAS_HEIGHT;
-  pixelFix(canvas);
+  canvas.width = gConstants.CANVAS_WIDTH;
+  canvas.height = gConstants.CANVAS_HEIGHT;
+  pixelratio = pixelFix(canvas);
   ctx = canvas.getContext("2d");
 
   livecanvas = document.getElementById("sketchlive");
-  livecanvas.width = CANVAS_WIDTH;
-  livecanvas.height = CANVAS_HEIGHT;
+  livecanvas.width = gConstants.CANVAS_WIDTH;
+  livecanvas.height = gConstants.CANVAS_HEIGHT;
   pixelFix(livecanvas);
   lctx = livecanvas.getContext("2d");
 
@@ -1667,27 +1558,6 @@ var initGUI = function() {
 
   initState();
 
-  doHACKS();
-
-  // style init...
-  document.getElementById("fillcolor").style.display="none";
-  document.getElementById("strokecolor").style.display="block";
-
 };
-
-
-// Temporary HACKs (remove this shite)
-var doHACKS = function() {
-  //harmonize vue color picker style... need to fix in source...
-  var _els = document.getElementsByClassName("vue-color__chrome");
-  for(let _el of _els){
-    _el.style.boxShadow="none";
-  }
-  _els = document.getElementsByClassName("vue-color__chrome__chrome-body");
-  for(let _el of _els){
-    _el.style.backgroundColor="#f9f9f9";
-  }
-};
-
 
 initGUI();

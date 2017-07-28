@@ -70,18 +70,9 @@
   <br><hr>
   <!-- Line Styling -->
   <span style="font-variant: small-caps;">line width</span>
-  <div id="thicknessUI"></div>
+  <div id="styleUI"></div>
+  <div id="colorUI"></div>
 
-  <div id="colorcontainer">
-    <div class="button selected" id="showstroke">stroke</div>
-    <div class="button" id="showfill">fill</div>
-  <div id="strokecolor">
-    <chrome-picker :value="colors" @input="onUpdate" key="foo"></chrome-picker>
-  </div>
-  <div id="fillcolor">
-    <chrome-picker :value="colors" @input="onUpdate" key="bar"></chrome-picker>
-  </div>
-  </div>
   <br><hr>
 
   <div id="saveSVG" class="button">Save SVG</div>

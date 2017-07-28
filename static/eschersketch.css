@@ -119,3 +119,12 @@ input {
 .Aligner-item--bottom {
   align-self: flex-end;
 }
+
+/*
+.hideme {
+    display: none;
+}
+.showme {
+    display: block;
+}
+*/

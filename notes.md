@@ -1,17 +1,15 @@
 # Eschersketch Notes
 
 ## MVP
-- polygon tool
-- bezier tool
-- arc tool?
-- rosette groups UI and identity (no trafo)
+- refactor to be hackable later...
 - gridsize nx,ny limit to some max so as not to crash browser...
+- rosette groups UI and identity (no trafo)
 - tile png export
 - tile svg export (clipping) if easy... later if hard
-- refactor to be hackable later...
 - touch events if not insane
 
 later...
+- arc tool?
 - UI improvement
 - frieze groups
 - color-rot wallpaper groups?

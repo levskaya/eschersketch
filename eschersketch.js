@@ -13,8 +13,15 @@
 // Imports
 const { Chrome } = VueColor;
 
+// Constants
+const CANVAS_WIDTH  = 1600;
+const CANVAS_HEIGHT = 1200;
+const MIN_LINEWIDTH = 0.1;
+const MAX_LINEWIDTH = 10;
+const DELTA_LINEWIDTH = 0.1;
+
 //Event Bus -- use Vuex instead?
-//var bus = new Vue();
+var bus = new Vue();
 
 // Symmetries
 const allsyms = ['p1','diagonalgrid','pm','cm','pg', //rot-free
@@ -23,17 +30,10 @@ const allsyms = ['p1','diagonalgrid','pm','cm','pg', //rot-free
                  'hexgrid','p3','p6','p31m','p3m1','p6m']; //hex
 var selectedsym = 'p6m';
 
-var gridstate = {x:800, y:400, d:100, t:0}; // XXX: Nx, Ny should be here too
-//const GRIDNX = 37;
-//const GRIDNY = 31;
 const GRIDNX = 18;
 const GRIDNY = 14;
-
-// Constants
-const CANVAS_WIDTH  = 1600;
-const CANVAS_HEIGHT = 1200;
-const MIN_LINEWIDTH = 0.01;
-const MAX_LINEWIDTH = 4;
+// grid Nx, Ny should NOT be too large, should clamp.
+var gridstate = {x:800, y:400, d:100, t:0, Nx:18, Ny:14};
 
 // stores the rescaling ratio used by pixelFix,
 // needed for pixel-level manipulation
@@ -45,10 +45,10 @@ var ctxStyle = {
   miterLimit: 10.0, // applies to miter setting above
   lineWidth: 1.0
 };
-
 var strokecolor = {r: 100, g:100, b:100, a:1.0};
 var fillcolor =   {r: 200, g:100, b:100, a:0.0};
 
+// stores symmetry affine transforms
 var lattice = {};
 var affineset = {};
 
@@ -64,7 +64,6 @@ var scalar2   = (pt, alpha) => [pt[0]*alpha, pt[1]*alpha];
 var normalize = (pt)        => scalar2(pt, 1.0/l2norm(pt));
 // reflect pt1 through pt0
 var reflectPoint = (pt0, pt1) => sub2(pt0, sub2(pt1, pt0));
-
 
 
 // Symmetry Selection UI
@@ -143,7 +142,7 @@ var gridUI = new Vue({
       rerender(ctx);
 
       //HACK: if the gridtool is active, update canvas if the grid ui is altered
-      if(curTool=="grid"){ drawTools["grid"].enter()};
+      if(curTool=="grid"){ drawTools["grid"].enter(); }
     },
     halveD: function(){ this.update("d", this.d/2.0); },
     doubleD: function(){ this.update("d", this.d*2.0); },
@@ -157,9 +156,9 @@ var thicknessUI = new Vue({
   el: '#thicknessUI',
   data: ctxStyle,
   created: function(){
-    this.max = 10.0;
-    this.min = 0.1;
-    this.step = 0.1;
+    this.max = MAX_LINEWIDTH;
+    this.min = MIN_LINEWIDTH;
+    this.step = DELTA_LINEWIDTH;
     this.name = "thicknessUI";
   },
   methods: {
@@ -302,6 +301,7 @@ var ctx = {};
 */
 var cmdstack = [];
 var redostack = [];
+
 var rerender = function(ctx, clear=true) {
   //console.log("rerendering ", cmdstack.length, " ops");
   if(clear){
@@ -311,6 +311,7 @@ var rerender = function(ctx, clear=true) {
     cmd.render(ctx);
   }
 };
+
 var undo_init_bound = 0;
 var undo = function(){
   //make sure stateful drawing tool isn't left in a weird spot
@@ -384,13 +385,6 @@ var updateTiling = function(sym, gridstate) {
                                  gridstate.x, gridstate.y);
 };
 
-// needed for responsize graphical grid update:
-var updateLattice = function(sym, gridstate) {
-    lattice = memo_generateLattice(planarSymmetries[sym],
-                              GRIDNX, GRIDNY,
-                              gridstate.d, gridstate.t,
-                              gridstate.x, gridstate.y);
-};
 
 // SymmOp sets up set of affine trafos for a given symmetry
 //------------------------------------------------------------------------------
@@ -1346,9 +1340,6 @@ class BezierTool {
       else if(firstHit[2]=='c') {
         let idx = firstHit[0];
         let ptidx = firstHit[1];
-        //let oldpt = [this.ops[idx][2*ptidx + 1],
-        //             this.ops[idx][2*ptidx + 2]];
-        //let delta = sub2(pt, oldpt);
         this.ops[idx][2*ptidx + 1] = pt[0];
         this.ops[idx][2*ptidx + 2] = pt[1];
         if(this.opselected.length===2){
@@ -1381,8 +1372,6 @@ class BezierTool {
       }
       // control point move on dangling point --------------------------------
       else if(firstHit[2]=='t') {
-        //let oldpt = [this.cpoint[0], this.cpoint[1]];
-        //let delta = sub2(pt, oldpt);
         this.cpoint = pt;
         if(this.opselected.length===2){
           let secondHit = this.opselected[1];
@@ -1602,7 +1591,6 @@ document.getElementById("beziertool").onmousedown   = function(e) {
 document.getElementById("saveSVG").onmousedown = function(e) {
   // canvas2svg fake context:
   C2Sctx = new C2S(canvas.width, canvas.height);
-  //C2Sctx.line = drawLine;
   rerender(C2Sctx);
   //serialize your SVG
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?

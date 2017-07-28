@@ -11,7 +11,11 @@
 //------------------------------------------------------------------------------
 
 // Imports
-const { Chrome } = VueColor;
+import Vue from 'vue';
+import { Chrome } from 'vue-color';
+import { _ } from 'underscore';
+import {saveAs} from 'file-saver';
+import { generateTiling, generateLattice, planarSymmetries} from './geo';
 
 // Constants
 const CANVAS_WIDTH  = 1600;
@@ -37,7 +41,7 @@ var gridstate = {x:800, y:400, d:100, t:0, Nx:18, Ny:14};
 
 // stores the rescaling ratio used by pixelFix,
 // needed for pixel-level manipulation
-//var pixelratio = 1;
+var pixelratio = 1;
 
 var ctxStyle = {
   lineCap: "butt", // butt, round, square
@@ -68,7 +72,7 @@ var reflectPoint = (pt0, pt1) => sub2(pt0, sub2(pt1, pt0));
 
 // Symmetry Selection UI
 //------------------------------------------------------------------------------
-Vue.component('es-button', {
+/*Vue.component('es-button', {
   template: `<div class="symsel"
               :class="selected"
               @click="bclick">
@@ -86,13 +90,16 @@ Vue.component('es-button', {
     }
   }
 });
+*/
+import es_button from './components/es_button';
 
 var vuesymsel = new Vue({
   el: '#vuesymsel',
   data: { selected: selectedsym },
+  components: {'es-button': es_button},
   computed: {
     syms: function(){
-      symds=[];
+      var symds=[];
       for(var sym of allsyms){
         symds.push({name: sym, selected: (sym==this.selected)});
       }
@@ -120,19 +127,22 @@ var vuesymsel = new Vue({
 
 // Grid UI
 //------------------------------------------------------------------------------
-Vue.component('es-numfield', {
+/*Vue.component('es-numfield', {
   template: `<input type="text" @change="numchange" :value="val" size="3"/>`,
-  props: ['name', 'val'],
+  props: ['param', 'val'],
   methods: {
     numchange: function({type, target}){
       target.blur();
-      this.$emit("numchange", this.name, target.value);
+      this.$emit("numchange", this.param, target.value);
     }
   }
 });
+*/
+import es_numfield from './components/es_numfield';
 
 var gridUI = new Vue({
   el: '#gridUI',
+  components: {'es-numfield': es_numfield},
   data: gridstate,
   methods: {
     update: function(name, val){
@@ -183,7 +193,7 @@ var rgb2hex = function(r,g,b) {
 };
 
 
-strokecolorvue = new Vue({
+var strokecolorvue = new Vue({
   el:"#strokecolor",
   data: strokecolor,
   computed: {
@@ -210,7 +220,7 @@ strokecolorvue = new Vue({
   }
 });
 
-fillcolorvue = new Vue({
+var fillcolorvue = new Vue({
   el:"#fillcolor",
   data: fillcolor,
   computed: {
@@ -365,7 +375,6 @@ document.getElementById("reset").onmouseleave =
       e.target.innerHTML = "reset";
     }
   };
-
 
 //------------------------------------------------------------------------------
 // Context / State Update Ops
@@ -1590,7 +1599,7 @@ document.getElementById("beziertool").onmousedown   = function(e) {
 // tile?
 document.getElementById("saveSVG").onmousedown = function(e) {
   // canvas2svg fake context:
-  C2Sctx = new C2S(canvas.width, canvas.height);
+  var C2Sctx = new C2S(canvas.width, canvas.height);
   rerender(C2Sctx);
   //serialize your SVG
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
@@ -1725,3 +1734,6 @@ var doHACKS = function() {
     _el.style.backgroundColor="#f9f9f9";
   }
 };
+
+
+initGUI();

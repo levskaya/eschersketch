@@ -16,6 +16,7 @@
 
 // import core math to local namespace
 //--------------------------------------------------------------------------------------------------
+import { _ } from 'underscore';
 
 const { min, max, abs, sqrt, floor, round, sin, cos, tan, acos, asin, atan, pow, PI } = Math;
 const sign = // sign func -> -1, 1
@@ -423,7 +424,7 @@ const multiRosette3 = function(n1, n2, n3, a, d, skew, x, y) {
 // Generate Lattice
 //--------------------------------------------------------------------------------------------------
 
-const generateLattice = function(spec, nx, ny, d, phi, x, y) {
+export const generateLattice = function(spec, nx, ny, d, phi, x, y) {
   const transset = [];
   const { vec0 } = spec;
   const { vec1 } = spec;
@@ -446,7 +447,7 @@ const generateLattice = function(spec, nx, ny, d, phi, x, y) {
 // Master Routine for making Wallpaper Group Sets
 //--------------------------------------------------------------------------------------------------
 
-const generateTiling = function(spec, nx, ny, d, phi, x, y) {
+export const generateTiling = function(spec, nx, ny, d, phi, x, y) {
   let rotset = [];
   let refset = [];
   let glideset = [];
@@ -509,7 +510,7 @@ const generateTiling = function(spec, nx, ny, d, phi, x, y) {
 // Wallpaper Symmetry Specification
 //--------------------------------------------------------------------------------------------------
 
-const planarSymmetries = {
+export const planarSymmetries = {
   squaregrid: {
     rots: [],
     refs: [],

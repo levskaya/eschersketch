@@ -20,9 +20,9 @@ import { generateTiling, generateLattice, planarSymmetries} from './geo';
 // Constants
 const CANVAS_WIDTH  = 1600;
 const CANVAS_HEIGHT = 1200;
-const MIN_LINEWIDTH = 0.1;
-const MAX_LINEWIDTH = 10;
-const DELTA_LINEWIDTH = 0.1;
+//const MIN_LINEWIDTH = 0.1;
+//const MAX_LINEWIDTH = 10;
+//const DELTA_LINEWIDTH = 0.1;
 
 //Event Bus -- use Vuex instead?
 var bus = new Vue();
@@ -37,24 +37,65 @@ var selectedsym = 'p6m';
 const GRIDNX = 18;
 const GRIDNY = 14;
 // grid Nx, Ny should NOT be too large, should clamp.
-var gridstate = {x:800, y:400, d:100, t:0, Nx:18, Ny:14};
+var _gridstate = {x:800, y:400, d:100, t:0, Nx:18, Ny:14};
 
 // stores the rescaling ratio used by pixelFix,
 // needed for pixel-level manipulation
 var pixelratio = 1;
 
-var ctxStyle = {
+var _ctxStyle = {
   lineCap: "butt", // butt, round, square
   lineJoin: "round", // round, bevel, miter
   miterLimit: 10.0, // applies to miter setting above
   lineWidth: 1.0
 };
-var strokecolor = {r: 100, g:100, b:100, a:1.0};
-var fillcolor =   {r: 200, g:100, b:100, a:0.0};
+var _strokecolor = {r: 100, g:100, b:100, a:1.0};
+var _fillcolor =   {r: 200, g:100, b:100, a:0.0};
 
 // stores symmetry affine transforms
 var lattice = {};
 var affineset = {};
+
+
+export const gS = new Vue({
+  data: {
+    // Symmetry State
+    //-------------------------------
+    symstate: {sym: selectedsym},
+    gridstate: _gridstate,
+    // Style State
+    //-------------------------------
+    ctxStyle: _ctxStyle,
+    fillcolor: _fillcolor,
+    strokecolor: _strokecolor,
+    // Global Command and Redo Stacks
+    //-------------------------------
+    cmdstack: [],
+    redostack: [],
+  }
+});
+gS.$on('rerender', function() { rerender(ctx); });
+gS.$on('symmUpdate',
+       function(symName, gridSetting) {
+         gS.cmdstack.push(new SymmOp(symName, _.clone(gridSetting)));
+         rerender(ctx);
+       });
+gS.$on('styleUpdate',
+       function(updateDict) {
+         gS.cmdstack.push(new StyleOp(_.clone(updateDict)));
+         rerender(ctx);
+       });
+
+window.gS=gS;
+//window._=_;
+
+
+// Canvas / Context Globals
+//------------------------------------------------------------------------------
+var livecanvas = {};
+var lctx = {};
+var canvas = {};
+var ctx = {};
 
 
 // Math Functions
@@ -70,115 +111,36 @@ var normalize = (pt)        => scalar2(pt, 1.0/l2norm(pt));
 var reflectPoint = (pt0, pt1) => sub2(pt0, sub2(pt1, pt0));
 
 
+
 // Symmetry Selection UI
 //------------------------------------------------------------------------------
-/*Vue.component('es-button', {
-  template: `<div class="symsel"
-              :class="selected"
-              @click="bclick">
-                {{ sym.name }}
-              </div>`,
-  props: ['sym'],
-  methods: {
-    bclick: function(){
-      this.$emit("bclick", this.sym.name);
-    }
-  },
-  computed: {
-    selected: function() {
-      return {selected: this.sym.selected};
-    }
-  }
+import symmetryUi from './components/symmetryUI';
+var vueSym = new Vue({
+  el: '#symUI',
+  template: '<symmetry-ui :selected="selected" :allsyms="allsyms"/>',
+  components: { symmetryUi },
+  data: { selected: gS.symstate , 'allsyms': allsyms}
 });
-*/
-import es_button from './components/es_button';
-
-var vuesymsel = new Vue({
-  el: '#vuesymsel',
-  data: { selected: selectedsym },
-  components: {'es-button': es_button},
-  computed: {
-    syms: function(){
-      var symds=[];
-      for(var sym of allsyms){
-        symds.push({name: sym, selected: (sym==this.selected)});
-      }
-      return symds;
-    }
-  },
-  methods: {
-    changesym: function(symname){
-      selectedsym = symname; //global
-      this.selected = symname;
-      for(var sym of this.syms){
-        if(sym.name == symname) {sym.selected=true;}
-        else {sym.selected=false;}
-      }
-      var gridcopy = {x:gridstate.x, y:gridstate.y, d:gridstate.d, t:gridstate.t};
-      cmdstack.push(new SymmOp(symname, gridcopy));
-      rerender(ctx);
-
-      //HACK: if the gridtool is active, update canvas if the grid ui is altered
-      if(curTool=="grid"){ drawTools["grid"].enter()};
-    }
-  },
-});
-
 
 // Grid UI
 //------------------------------------------------------------------------------
-/*Vue.component('es-numfield', {
-  template: `<input type="text" @change="numchange" :value="val" size="3"/>`,
-  props: ['param', 'val'],
-  methods: {
-    numchange: function({type, target}){
-      target.blur();
-      this.$emit("numchange", this.param, target.value);
-    }
-  }
-});
-*/
-import es_numfield from './components/es_numfield';
-
-var gridUI = new Vue({
+import gridUi from './components/gridUI';
+var vueGrid = new Vue({
   el: '#gridUI',
-  components: {'es-numfield': es_numfield},
-  data: gridstate,
-  methods: {
-    update: function(name, val){
-      gridstate[name]=Number(val);
-      var gridcopy = {x:gridstate.x, y:gridstate.y, d:gridstate.d, t:gridstate.t};
-      cmdstack.push(new SymmOp(vuesymsel.selected, gridcopy));
-      rerender(ctx);
-
-      //HACK: if the gridtool is active, update canvas if the grid ui is altered
-      if(curTool=="grid"){ drawTools["grid"].enter(); }
-    },
-    halveD: function(){ this.update("d", this.d/2.0); },
-    doubleD: function(){ this.update("d", this.d*2.0); },
-  },
+  template: '<grid-ui :x="x" :y="y" :d="d"/>',
+  components: {gridUi},
+  data: gS.gridstate
 });
-
 
 // Line Width UI
 //------------------------------------------------------------------------------
-var thicknessUI = new Vue({
+import thicknessUi from './components/thicknessUI';
+var vueThickness = new Vue({
   el: '#thicknessUI',
-  data: ctxStyle,
-  created: function(){
-    this.max = MAX_LINEWIDTH;
-    this.min = MIN_LINEWIDTH;
-    this.step = DELTA_LINEWIDTH;
-    this.name = "thicknessUI";
-  },
-  methods: {
-    changethick: function({type, target}){
-      cmdstack.push(new StyleOp({lineWidth: target.value}));
-      rerender(ctx);
-    }
-  }
+  template: '<thickness-ui :lineWidth="lineWidth"/>',
+  components: {thicknessUi},
+  data: gS.ctxStyle
 });
-
 
 // Color UI
 //------------------------------------------------------------------------------
@@ -195,7 +157,7 @@ var rgb2hex = function(r,g,b) {
 
 var strokecolorvue = new Vue({
   el:"#strokecolor",
-  data: strokecolor,
+  data: gS.strokecolor,
   computed: {
     colors: function(){
       let newColor = {
@@ -210,7 +172,7 @@ var strokecolorvue = new Vue({
   },
   methods: {
     onUpdate: _.debounce(function(x){
-      cmdstack.push(new ColorOp("stroke",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
+      gS.cmdstack.push(new ColorOp("stroke",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
       rerender(ctx);
       this.r = x.rgba.r;
       this.g = x.rgba.g;
@@ -222,7 +184,7 @@ var strokecolorvue = new Vue({
 
 var fillcolorvue = new Vue({
   el:"#fillcolor",
-  data: fillcolor,
+  data: gS.fillcolor,
   computed: {
     colors: function(){
       let newColor = {
@@ -237,7 +199,7 @@ var fillcolorvue = new Vue({
   },
   methods: {
     onUpdate: _.debounce(function(x){
-      cmdstack.push(new ColorOp("fill",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
+      gS.cmdstack.push(new ColorOp("fill",x.rgba.r,x.rgba.g,x.rgba.b,x.rgba.a));
       rerender(ctx);
       this.r = x.rgba.r;
       this.g = x.rgba.g;
@@ -291,12 +253,6 @@ var dispatchKeyDown = function(e) {
 };
 
 
-// Canvas / Context Globals...
-//------------------------------------------------------------------------------
-var livecanvas = {};
-var lctx = {};
-var canvas = {};
-var ctx = {};
 
 // Command Stack
 //------------------------------------------------------------------------------
@@ -309,15 +265,13 @@ var ctx = {};
    - shoudn't be able to clear the context initialization ops, otherwise redos
      unstable, keep color/symm inits in place...
 */
-var cmdstack = [];
-var redostack = [];
 
 var rerender = function(ctx, clear=true) {
-  //console.log("rerendering ", cmdstack.length, " ops");
+  //console.log("rerendering ", gS.cmdstack.length, " ops");
   if(clear){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
-  for(var cmd of cmdstack){
+  for(var cmd of gS.cmdstack){
     cmd.render(ctx);
   }
 };
@@ -326,23 +280,23 @@ var undo_init_bound = 0;
 var undo = function(){
   //make sure stateful drawing tool isn't left in a weird spot
   if('exit' in drawTools[curTool]) {drawTools[curTool].exit();}
-  if(cmdstack.length > undo_init_bound){
-    var cmd = cmdstack.pop();
-    redostack.push(cmd);
+  if(gS.cmdstack.length > undo_init_bound){
+    var cmd = gS.cmdstack.pop();
+    gS.redostack.push(cmd);
     rerender(ctx);
   }
 };
 var redo = function(){
-  if(redostack.length>0){
-    var cmd = redostack.pop();
-    cmdstack.push(cmd);
+  if(gS.redostack.length>0){
+    var cmd = gS.redostack.pop();
+    gS.cmdstack.push(cmd);
     rerender(ctx);
   }
 };
 var reset = function(){
   //make sure stateful drawing tool isn't left in a weird spot
   if('exit' in drawTools[curTool]) {drawTools[curTool].exit();}
-  cmdstack = [];
+  gS.cmdstack = [];
   initState();
 };
 
@@ -404,16 +358,14 @@ class SymmOp {
   }
 
   render(ctx){
-    //update global storing current affineset... hacky
+    // update global storing current affineset
     updateTiling(this.sym, this.grid);
-    // HACK: directly mutate global that's watched by vue...
-    selectedsym = this.sym;
-    // HACK: directly mutate vue...
-    vuesymsel.$data.selected = this.sym;
-    gridstate.x = this.grid.x;
-    gridstate.y = this.grid.y;
-    gridstate.d = this.grid.d;
-    gridstate.t = this.grid.t;
+    // directly mutate global that's watched by vue
+    gS.symstate.sym = this.sym;
+    gS.gridstate.x = this.grid.x;
+    gS.gridstate.y = this.grid.y;
+    gS.gridstate.d = this.grid.d;
+    gS.gridstate.t = this.grid.t;
 
     //HACK: if the gridtool is active, update canvas if the grid ui is altered
     if(curTool=="grid"){ drawTools["grid"].enter(); }
@@ -446,20 +398,20 @@ class ColorOp {
       // HACK: ghetto, fix application to all contexts...
       lctx.strokeStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
       // HACK: directly mutate global that's watched by vue...
-      strokecolor.r = this.r;
-      strokecolor.g = this.g;
-      strokecolor.b = this.b;
-      strokecolor.a = this.a;
+      gS.strokecolor.r = this.r;
+      gS.strokecolor.g = this.g;
+      gS.strokecolor.b = this.b;
+      gS.strokecolor.a = this.a;
     }
     else if(this.target == "fill") {
       ctx.fillStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
       // HACK: ghetto, fix application to all contexts...
       lctx.fillStyle = "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
       // HACK: directly mutate global that's watched by vue...
-      fillcolor.r = this.r;
-      fillcolor.g = this.g;
-      fillcolor.b = this.b;
-      fillcolor.a = this.a;
+      gS.fillcolor.r = this.r;
+      gS.fillcolor.g = this.g;
+      gS.fillcolor.b = this.b;
+      gS.fillcolor.a = this.a;
     }
   }
 
@@ -480,7 +432,10 @@ class StyleOp {
     miterLimit  Sets or returns the maximum miter length
   */
   constructor(styleProps) {
-    this.styleProps = styleProps;
+    this.styleProps = _.clone(_ctxStyle); //default style
+    for(var prop of Object.keys(styleProps)){
+      this.styleProps[prop] = styleProps[prop];
+    }
   }
 
   render(ctx){
@@ -489,7 +444,7 @@ class StyleOp {
       // HACK: ghetto, fix application to all contexts...
       lctx[prop] = this.styleProps[prop];
       // HACK: directly mutate global that's watched by vue...
-      ctxStyle[prop] = this.styleProps[prop];
+      gS.ctxStyle[prop] = this.styleProps[prop];
     }
   }
 
@@ -510,7 +465,7 @@ class StyleOp {
 
 class GridTool {
   constructor() {
-    Object.assign(this, gridstate); //x,y,d,t
+    Object.assign(this, gS.gridstate); //x,y,d,t
     this.p0 = [0,0];
     this.p1 = [0,0];
     this.hitRadius = 10;
@@ -518,7 +473,7 @@ class GridTool {
   }
 
   enter(){
-    Object.assign(this, gridstate); //x,y,d,t
+    Object.assign(this, gS.gridstate); //x,y,d,t
     this.liverender();
   }
 
@@ -527,7 +482,7 @@ class GridTool {
   }
 
   commit(){
-    cmdstack.push(new SymmOp(selectedsym, {x: this.x, y: this.y, d: this.d, t: this.t}));
+    gS.cmdstack.push(new SymmOp(gS.symstate.sym, {x: this.x, y: this.y, d: this.d, t: this.t}));
     rerender(ctx);
   }
 
@@ -581,17 +536,17 @@ class GridTool {
 
   liverender() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    //const v0 = RotationTransform(this.t).onVec(planarSymmetries[selectedsym].vec0);
-    //const v1 = RotationTransform(this.t).onVec(planarSymmetries[selectedsym].vec1);
-    const v0 = planarSymmetries[selectedsym].vec0;
-    const v1 = planarSymmetries[selectedsym].vec1;
+    //const v0 = RotationTransform(this.t).onVec(planarSymmetries[gS.symstate.sym].vec0);
+    //const v1 = RotationTransform(this.t).onVec(planarSymmetries[gS.symstate.sym].vec1);
+    const v0 = planarSymmetries[gS.symstate.sym].vec0;
+    const v1 = planarSymmetries[gS.symstate.sym].vec1;
     let p0 = [this.x, this.y];
     let p1 = [(this.d * v0[0]) + this.x, (this.d * v0[1]) + this.y];
     let p2 = [(this.d * v1[0]) + this.x, (this.d * v1[1]) + this.y];
     this.p0 = p0; //save for canvas hit-detection
     this.p1 = p1;
 
-    let newlattice = generateLattice(planarSymmetries[selectedsym],
+    let newlattice = generateLattice(planarSymmetries[gS.symstate.sym],
                                   GRIDNX, GRIDNY,
                                   this.d, this.t,
                                   this.x, this.y);
@@ -695,7 +650,7 @@ class FancyLineTool {
   }
 
   commit() {
-    cmdstack.push( new LineOp(this.start, this.end) );
+    gS.cmdstack.push( new LineOp(this.start, this.end) );
     rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
@@ -827,7 +782,7 @@ class PencilTool {
   }
 
   commit() {
-    cmdstack.push( new PencilOp(this.points) );
+    gS.cmdstack.push( new PencilOp(this.points) );
     rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
@@ -931,7 +886,7 @@ class PolyTool {
   }
 
   commit() {
-    cmdstack.push( new PolyOp(this.points) );
+    gS.cmdstack.push( new PolyOp(this.points) );
     rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
@@ -1426,7 +1381,7 @@ class BezierTool {
   }
 
   commit() {
-    cmdstack.push( new BezierOp(this.ops) );
+    gS.cmdstack.push( new BezierOp(this.ops) );
     rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
@@ -1498,7 +1453,7 @@ class CircleTool {
   }
 
   commit() {
-    cmdstack.push( new CircleOp(this.center, this.radius) );
+    gS.cmdstack.push( new CircleOp(this.center, this.radius) );
     rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
@@ -1657,30 +1612,29 @@ const pixelFix = function(canvas) {
 
 // should be "reset"
 var initState = function() {
-  cmdstack.push(new ColorOp(
+  gS.cmdstack.push(new ColorOp(
     "stroke",
-    strokecolor.r,
-    strokecolor.g,
-    strokecolor.b,
-    strokecolor.a));
+    gS.strokecolor.r,
+    gS.strokecolor.g,
+    gS.strokecolor.b,
+    gS.strokecolor.a));
 
-  cmdstack.push(new ColorOp(
+  gS.cmdstack.push(new ColorOp(
     "fill",
-    fillcolor.r,
-    fillcolor.g,
-    fillcolor.b,
-    fillcolor.a));
+    gS.fillcolor.r,
+    gS.fillcolor.g,
+    gS.fillcolor.b,
+    gS.fillcolor.a));
 
-  cmdstack.push(new StyleOp({
+  gS.cmdstack.push(new StyleOp({
     lineCap: "butt",
     lineJoin: "round",
     miterLimit: 10.0,
     lineWidth: 1.0}));
 
-  var gridcopy = {x:gridstate.x, y:gridstate.y, d:gridstate.d, t:gridstate.t};
-  cmdstack.push(new SymmOp(
-    allsyms[allsyms.length-1],
-    gridcopy));
+  gS.cmdstack.push(new SymmOp(
+    selectedsym,
+    _.clone(gS.gridstate)));
 
   // set global undo boundary so these initial
   // settings don't get lost (needed for drawstate stability

@@ -11,7 +11,6 @@ export default {
   methods: {
     bclick: function(){
       this.$emit("bclick", this.sym.name);
-      //console.log('clicked', this.sym.name);
     }
   },
   computed: {

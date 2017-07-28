@@ -7,9 +7,10 @@
 <!-- CSS -->
 <link rel="stylesheet" type="text/css" href="static/eschersketch.css">
 
-<!-- Export Libs-->
+<!-- Static Libs-->
 <!-- need to use my tweaked version of canvas2svg -->
 <script type="text/javascript" src="static/lib/canvas2svg.js"></script>
+<!-- modifies global canvas object -->
 <script type="text/javascript" src="static/lib/canvas-toBlob.js"></script>
 
 </head>
@@ -26,13 +27,13 @@
   <!-- Logo -->
   <div class="Aligner" style="margin-left:-10px;">
     <div class="Aligner-item">
-      <span style="font-variant: small-caps;margin-right:10px;">escher</span>
+      <span style="font-variant:small-caps;margin-right:10px;">escher</span>
     </div>
     <div class="Aligner-item">
       <img src="static/svg/es_logo.svg" height="50px" style="margin-top:6px;"/>
     </div>
     <div class="Aligner-item">
-      <span style="font-variant: small-caps;margin-left:10px;">sketch</span>
+      <span style="font-variant:small-caps;margin-left:10px;">sketch</span>
     </div>
   </div>
 
@@ -57,45 +58,19 @@
   <div id="penciltool" class="button">pencil</div>
   <div id="polytool" class="button">polygon</div>
   <div id="beziertool" class="button">bezier</div>
+  <div id="showgrid" class="button">grid tool</div>
 
   <br><hr>
 
   <!-- Symmetry Selection -->
   <span style="font-variant: small-caps;">symmetries</span><br>
-  <div id="vuesymsel">
-    <template v-for="sym in syms">
-      <es-button :sym="sym" @bclick="changesym"></es-button>
-    </template>
-  </div>
-
+  <div id="symUI"></div>
   <!-- Grid Control -->
-  <div id="gridUI">
-    <span style="margin:5px;">x</span>
-    <es-numfield param="x" :val="x" @numchange="update"></es-numfield>
-    <span style="margin:5px;">y</span>
-    <es-numfield param="y" :val="y" @numchange="update"></es-numfield>
-    <span style="margin:5px;">&Delta;</span>
-    <es-numfield param="d" :val="d" @numchange="update"></es-numfield>
-    <div class="button" @click="halveD">&frac12;</div>
-    <div class="button" @click="doubleD">2x</div>
-    <!--
-    <span style="margin:5px;">Nx</span>
-    <es-numfield param="Nx" :val="Nx" @numchange="update"></es-numfield>
-    <span style="margin:5px;">Ny</span>
-    <es-numfield param="Ny" :val="Ny" @numchange="update"></es-numfield>
-    -->
-
-  </div>
-  <div id="showgrid" class="button">Grid Tool</div>
-
+  <div id="gridUI"> </div>
   <br><hr>
-
+  <!-- Line Styling -->
   <span style="font-variant: small-caps;">line width</span>
-  <div id="thicknessUI">
-    <input type="range" :value="lineWidth"
-           :min="min" :max="max" :step="step" :name="name" @change="changethick">
-    <span>{{lineWidth}}</span>
-  </div>
+  <div id="thicknessUI"></div>
 
   <div id="colorcontainer">
     <div class="button selected" id="showstroke">stroke</div>
@@ -111,17 +86,11 @@
 
   <div id="saveSVG" class="button">Save SVG</div>
   <div id="savePNG" class="button">Save PNG</div>
+
   <br><br><br>
   <div style="font-size:10px;text-align:center;">Anselm Levskaya &copy; 2017</div>
+
 </div> <!-- /sketch-UI  -->
 
-
-<!-- Main JS File and Init -->
-<!--
-    <script type="text/javascript" src="main.js"></script>
-    <script type="text/javascript">
-  initGUI();
-  </script>
--->
 </body>
 </html>

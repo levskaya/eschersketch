@@ -71,18 +71,24 @@ export const gS = new Vue({
 gS.$on('rerender', function() { rerender(ctx); });
 gS.$on('symmUpdate',
        function(symName, gridSetting) {
-         gS.cmdstack.push(new SymmOp(symName, _.clone(gridSetting)));
-         rerender(ctx);
+         let op = new SymmOp(symName, _.clone(gridSetting));
+         op.render(ctx);
+         gS.cmdstack.push(op);
+         //rerender(ctx);
        });
 gS.$on('styleUpdate',
        function(updateDict) {
-         gS.cmdstack.push(new StyleOp(_.clone(updateDict)));
-         rerender(ctx);
+         let op = new StyleOp(_.clone(updateDict));
+         op.render(ctx);
+         gS.cmdstack.push(op);
+         //rerender(ctx);
        });
 gS.$on('colorUpdate',
        function(clr) {
-         gS.cmdstack.push(new ColorOp(clr.target, clr.r, clr.g, clr.b, clr.a));
-         rerender(ctx);
+         let op = new ColorOp(clr.target, clr.r, clr.g, clr.b, clr.a);
+         op.render(ctx);
+         gS.cmdstack.push(op);
+         //rerender(ctx);
        });
 
 // HACK: for debugging
@@ -186,9 +192,10 @@ var dispatchKeyDown = function(e) {
      unstable, keep color/symm inits in place...
 */
 
-export var commitOp = function(op){
+export var commitOp = function(op, rerender=false){
   gS.cmdstack.push(op);
-  rerender(ctx);
+  op.render(ctx);
+  if(rerender) {rerender(ctx);} // never do this?
 };
 
 export var rerender = function(ctx, clear=true) {

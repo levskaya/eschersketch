@@ -1,7 +1,6 @@
 # Eschersketch Notes
 
 ## MVP
-- refactor to be hackable later...
 - gridsize nx,ny limit to some max so as not to crash browser...
 - rosette groups UI and identity (no trafo)
 - tile png export

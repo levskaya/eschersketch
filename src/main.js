@@ -14,17 +14,21 @@
 //------------------------------------------------------------------------------
 import { _ } from 'underscore';
 import Vue from 'vue';
+import Hammer from 'hammerjs';
 import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
 import {generateTiling, generateLattice, planarSymmetries} from './geo';
 
 import {pixelFix, setCanvasPixelDensity} from './canvas_utils';
-//import {l2norm,l2dist,sub2,add2,scalar2,normalize,reflectPoint} from './math_utils';
+
+// Enable Touch Events via Hammer.js
+//import {VueTouch} from 'vue-touch';
+var VueTouch = require('vue-touch')
+Vue.use(VueTouch, {name: 'v-touch'});
 
 
 // Global Constants
 //------------------------------------------------------------------------------
-
 export const gConstants = {
   CANVAS_WIDTH:     1600,
   CANVAS_HEIGHT:    1200,
@@ -42,8 +46,9 @@ export const gConstants = {
 };
 
 
-// gS = global State, holds the UI state
-// as well as acting as top-level event bus
+// gS = global State
+// holds the UI state as well as acting as top-level event bus
+//------------------------------------------------------------------------------
 export const gS = new Vue({
   data: {
     // Symmetry State
@@ -74,25 +79,22 @@ gS.$on('symmUpdate',
          let op = new SymmOp(symName, _.clone(gridSetting));
          op.render(ctx);
          gS.cmdstack.push(op);
-         //rerender(ctx);
        });
 gS.$on('styleUpdate',
        function(updateDict) {
          let op = new StyleOp(_.clone(updateDict));
          op.render(ctx);
          gS.cmdstack.push(op);
-         //rerender(ctx);
        });
 gS.$on('colorUpdate',
        function(clr) {
          let op = new ColorOp(clr.target, clr.r, clr.g, clr.b, clr.a);
          op.render(ctx);
          gS.cmdstack.push(op);
-         //rerender(ctx);
        });
 
 // HACK: for debugging
-window.gS=gS;
+// window.gS=gS;
 
 
 // Canvas / Context Globals
@@ -134,7 +136,7 @@ export var drawTools = {
   bezier: new PathTool()
 };
 
-export var curTool = "line";
+export var curTool = "line"; // belongs in gS
 
 var changeTool = function(toolName){
   let oldTool = drawTools[curTool];
@@ -149,7 +151,7 @@ var changeTool = function(toolName){
   }
 };
 
-// Mouse Events -- dispatched to active Drawing Tool
+// Canvas Mouse/Key Events -- dispatched to active Drawing Tool
 //------------------------------------------------------------------------------
 var dispatchMouseDown = function(e) {
   e.preventDefault();
@@ -275,6 +277,7 @@ var exclusiveClassToggle = function(target, className){
 
 // tmp: directly link selectors to changeTool
 document.getElementById("linetool").onmousedown   = function(e) {
+  //XXX: exclusiveClassToggle screws up button selection on iphone...
   exclusiveClassToggle(e.target, "tool-selected");
   changeTool("line"); };
 document.getElementById("circletool").onmousedown = function(e) {
@@ -330,13 +333,31 @@ var vueStyle = new Vue({
 import colorUi from './components/colorUI';
 var vueColor = new Vue({
   el: '#colorUI',
-  template: '<color-ui :strokeColor="strokeColor" :fillColor="fillColor"/>',
+  template: `<color-ui :strokeColor="strokeColor" :fillColor="fillColor"/>`,
   components: {colorUi},
   data: {strokeColor: gS.strokecolor,
          fillColor: gS.fillcolor}
 });
 
-
+/*
+// this works...
+var vueTest = new Vue({
+  el: '#testUI',
+  template: `<v-touch class="button" @tap="tappyTap">Tap me!</v-touch>`,
+  data: {},
+  methods: {
+    tappyTap: function(e){
+      console.log("tap", e);
+      console.log("tap", e.target);
+      if(e.target.classList.contains("selected")){
+        e.target.classList.remove("selected");
+      } else {
+        e.target.classList.add("selected");
+      }
+    }
+  }
+});
+*/
 
 
 
@@ -413,14 +434,52 @@ var initGUI = function() {
   pixelFix(livecanvas);
   lctx = livecanvas.getContext("2d");
 
-  livecanvas.onmousedown  = dispatchMouseDown;
-  livecanvas.onmouseup    = dispatchMouseUp;
-  livecanvas.onmousemove  = dispatchMouseMove;
+  livecanvas.onmousedown  = dispatchMouseDown; //disable for touch
+  livecanvas.onmouseup    = dispatchMouseUp;   //disable for touch
+  livecanvas.onmousemove  = dispatchMouseMove; //disable for touch
   livecanvas.onmouseleave = dispatchMouseLeave;
   document.getElementsByTagName("body")[0].onkeydown = dispatchKeyDown;
 
   initState();
 
+};
+
+// This "works" for both mouse and touch events, but
+// really the whole UI needs major rework for mobile...
+var initTouchEvents = function() {
+  // get a reference to top canvas element
+  var stage = document.getElementById('sketchlive');
+  // create a manager for that element
+  var mc = new Hammer.Manager(stage);
+  //var Tap = new Hammer.Tap({ taps: 1 });
+  //mc.add(Tap);
+  //mc.on('tap', function(e) {console.log("livecanvas tap", e);});
+  var Pan = new Hammer.Pan({
+    direction: Hammer.DIRECTION_ALL,
+    threshold: 1
+  });
+  mc.add(Pan);
+  mc.on('panstart', function(e) {
+    //console.log("pstart");
+    var fakeEv = {clientX: e.center.x,
+                  clientY: e.center.y,
+                  preventDefault: e.preventDefault};
+    dispatchMouseDown(fakeEv);
+  });
+  mc.on('panmove', function(e) {
+    //console.log("pmov",e.center.x, e.center.y);
+    var fakeEv = {clientX: e.center.x,
+                  clientY: e.center.y,
+                  preventDefault: e.preventDefault};
+    dispatchMouseMove(fakeEv);
+  });
+  mc.on('panend', function(e) {
+    //console.log("pend");
+    var fakeEv = {clientX: e.center.x,
+                  clientY: e.center.y,
+                  preventDefault: e.preventDefault};
+    dispatchMouseUp(fakeEv);
+  });
 };
 
 initGUI();

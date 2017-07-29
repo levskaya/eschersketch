@@ -49,15 +49,16 @@ export class PolyOp {
   }
 }
 
-const _INIT = 0;
-const _OFF  = 1;
-const _ON   = 2;
-const _MOVE = 3;
+//State Labels
+const _INIT_ = 0;
+const _OFF_  = 1;
+const _ON_   = 2;
+const _MOVE_ = 3;
 
 export class PolyTool {
   constructor() {
     this.points = [];
-    this.state = _INIT;
+    this.state = _INIT_;
     this.selected = -1;
     this.hitRadius = 4;
   }
@@ -93,14 +94,12 @@ export class PolyTool {
 
   commit() {
     commitOp( new PolyOp(this.points) );
-    //gS.cmdstack.push( new PolyOp(this.points) );
-    //rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
   cancel() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.state = _INIT;
+    this.state = _INIT_;
     this.points = [];
   }
 
@@ -108,30 +107,30 @@ export class PolyTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
 
-    if(this.state == _OFF) {
+    if(this.state == _OFF_) {
       let onPoint=false;
       for(let idx=0; idx<this.points.length; idx++) {
         if(l2dist(pt,this.points[idx])<this.hitRadius) {
-          this.state = _MOVE;
+          this.state = _MOVE_;
           this.selected = idx;
           onPoint = true;
           break;
         }
       }
       if(!onPoint){
-        this.state = _ON;
+        this.state = _ON_;
         this.selected = this.points.length;
         this.points.push( [pt[0], pt[1]] );
         this.liverender();
       }
     }
-    else if(this.state == _INIT) {
-      this.state = _ON;
+    else if(this.state == _INIT_) {
+      this.state = _ON_;
       this.points = [ [pt[0], pt[1]] ];
       this.selected = 0; //?
       this.liverender();
     }
-    else if(this.state == _ON) {
+    else if(this.state == _ON_) {
       this.selected += 1;//this.state + 1;
       this.points.push( [pt[0], pt[1]] );
       this.liverender();
@@ -142,11 +141,11 @@ export class PolyTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
 
-    if (this.state == _ON) {
+    if (this.state == _ON_) {
       this.points[this.points.length-1] = [pt[0], pt[1]];
       this.liverender();
     }
-    if (this.state == _MOVE) {
+    if (this.state == _MOVE_) {
       this.points[this.selected] = [pt[0], pt[1]];
       this.liverender();
     }
@@ -154,7 +153,7 @@ export class PolyTool {
   }
 
   mouseUp(e) {
-    this.state = _OFF;
+    this.state = _OFF_;
   }
 
   mouseLeave(e) {
@@ -163,7 +162,7 @@ export class PolyTool {
 
   keyDown(e) {
     if(e.code == "Enter"){
-      this.state = _OFF;
+      this.state = _OFF_;
       this.commit();
       this.points = [];
       this.selected = 0;
@@ -171,7 +170,7 @@ export class PolyTool {
       this.cancel();
     } else if(e.code=="KeyD"){
       if(this.points.length > 1 &&
-         this.state == _OFF) {
+         this.state == _OFF_) {
         this.points.pop();
         this.selected -= 1;
         this.liverender();
@@ -180,13 +179,13 @@ export class PolyTool {
   }
 
   exit(){
-    if(this.state==_OFF) {
+    if(this.state==_OFF_) {
       if(this.points.length >2){
         this.commit();
       }
       this.points = [];
       this.selected = 0;
-      this.state = _INIT;
+      this.state = _INIT_;
     }
   }
 }

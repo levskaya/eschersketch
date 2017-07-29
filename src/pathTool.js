@@ -19,11 +19,6 @@ import {gS, gConstants,
 import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './math_utils';
 
 
-const _INIT = 0;
-const _OFF  = 1;
-const _ON   = 2;
-const _MOVE = 3;
-
 export class PathOp {
   constructor(ops) {
     this.ops = ops; //array of ["M",x,y] or ["L",x,y] or ["C",xc1,yc1,xc2,yc2,x,y]
@@ -62,10 +57,21 @@ export class PathOp {
   }
 }
 
+
+const _INIT_ = 0;
+const _OFF_  = 1;
+const _ON_   = 2;
+const _MOVE_ = 3;
+
+//TODO: hide control points for most vertices unless they're "parent" vertex
+//      is selected
+
+// XXX: Below is a crazy mess... need to refactor storage format of path into
+// something more amenable for traversal and editing.
 export class PathTool {
   constructor() {
     this.ops = [];
-    this.state = _INIT;
+    this.state = _INIT_;
     this.cpoint = [];
     this.opselected = [];
     this.hitRadius = 4;
@@ -167,12 +173,12 @@ export class PathTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
 
-    if(this.state == _INIT) { // NEW PATH
-      this.state = _ON;
+    if(this.state == _INIT_) { // NEW PATH
+      this.state = _ON_;
       this.ops = [ ["M", pt[0], pt[1]] ];
       this.liverender();
     }
-    else if(this.state == _OFF) { // EXTANT PATH
+    else if(this.state == _OFF_) { // EXTANT PATH
       //-----------------------------------------------------------------------------
       // Adjustment of existing points
       let onPoint=false;
@@ -180,7 +186,7 @@ export class PathTool {
         let op = this.ops[idx];
         if(op[0]=="M" || op[0] == "L") {
           if(l2dist(pt, [op[1],op[2]])<this.hitRadius) {
-            this.state = _MOVE;
+            this.state = _MOVE_;
             this.opselected = [[idx,0,'v']];
             onPoint = true;
 
@@ -198,7 +204,7 @@ export class PathTool {
         else if(op[0]=="C") {
           // curve endpoint
           if(l2dist(pt, [op[5], op[6]])<this.hitRadius) {
-            this.state = _MOVE;
+            this.state = _MOVE_;
             this.opselected = [[idx,2,'v']];
             onPoint = true;
 
@@ -215,7 +221,7 @@ export class PathTool {
 
           // curve control-points - overlap ruled out by above cases
           if(l2dist(pt, [op[1], op[2]])<this.hitRadius) {
-            this.state = _MOVE;
+            this.state = _MOVE_;
             this.opselected = [[idx,0,'c']];
             onPoint = true;
             if(this.ops[idx-1][0]=="C"){
@@ -224,7 +230,7 @@ export class PathTool {
             break;
           }
           if(l2dist(pt, [op[3], op[4]])<this.hitRadius) {
-            this.state = _MOVE;
+            this.state = _MOVE_;
             this.opselected = [[idx,1,'c']];
             onPoint = true;
             if(idx+1 < this.ops.length && this.ops[idx+1][0]=="C"){
@@ -240,7 +246,7 @@ export class PathTool {
       // check hit on temporary, dangling endpoint
       if(this.cpoint.length > 0){
         if(l2dist(pt, this.cpoint) < this.hitRadius){
-          this.state = _MOVE;
+          this.state = _MOVE_;
           this.opselected = [[0,0,'t']];
           onPoint = true;
           if(this.ops[this.ops.length-1][0]=="C"){
@@ -252,11 +258,11 @@ export class PathTool {
       // Adding New Points
       if(!onPoint){
         if(this.cpoint.length === 0) {
-          this.state = _ON;
+          this.state = _ON_;
           this.ops.push( ["L", pt[0], pt[1]] );
           this.liverender();
         } else {
-          this.state = _ON;
+          this.state = _ON_;
           this.ops.push( ["C",
                              this.cpoint[0], this.cpoint[1],
                              pt[0], pt[1],
@@ -280,7 +286,7 @@ export class PathTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
 
-    if (this.state == _ON) {
+    if (this.state == _ON_) {
       if(this.ops[this.ops.length-1][0]=="M"){
         this.cpoint = [pt[0], pt[1]]; //tmp pt
         this.liverender();
@@ -311,7 +317,7 @@ export class PathTool {
         this.liverender();
       }
     }
-    else if(this.state == _MOVE) {
+    else if(this.state == _MOVE_) {
       let firstHit = this.opselected[0];
       // vertex move -------------------------------------------------
       if(firstHit[2]=='v') {
@@ -395,7 +401,7 @@ export class PathTool {
   }
 
   mouseUp(e) {
-    this.state = _OFF;
+    this.state = _OFF_;
     this.opselected = [];
     this.liverender();
   }
@@ -406,13 +412,13 @@ export class PathTool {
 
   keyDown(e) {
     if(e.code == "Enter"){
-      this.state = _OFF;
+      this.state = _OFF_;
       this.exit();
     } else if(e.code=="Escape"){
       this.cancel();
     } else if(e.code=="KeyD"){
       if(this.ops.length > 1 &&
-         this.state == _OFF) {
+         this.state == _OFF_) {
         var op = this.ops.pop();
         if(op[0]=='C'){
           this.cpoint=[op[1],op[2]];
@@ -426,24 +432,22 @@ export class PathTool {
 
   commit() {
     commitOp(new PathOp(this.ops));
-    //gS.cmdstack.push( new PathOp(this.ops) );
-    //rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
   cancel() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.state = _INIT;
+    this.state = _INIT_;
     this.ops = [];
   }
 
   exit(){
-    if(this.state==_OFF) { // remove conditional?
+    if(this.state==_OFF_) { // remove conditional?
       this.commit();
       this.ops = [];
       this.opselected = [];
       this.cpoint = [];
-      this.state = _INIT;
+      this.state = _INIT_;
     }
   }
 }

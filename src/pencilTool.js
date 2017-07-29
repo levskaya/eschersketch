@@ -52,7 +52,7 @@ export class PencilTool {
   constructor() {
     this.points = [];
     this.on = false;
-    this.drawInterval = 0;
+    //this.drawInterval = 0; //primitive throttling
   }
 
   liverender() {
@@ -71,8 +71,6 @@ export class PencilTool {
 
   commit() {
     commitOp(new PencilOp(this.points));
-    //gS.cmdstack.push( new PencilOp(this.points) );
-    //rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
@@ -85,14 +83,14 @@ export class PencilTool {
 
   mouseMove(e) {
     if (this.on) {
-      if (this.drawInterval <= 0) {
+      //if (this.drawInterval <= 0) {
         var rect = livecanvas.getBoundingClientRect();
         this.points.push({ x: e.clientX - rect.left,
                            y: e.clientY - rect.top});
         this.liverender();
-        this.drawInterval = 1;
-      }
-      this.drawInterval--;
+        //this.drawInterval = 1;
+      //}
+      //this.drawInterval--;
     }
   }
 

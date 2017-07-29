@@ -15,8 +15,7 @@ import {gS, gConstants,
         commitOp
        } from './main';
 
-//import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './math_utils';
-
+import {l2dist} from './math_utils';
 
 
 // Draw Circles
@@ -29,7 +28,7 @@ export class CircleOp {
 
   render(ctx){
     for (let af of affineset) {
-      const Tc1 = af.on(this.center.x, this.center.y);
+      const Tc1 = af.onVec(this.center);
       const Tr = this.radius; //XXX: not true for scaling trafos! fix!
       ctx.beginPath();
       ctx.arc(Tc1[0], Tc1[1], Tr, 0, 2*Math.PI);
@@ -49,16 +48,15 @@ export class CircleOp {
 
 export class CircleTool {
   constructor() {
-    this.center = {};
+    this.center = [];
     this.radius = 0;
     this.on = false;
-    this.drawInterval = 0;
   }
 
   liverender() {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let af of affineset) {
-      const Tc1 = af.on(this.center.x, this.center.y);
+      const Tc1 = af.onVec(this.center);
       const Tr = this.radius; //XXX: not true for scaling trafos! fix!
       lctx.beginPath();
       lctx.arc(Tc1[0], Tc1[1], Tr, 0, 2*Math.PI);
@@ -69,31 +67,24 @@ export class CircleTool {
 
   commit() {
     commitOp( new CircleOp(this.center, this.radius) );
-    //gS.cmdstack.push( new CircleOp(this.center, this.radius) );
-    //rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
   mouseDown(e) {
     e.preventDefault();
     var rect = canvas.getBoundingClientRect();
-    this.center = { x: e.clientX - rect.left,
-                   y: e.clientY - rect.top};
+    this.center = [e.clientX - rect.left,
+                   e.clientY - rect.top];
     this.on = true;
   }
 
   mouseMove(e) {
     if (this.on) {
-      if (this.drawInterval <= 0) {
-        var rect = canvas.getBoundingClientRect();
-        var tmp = { x: e.clientX - rect.left,
-                    y: e.clientY - rect.top};
-        this.radius =
-          Math.sqrt(Math.pow(this.center.x-tmp.x, 2) + Math.pow(this.center.y-tmp.y, 2));
-        this.liverender();
-        this.drawInterval = 1;
-      }
-      this.drawInterval--;
+      var rect = canvas.getBoundingClientRect();
+      var pt = [e.clientX - rect.left,
+                e.clientY - rect.top];
+      this.radius = l2dist(this.center, pt);
+      this.liverender();
     }
   }
 

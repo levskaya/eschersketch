@@ -25,10 +25,7 @@ import {generateTiling, generateLattice, planarSymmetries} from './symmetryGener
 
 var memo_generateTiling = _.memoize(generateTiling,
                                 function(){return JSON.stringify(arguments);});
-//var memo_generateLattice = _.memoize(generateLattice,
-//                                function(){return JSON.stringify(arguments);});
 var updateTiling = function(sym, gridstate) {
-  //affineset =
   updateSymmetry(memo_generateTiling(planarSymmetries[sym],
                                      gConstants.GRIDNX, gConstants.GRIDNY,
                                      gridstate.d, gridstate.t,
@@ -90,9 +87,7 @@ export class GridTool {
   }
 
   commit(){
-    commitOp(new SymmOp(gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t}) );
-    //gS.cmdstack.push(new SymmOp(gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t}));
-    //rerender(ctx);
+    commitOp(new SymmOp(gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t}));
   }
 
   mouseDown(e) {

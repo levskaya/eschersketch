@@ -60,12 +60,10 @@ export class ColorOp {
 }
 
 export class StyleOp {
-  /*
-    lineCap	Sets or returns the style of the end caps for a line
-    lineJoin	Sets or returns the type of corner created, when two lines meet
-    lineWidth	Sets or returns the current line width
-    miterLimit  Sets or returns the maximum miter length
-  */
+  /* lineCap     Sets or returns the style of the end caps for a line
+     lineJoin    Sets or returns the type of corner created, when two lines meet
+     lineWidth   Sets or returns the current line width
+     miterLimit  Sets or returns the maximum miter length */
   constructor(styleProps) {
     this.styleProps = Object.assign({}, gS.ctxStyle, styleProps);
   }

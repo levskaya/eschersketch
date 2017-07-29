@@ -51,7 +51,6 @@ export class LineTool {
     this.start = {};
     this.end = {};
     this.state = "init";
-    this.drawInterval = 0;
     this.hitRadius = 4
   }
 
@@ -82,8 +81,6 @@ export class LineTool {
 
   commit() {
     commitOp(new LineOp(this.start, this.end));
-    //gS.cmdstack.push( new LineOp(this.start, this.end) );
-    //rerender(ctx);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 

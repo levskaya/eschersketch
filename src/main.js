@@ -20,12 +20,22 @@ import {saveAs} from 'file-saver';
 
 import {pixelFix, setCanvasPixelDensity} from './canvas_utils';
 
+// Import all the Drawing Ops and Tools
+//------------------------------------------------------------------------------
+import {SymmOp, GridTool}     from './symmetryOps';
+import {LineOp, LineTool}     from './lineTool';
+import {PencilOp, PencilTool} from './pencilTool';
+import {PolyOp, PolyTool}     from './polyTool';
+import {PathOp, PathTool}     from './pathTool';
+import {CircleOp, CircleTool} from './circleTool';
+import {ColorOp, StyleOp}     from './styleOps';
+
 
 // Global Constants
 //------------------------------------------------------------------------------
 export const gConstants = {
-  CANVAS_WIDTH:     1600,
-  CANVAS_HEIGHT:    1200,
+  CANVAS_WIDTH:     1600, //TODO: should be dynamic based on max screen size!
+  CANVAS_HEIGHT:    1200, //
   MIN_LINEWIDTH:    0.1,
   MAX_LINEWIDTH:    10,
   DELTA_LINEWIDTH:  0.1,
@@ -70,7 +80,6 @@ export const gS = new Vue({
     redostack: [],
   }
 });
-//gS.$on('rerender', function() { rerender(ctx); });
 gS.$on('symmUpdate',
        function(symName, gridSetting) {
          let op = new SymmOp(symName, _.clone(gridSetting));
@@ -92,7 +101,7 @@ gS.$on('colorUpdate',
 gS.$on('toolUpdate', function(tool){ changeTool(tool); });
 
 // HACK: for debugging
-window.gS=gS;
+//window.gS=gS;
 
 
 // Canvas / Context Globals
@@ -135,6 +144,7 @@ var changeTool = function(toolName){
   }
 };
 
+// alter sensitivity radius of manually canvas-rendered UI elements
 var changeHitRadius = function(newR){
   for(var key of Object.keys(drawTools)){
     if(drawTools[key].hasOwnProperty("hitRadius")){
@@ -142,18 +152,8 @@ var changeHitRadius = function(newR){
     }
   }
 };
-window.changeHitRadius = changeHitRadius; //HACK
+//window.changeHitRadius = changeHitRadius;
 
-// Import all the Drawing Ops and Tools and wire them up
-//------------------------------------------------------------------------------
-
-import {ColorOp, StyleOp} from './styleOps';
-import {SymmOp, GridTool} from './symmetryOps';
-import {LineOp, LineTool} from './lineTool';
-import {PencilOp, PencilTool} from './pencilTool';
-import {PolyOp, PolyTool} from './polyTool';
-import {PathOp, PathTool} from './pathTool';
-import {CircleOp, CircleTool} from './circleTool';
 
 
 
@@ -419,21 +419,18 @@ var initTouchEvents = function() {
   });
   mc.add(Pan);
   mc.on('panstart', function(e) {
-    //console.log("pstart");
     var fakeEv = {clientX: e.center.x,
                   clientY: e.center.y,
                   preventDefault: e.preventDefault};
     dispatchMouseDown(fakeEv);
   });
   mc.on('panmove', function(e) {
-    //console.log("pmov",e.center.x, e.center.y);
     var fakeEv = {clientX: e.center.x,
                   clientY: e.center.y,
                   preventDefault: e.preventDefault};
     dispatchMouseMove(fakeEv);
   });
   mc.on('panend', function(e) {
-    //console.log("pend");
     var fakeEv = {clientX: e.center.x,
                   clientY: e.center.y,
                   preventDefault: e.preventDefault};
@@ -448,35 +445,12 @@ var initTouchEvents = function() {
 };
 window.initTouchEvents = initTouchEvents;
 
-/*
-// this works...
-// Enable Touch Events via Hammer.js
-//var VueTouch = require('vue-touch')
-//Vue.use(VueTouch, {name: 'v-touch'});
-var vueTest = new Vue({
-  el: '#testUI',
-  template: `<v-touch class="button" @tap="tappyTap">Tap me!</v-touch>`,
-  data: {},
-  methods: {
-    tappyTap: function(e){
-      console.log("tap", e);
-      console.log("tap", e.target);
-      if(e.target.classList.contains("selected")){
-        e.target.classList.remove("selected");
-      } else {
-        e.target.classList.add("selected");
-      }
-    }
-  }
-});
-*/
-
 
 // Finally, Initialize the UI
 //------------------------------------------------------------------------------
 initGUI();
 
-//Crappy Mobile Detection
+// Crappy Mobile Detection
 //------------------------------------------------------------------------------
 if (Modernizr.touchevents) {
   initTouchEvents();

@@ -420,3 +420,26 @@ class BezierTool {
     }
   }
 }
+
+
+
+// this works...
+// Enable Touch Events via Hammer.js
+//var VueTouch = require('vue-touch')
+//Vue.use(VueTouch, {name: 'v-touch'});
+var vueTest = new Vue({
+  el: '#testUI',
+  template: `<v-touch class="button" @tap="tappyTap">Tap me!</v-touch>`,
+  data: {},
+  methods: {
+    tappyTap: function(e){
+      console.log("tap", e);
+      console.log("tap", e.target);
+      if(e.target.classList.contains("selected")){
+        e.target.classList.remove("selected");
+      } else {
+        e.target.classList.add("selected");
+      }
+    }
+  }
+});

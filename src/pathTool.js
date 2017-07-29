@@ -21,7 +21,8 @@ import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './ma
 
 export class PathOp {
   constructor(ops) {
-    this.ops = ops; //array of ["M",x,y] or ["L",x,y] or ["C",xc1,yc1,xc2,yc2,x,y]
+    // array of ["M",x,y] or ["L",x,y] or ["C",xc1,yc1,xc2,yc2,x,y] drawing ops
+    this.ops = ops;
   }
 
   render(ctx) {
@@ -57,7 +58,7 @@ export class PathOp {
   }
 }
 
-
+//State Labels
 const _INIT_ = 0;
 const _OFF_  = 1;
 const _ON_   = 2;

@@ -62,29 +62,26 @@ input {
     background: #eeeeee;
     text-indent:0px;
     text-align: center;
-    //font-variant: small-caps;
     border-radius: 2px;
     margin: 2px;
     padding: 3px;
     display: inline-block;
-    //font-family:sans-serif;
     cursor:pointer;
     color:#666;
 }
 
 .button {
     border:1px solid #ddd;
-    text-indent:0px;
     background: #eeeeee;
+    text-indent:0px;
     text-align: center;
-    font-variant: small-caps;
+    //font-variant: small-caps;
     border-radius: 2px;
     margin: 2px;
     padding: 3px;
     display: inline-block;
-    /*font-family:sans-serif;*/
-    cursor:pointer;
-    color:#666;
+    cursor: pointer;
+    color: #666;
 }
 
 .tool-selected {

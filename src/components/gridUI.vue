@@ -27,7 +27,7 @@ export default {
       var gridcopy = _.clone(gS.gridstate);
       gridcopy[name]=Number(val);
 
-      gS.$emit('symmUpdate', gS.symstate.sym, gridcopy);
+      gS.$emit('symmUpdate', gS.params.symstate, gridcopy);
     },
     halveD: function(){ this.update("d", this.d/2.0); },
     doubleD: function(){ this.update("d", this.d*2.0); },

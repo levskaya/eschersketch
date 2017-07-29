@@ -17,14 +17,8 @@ import Vue from 'vue';
 import Hammer from 'hammerjs';
 import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
-import {generateTiling, generateLattice, planarSymmetries} from './geo';
 
 import {pixelFix, setCanvasPixelDensity} from './canvas_utils';
-
-// Enable Touch Events via Hammer.js
-//import {VueTouch} from 'vue-touch';
-var VueTouch = require('vue-touch')
-Vue.use(VueTouch, {name: 'v-touch'});
 
 
 // Global Constants
@@ -51,9 +45,12 @@ export const gConstants = {
 //------------------------------------------------------------------------------
 export const gS = new Vue({
   data: {
-    // Symmetry State
-    //-------------------------------
-    symstate: {sym: gConstants.INITSYM},
+    // stupid hack, since Vue can't wrap strings, have all simple stringy
+    // state parameters in here, mutating params then induces reactivity
+    params: {
+      curTool: 'line',                 // Tool State
+      symstate: gConstants.INITSYM     // Symmetry State
+    },
     // grid Nx, Ny should NOT be too large, should clamp.
     gridstate: {x:800, y:400, d:100, t:0, Nx:18, Ny:14},
 
@@ -73,7 +70,7 @@ export const gS = new Vue({
     redostack: [],
   }
 });
-gS.$on('rerender', function() { rerender(ctx); });
+//gS.$on('rerender', function() { rerender(ctx); });
 gS.$on('symmUpdate',
        function(symName, gridSetting) {
          let op = new SymmOp(symName, _.clone(gridSetting));
@@ -92,9 +89,10 @@ gS.$on('colorUpdate',
          op.render(ctx);
          gS.cmdstack.push(op);
        });
+gS.$on('toolUpdate', function(tool){ changeTool(tool); });
 
 // HACK: for debugging
-// window.gS=gS;
+window.gS=gS;
 
 
 // Canvas / Context Globals
@@ -113,6 +111,39 @@ export var affineset = {};
 export var updateSymmetry = function (newset) { affineset = newset; };
 
 
+// Set up Globals and UI for calling into Drawing Tools
+//------------------------------------------------------------------------------
+export var drawTools = {
+  line: new LineTool(),
+  circle: new CircleTool(),
+  pencil: new PencilTool(),
+  grid: new GridTool(),
+  poly: new PolyTool(),
+  bezier: new PathTool()
+};
+
+var changeTool = function(toolName){
+  let oldTool = drawTools[gS.params.curTool];
+  if('exit' in oldTool){
+    oldTool.exit();
+  }
+  // update global
+  gS.params.curTool = toolName;
+  let newTool = drawTools[toolName];
+  if('enter' in newTool){
+    newTool.enter();
+  }
+};
+
+var changeHitRadius = function(newR){
+  for(var key of Object.keys(drawTools)){
+    if(drawTools[key].hasOwnProperty("hitRadius")){
+      drawTools[key].hitRadius=newR;
+    }
+  }
+};
+window.changeHitRadius = changeHitRadius; //HACK
+
 // Import all the Drawing Ops and Tools and wire them up
 //------------------------------------------------------------------------------
 
@@ -125,61 +156,35 @@ import {PathOp, PathTool} from './pathTool';
 import {CircleOp, CircleTool} from './circleTool';
 
 
-// Set up Globals and UI for calling into Drawing Tools
-//------------------------------------------------------------------------------
-export var drawTools = {
-  line: new LineTool(),
-  circle: new CircleTool(),
-  pencil: new PencilTool(),
-  grid: new GridTool(),
-  poly: new PolyTool(),
-  bezier: new PathTool()
-};
-
-export var curTool = "line"; // belongs in gS
-
-var changeTool = function(toolName){
-  let oldTool = drawTools[curTool];
-  if('exit' in oldTool){
-    oldTool.exit();
-  }
-  // update global
-  curTool = toolName;
-  let newTool = drawTools[toolName];
-  if('enter' in newTool){
-    newTool.enter();
-  }
-};
 
 // Canvas Mouse/Key Events -- dispatched to active Drawing Tool
 //------------------------------------------------------------------------------
 var dispatchMouseDown = function(e) {
   e.preventDefault();
-  drawTools[curTool].mouseDown(e);
+  drawTools[gS.params.curTool].mouseDown(e);
 };
 
 var dispatchMouseUp = function(e) {
   e.preventDefault();
-  drawTools[curTool].mouseUp(e);
+  drawTools[gS.params.curTool].mouseUp(e);
 };
 
 var dispatchMouseMove = function(e) {
   e.preventDefault();
-  drawTools[curTool].mouseMove(e);
+  drawTools[gS.params.curTool].mouseMove(e);
 };
 
 var dispatchMouseLeave = function(e) {
-  if("mouseLeave" in drawTools[curTool]) {
-    drawTools[curTool].mouseLeave(e);
+  if("mouseLeave" in drawTools[gS.params.curTool]) {
+    drawTools[gS.params.curTool].mouseLeave(e);
   }
 };
 
 var dispatchKeyDown = function(e) {
-  if("keyDown" in drawTools[curTool]) {
-    drawTools[curTool].keyDown(e);
+  if("keyDown" in drawTools[gS.params.curTool]) {
+    drawTools[gS.params.curTool].keyDown(e);
   }
 };
-
 
 
 // Command Stack
@@ -213,7 +218,7 @@ export var rerender = function(ctx, clear=true) {
 var undo_init_bound = 0;
 var undo = function(){
   //make sure stateful drawing tool isn't left in a weird spot
-  if('exit' in drawTools[curTool]) {drawTools[curTool].exit();}
+  if('exit' in drawTools[gS.params.curTool]) {drawTools[gS.params.curTool].exit();}
   if(gS.cmdstack.length > undo_init_bound){
     var cmd = gS.cmdstack.pop();
     gS.redostack.push(cmd);
@@ -229,7 +234,7 @@ var redo = function(){
 };
 var reset = function(){
   //make sure stateful drawing tool isn't left in a weird spot
-  if('exit' in drawTools[curTool]) {drawTools[curTool].exit();}
+  if('exit' in drawTools[gS.params.curTool]) {drawTools[gS.params.curTool].exit();}
   gS.cmdstack = [];
   initState();
 };
@@ -266,46 +271,24 @@ document.getElementById("reset").onmouseleave =
 
 
 
-//HACK : need to vueify the rest of the UI...
-var exclusiveClassToggle = function(target, className){
-  let _els = document.getElementsByClassName(className);
-  for(let _el of _els){
-    _el.classList.remove(className);
-  }
-  target.classList.add(className);
-};
-
-// tmp: directly link selectors to changeTool
-document.getElementById("linetool").onmousedown   = function(e) {
-  //XXX: exclusiveClassToggle screws up button selection on iphone...
-  exclusiveClassToggle(e.target, "tool-selected");
-  changeTool("line"); };
-document.getElementById("circletool").onmousedown = function(e) {
-  exclusiveClassToggle(e.target, "tool-selected");
-  changeTool("circle"); };
-document.getElementById("penciltool").onmousedown = function(e) {
-  exclusiveClassToggle(e.target, "tool-selected");
-  changeTool("pencil"); };
-document.getElementById("showgrid").onmousedown   = function(e) {
-  exclusiveClassToggle(e.target, "tool-selected");
-  changeTool("grid"); };
-document.getElementById("polytool").onmousedown   = function(e) {
-  exclusiveClassToggle(e.target, "tool-selected");
-  changeTool("poly"); };
-document.getElementById("beziertool").onmousedown   = function(e) {
-  exclusiveClassToggle(e.target, "tool-selected");
-  changeTool("bezier"); };
-
-
+// Tool Selection UI
+//------------------------------------------------------------------------------
+import toolUi from './components/toolUI';
+var vueSym = new Vue({
+  el: '#toolUI',
+  template: '<tool-ui :params="params" />',
+  components: { toolUi },
+  data: { params: gS.params }
+});
 
 // Symmetry Selection UI
 //------------------------------------------------------------------------------
 import symmetryUi from './components/symmetryUI';
 var vueSym = new Vue({
   el: '#symUI',
-  template: '<symmetry-ui :selected="selected" :allsyms="allsyms"/>',
+  template: '<symmetry-ui :params="params" :allsyms="allsyms"/>',
   components: { symmetryUi },
-  data: { selected: gS.symstate , 'allsyms': gConstants.ALLSYMS}
+  data: { params: gS.params, 'allsyms': gConstants.ALLSYMS}
 });
 
 // Grid UI
@@ -338,27 +321,6 @@ var vueColor = new Vue({
   data: {strokeColor: gS.strokecolor,
          fillColor: gS.fillcolor}
 });
-
-/*
-// this works...
-var vueTest = new Vue({
-  el: '#testUI',
-  template: `<v-touch class="button" @tap="tappyTap">Tap me!</v-touch>`,
-  data: {},
-  methods: {
-    tappyTap: function(e){
-      console.log("tap", e);
-      console.log("tap", e.target);
-      if(e.target.classList.contains("selected")){
-        e.target.classList.remove("selected");
-      } else {
-        e.target.classList.add("selected");
-      }
-    }
-  }
-});
-*/
-
 
 
 // Set up Save SVG / Save PNG
@@ -414,7 +376,7 @@ var initState = function() {
   // set global undo boundary so these initial
   // settings don't get lost (needed for drawstate stability
   // during reset on redraw)
-  undo_init_bound = 4;
+  undo_init_bound = gS.cmdstack.length;
 
   rerender(ctx);
 };
@@ -451,9 +413,6 @@ var initTouchEvents = function() {
   var stage = document.getElementById('sketchlive');
   // create a manager for that element
   var mc = new Hammer.Manager(stage);
-  //var Tap = new Hammer.Tap({ taps: 1 });
-  //mc.add(Tap);
-  //mc.on('tap', function(e) {console.log("livecanvas tap", e);});
   var Pan = new Hammer.Pan({
     direction: Hammer.DIRECTION_ALL,
     threshold: 1
@@ -480,6 +439,45 @@ var initTouchEvents = function() {
                   preventDefault: e.preventDefault};
     dispatchMouseUp(fakeEv);
   });
-};
 
+  livecanvas.onmousedown  = null;
+  livecanvas.onmouseup    = null;
+  livecanvas.onmousemove  = null;
+
+  changeHitRadius(15);
+};
+window.initTouchEvents = initTouchEvents;
+
+/*
+// this works...
+// Enable Touch Events via Hammer.js
+//var VueTouch = require('vue-touch')
+//Vue.use(VueTouch, {name: 'v-touch'});
+var vueTest = new Vue({
+  el: '#testUI',
+  template: `<v-touch class="button" @tap="tappyTap">Tap me!</v-touch>`,
+  data: {},
+  methods: {
+    tappyTap: function(e){
+      console.log("tap", e);
+      console.log("tap", e.target);
+      if(e.target.classList.contains("selected")){
+        e.target.classList.remove("selected");
+      } else {
+        e.target.classList.add("selected");
+      }
+    }
+  }
+});
+*/
+
+
+// Finally, Initialize the UI
+//------------------------------------------------------------------------------
 initGUI();
+
+//Crappy Mobile Detection
+//------------------------------------------------------------------------------
+if (Modernizr.touchevents) {
+  initTouchEvents();
+}

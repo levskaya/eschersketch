@@ -1,22 +1,23 @@
 <template>
-  <div class="button" :class="selected" @click="bclick">
-    {{ param.name }}
+  <div class="button" :class="isSelected" @click="bclick">
+    {{ name }}
   </div>
 </template>
 
 <script>
 export default {
-  name: 'es-button',
-  props: ['param'],
+  name: 'ex-button',
+  props: ['name', 'selected'],
   methods: {
     bclick: function(){
-      this.$emit("bclick", this.param.name);
+      //console.log('blick');
+      this.$emit("bclick", this.name);
     }
   },
   computed: {
-    selected: function() {
-      return {selected: this.param.selected};
-    }
+    isSelected: function() {
+      //console.log(this.selected);
+      return {selected: this.name==this.selected}; }
   }
 }
 </script>
@@ -24,6 +25,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .button {
+    //outline:1px solid #ddd;
     background: #eeeeee;
     text-indent:0px;
     text-align: center;

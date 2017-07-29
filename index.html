@@ -12,6 +12,7 @@
 <script type="text/javascript" src="static/lib/canvas2svg.js"></script>
 <!-- modifies global canvas object -->
 <script type="text/javascript" src="static/lib/canvas-toBlob.js"></script>
+<script type="text/javascript" src="static/lib/modernizr-custom.js"></script>
 
 </head>
 <body>
@@ -53,21 +54,15 @@
 
   <!-- Tool Selection -->
   <span style="font-variant: small-caps;">drawing tools</span><br>
-  <div id="linetool" class="button">line</div>
-  <div id="circletool" class="button">circle</div>
-  <div id="penciltool" class="button">pencil</div>
-  <div id="polytool" class="button">polygon</div>
-  <div id="beziertool" class="button">bezier</div>
-  <div id="showgrid" class="button">grid tool</div>
-
-  <br><hr>
+  <div id="toolUI"></div>
+  <hr>
 
   <!-- Symmetry Selection -->
   <span style="font-variant: small-caps;">symmetries</span><br>
   <div id="symUI"></div>
   <!-- Grid Control -->
   <div id="gridUI"> </div>
-  <br><hr>
+  <hr>
   <!-- Line Styling -->
   <span style="font-variant: small-caps;">line width</span>
   <div id="styleUI"></div>
@@ -76,11 +71,11 @@
   <!-- mobile touch test elements -->
   <!--<br><hr><div id="testUI"></div>-->
 
-  <br><hr>
+  <hr>
 
   <div id="saveSVG" class="button">Save SVG</div>
   <div id="savePNG" class="button">Save PNG</div>
-  <br>
+
 
   <br><br><br>
   <div style="font-size:10px;text-align:center;">Anselm Levskaya &copy; 2017</div>

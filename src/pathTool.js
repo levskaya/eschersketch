@@ -11,7 +11,8 @@
 
 // DRAWING GLOBALS
 import {gS, gConstants,
-        livecanvas, lctx, canvas, ctx, affineset,
+        livecanvas, lctx, canvas, ctx,
+        affineset,
         commitOp
        } from './main';
 
@@ -412,7 +413,12 @@ export class PathTool {
     } else if(e.code=="KeyD"){
       if(this.ops.length > 1 &&
          this.state == _OFF) {
-        this.ops.pop();
+        var op = this.ops.pop();
+        if(op[0]=='C'){
+          this.cpoint=[op[1],op[2]];
+        } else {
+          this.cpoint=[];
+        }
         this.liverender();
       }
     }

@@ -1,7 +1,7 @@
 <template>
   <div>
-    <template v-for="sym in syms">
-      <es-button :sym="sym" @bclick="changesym"></es-button>
+    <template v-for="sym in symmetries">
+      <es-button :param="sym" @bclick="changesym"></es-button>
     </template>
   </div>
 </template>
@@ -10,15 +10,14 @@ import es_button from './es_button';
 import {gS} from '../main.js';
 
 export default {
-  //data: { selected: selectedsym },
-  props: ['selected', 'allsyms'],
+  props: ['params', 'allsyms'],
   components: {'es-button': es_button},
   computed: {
-    syms: function(){
+    symmetries: function(){
       var symds=[];
       for(var sym of this.allsyms){
         symds.push({name: sym,
-                    selected: (sym==this.selected.sym)});
+                    selected: (sym==this.params.symstate)});
       }
       return symds;
     }

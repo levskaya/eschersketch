@@ -14,12 +14,12 @@ import {gS, gConstants,
         livecanvas, lctx, canvas, ctx,
         affineset, updateSymmetry,
         commitOp,
-        drawTools, curTool
+        drawTools,
        } from './main';
 
 import { _ } from 'underscore';
 import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './math_utils';
-import {generateTiling, generateLattice, planarSymmetries} from './geo';
+import {generateTiling, generateLattice, planarSymmetries} from './symmetryGenerator';
 
 
 
@@ -48,14 +48,14 @@ export class SymmOp {
     // update global storing current affineset
     updateTiling(this.sym, this.grid);
     // directly mutate global that's watched by vue
-    gS.symstate.sym = this.sym;
+    gS.params.symstate = this.sym;
     gS.gridstate.x = this.grid.x;
     gS.gridstate.y = this.grid.y;
     gS.gridstate.d = this.grid.d;
     gS.gridstate.t = this.grid.t;
 
     //HACK: if the gridtool is active, update canvas if the grid ui is altered
-    if(curTool=="grid"){ drawTools["grid"].enter(); }
+    if(gS.params.curTool=="grid"){ drawTools["grid"].enter(); }
   }
 
   serialize(){
@@ -90,8 +90,8 @@ export class GridTool {
   }
 
   commit(){
-    commitOp(new SymmOp(gS.symstate.sym, {x: this.x, y: this.y, d: this.d, t: this.t}) );
-    //gS.cmdstack.push(new SymmOp(gS.symstate.sym, {x: this.x, y: this.y, d: this.d, t: this.t}));
+    commitOp(new SymmOp(gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t}) );
+    //gS.cmdstack.push(new SymmOp(gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t}));
     //rerender(ctx);
   }
 
@@ -145,17 +145,17 @@ export class GridTool {
 
   liverender() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    //const v0 = RotationTransform(this.t).onVec(planarSymmetries[gS.symstate.sym].vec0);
-    //const v1 = RotationTransform(this.t).onVec(planarSymmetries[gS.symstate.sym].vec1);
-    const v0 = planarSymmetries[gS.symstate.sym].vec0;
-    const v1 = planarSymmetries[gS.symstate.sym].vec1;
+    //const v0 = RotationTransform(this.t).onVec(planarSymmetries[gS.params.symstate].vec0);
+    //const v1 = RotationTransform(this.t).onVec(planarSymmetries[gS.params.symstate].vec1);
+    const v0 = planarSymmetries[gS.params.symstate].vec0;
+    const v1 = planarSymmetries[gS.params.symstate].vec1;
     let p0 = [this.x, this.y];
     let p1 = [(this.d * v0[0]) + this.x, (this.d * v0[1]) + this.y];
     let p2 = [(this.d * v1[0]) + this.x, (this.d * v1[1]) + this.y];
     this.p0 = p0; //save for canvas hit-detection
     this.p1 = p1;
 
-    let newlattice = generateLattice(planarSymmetries[gS.symstate.sym],
+    let newlattice = generateLattice(planarSymmetries[gS.params.symstate],
                                   gConstants.GRIDNX, gConstants.GRIDNY,
                                   this.d, this.t,
                                   this.x, this.y);

@@ -3,24 +3,27 @@
 ## MVP
 - gridsize nx,ny limit to some max so as not to crash browser...
 - rosette groups UI and identity (no trafo)
-- tile png export
-- tile svg export (clipping) if easy... later if hard
-- touch events if not insane
 
 later...
+- real mobile ui / responsive ui
+- tile svg export (clipping)
+- do a real scenegraph -
+  bind style state to drawing ops and allow reording of ops, alteration of color, symm...
+- pressure sensitive pen tool
 - arc tool?
-- UI improvement
 - frieze groups
 - color-rot wallpaper groups?
 
 ## Bugs
-
+- polygon tool always closes path - should allow nonclosure
+- path tool end-joining - continuous possible?
 - modified lines around 437 of canvas2svg.js - the IE fix section that fixes
   xmnls uses a regex that hits recursion depth on our huge SVG files...
-  so commented out that fix
+  so commented out that to fix
 
-- colorpicker flakes if fillcolor, strokecolor RGBs are same on init... seems fine
-  if they're set different.
+## Mobile Detection
+http://detectmobilebrowsers.com/about
+https://modernizr.com/
 
 ## Vue
 
@@ -156,4 +159,9 @@ SVG
   matrix SVG trafos
 
 
+## Canvas/ctx
 
+- isPointInPath()
+- createPattern()
+- globalCompositeOperation
+- 

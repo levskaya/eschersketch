@@ -23,7 +23,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.button {
+/*.button {
     background: #eeeeee;
     text-indent:0px;
     text-align: center;
@@ -33,7 +33,7 @@ export default {
     display: inline-block;
     cursor:pointer;
     color:#666;
-}
+}*/
 .selected {
     background: rgba(250,150,150,0.6);
 }

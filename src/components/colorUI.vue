@@ -38,7 +38,7 @@ export default {
 }
 </script>
 <style scoped>
-.button {
+/*.button {
     border:1px solid #ddd;
     text-indent:0px;
     background: #eeeeee;
@@ -53,7 +53,7 @@ export default {
 }
 .selected {
     background: rgba(250,150,150,0.6);
-}
+}*/
 /* these don't work on dynamically updated classes it seems!
    have to modify style directly via :style bindings
 .hideme { display: none;}

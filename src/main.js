@@ -19,6 +19,7 @@ import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
 
 import {pixelFix, setCanvasPixelDensity} from './canvas_utils';
+import {planarSymmetries} from './symmetryGenerator';
 
 // Import all the Drawing Ops and Tools
 //------------------------------------------------------------------------------
@@ -52,10 +53,11 @@ export const gConstants = {
 
 // gS = global State
 // holds the UI state as well as acting as top-level event bus
+// should eventually port to vuex
 //------------------------------------------------------------------------------
 export const gS = new Vue({
   data: {
-    // stupid hack, since Vue can't wrap strings, have all simple stringy
+    // stupid hack, since Vue can't wrap atomics, have all simple atomic
     // state parameters in here, mutating params then induces reactivity
     params: {
       curTool: 'line',                 // Tool State
@@ -101,7 +103,26 @@ gS.$on('colorUpdate',
 gS.$on('toolUpdate', function(tool){ changeTool(tool); });
 
 // HACK: for debugging
-//window.gS=gS;
+window.gS=gS;
+
+// UNUSED, thinking about how to change color/style ops from ops altogether and
+// to bind drawing state more closely into actual drawing ops...
+export const getDrawState = function(){
+  var Dstate = {
+    params:      _.clone(gS.params),
+    gridstate:   _.clone(gS.gridstate),
+    ctxStyle:    _.clone(gS.ctxStyle),
+    fillcolor:   _.clone(gS.fillcolor),
+    strokecolor: _.clone(gS.strokecolor)
+  };
+  return Dstate;
+};
+export const setDrawState = function(Dstate){
+  for(key in Object.keys(Dstate)){
+    Object.assign(gS[key], Dstate[key]);
+  }
+};
+
 
 
 // Canvas / Context Globals
@@ -328,7 +349,7 @@ var vueColor = new Vue({
 // XXX: this can take a long damn time with a complicated scene! At minimum should
 // do redraws with smaller grid Nx,Ny by default or just restrict SVG export to
 // tile?
-document.getElementById("saveSVG").onmousedown = function(e) {
+var saveSVG = function() {
   // canvas2svg fake context:
   var C2Sctx = new C2S(canvas.width, canvas.height);
   rerender(C2Sctx);
@@ -341,11 +362,36 @@ document.getElementById("saveSVG").onmousedown = function(e) {
 
 // TODO : allow arbitrary upscaling of canvas pixel backing density using
 //        setCanvasPixelDensity
-document.getElementById("savePNG").onmousedown = function(e) {
-    canvas.toBlob(blob => saveAs(blob, "eschersketch.png"));
+var savePNG = function() {
+  canvas.toBlobHD(blob => saveAs(blob, "eschersketch.png"));
 };
 
+// Export small, hi-res, square-tileable PNG
+var savePNGTile = function(){
+  const pixelScale = 4; // pixel density scaling factor
 
+  // get square tile dimensions
+  let [dX, dY] = planarSymmetries[gS.params.symstate].tile;
+  dX *= gS.gridstate.d * pixelScale;
+  dY *= gS.gridstate.d * pixelScale;
+
+  // Render into tile-sized canvas for blob conversion and export
+  let tileCanvas = document.createElement('canvas');
+  tileCanvas.width = dX;
+  tileCanvas.height = dY;
+  let tctx = tileCanvas.getContext("2d");
+  //correct for center off-set and pixel-scaling
+  tctx.scale(pixelScale, pixelScale);
+  tctx.translate(-1*gS.gridstate.x, -1*gS.gridstate.x);
+  //rerender scene and export bitmap
+  rerender(tctx);
+  tileCanvas.toBlobHD(blob => saveAs(blob, "eschersketch_tile.png"));
+  tileCanvas.remove();
+};
+
+document.getElementById("saveSVG").onmousedown = function(e) { saveSVG(); };
+document.getElementById("savePNG").onmousedown = function(e) { savePNG(); };
+document.getElementById("savePNGtile").onmousedown = function(e) { savePNGTile(); };
 
 // should be "reset"
 var initState = function() {

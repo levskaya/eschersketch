@@ -51,7 +51,7 @@ export class LineTool {
     this.start = {};
     this.end = {};
     this.state = "init";
-    this.hitRadius = 4
+    this.hitRadius = 4;
   }
 
   liverender() {
@@ -111,12 +111,8 @@ export class LineTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
     if (this.state == "newLine") {
-      if (this.drawInterval <= 0) {
         this.end = { x: pt[0], y: pt[1] };
         this.liverender();
-        this.drawInterval = 1;
-      }
-      this.drawInterval--;
     }
     else if (this.state == "moveStart") {
       this.start = { x: pt[0], y: pt[1] };

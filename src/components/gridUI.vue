@@ -38,7 +38,7 @@ export default {
 span {
     margin:5px;
 }
-.button {
+/*.button {
     border:1px solid #ddd;
     text-indent:0px;
     background: #eeeeee;
@@ -50,5 +50,5 @@ span {
     display: inline-block;
     cursor:pointer;
     color:#666;
-}
+}*/
 </style>

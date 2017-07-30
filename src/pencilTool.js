@@ -55,7 +55,7 @@ export class PencilTool {
     //this.drawInterval = 0; //primitive throttling
   }
 
-  liverender() {
+  liverender_precise() {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let af of affineset) {
       lctx.beginPath();
@@ -67,6 +67,34 @@ export class PencilTool {
       }
       lctx.stroke();
     }
+  }
+
+  liverender_fast() {
+    if(this.points.length >= 3) {
+      for (let af of affineset) {
+        const Tpt0 = af.on(this.points[this.points.length-3].x, this.points[this.points.length-3].y);
+        const Tpt1 = af.on(this.points[this.points.length-2].x, this.points[this.points.length-2].y);
+        const Tpt2 = af.on(this.points[this.points.length-1].x, this.points[this.points.length-1].y);
+        lctx.beginPath();
+        lctx.moveTo(Tpt0[0], Tpt0[1]);
+        lctx.lineTo(Tpt1[0], Tpt1[1]);
+        lctx.lineTo(Tpt2[0], Tpt2[1]);
+        lctx.stroke();
+      }
+    } else {
+      for (let af of affineset) {
+        const Tpt0 = af.on(this.points[this.points.length-2].x, this.points[this.points.length-2].y);
+        const Tpt1 = af.on(this.points[this.points.length-1].x, this.points[this.points.length-1].y);
+        lctx.beginPath();
+        lctx.moveTo(Tpt0[0], Tpt0[1]);
+        lctx.lineTo(Tpt1[0], Tpt1[1]);
+        lctx.stroke();
+      }
+    }
+  }
+
+  enter(){
+    this.liverender = this.liverender_fast;
   }
 
   commit() {

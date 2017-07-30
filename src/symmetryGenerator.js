@@ -515,21 +515,24 @@ export const planarSymmetries = {
     rots: [],
     refs: [],
     vec0: [ 0, 1 ],
-    vec1: [ 1, 0 ]
+    vec1: [ 1, 0 ],
+    tile: [ 1, 1 ]
   },
 
   diagonalgrid: {
     rots: [],
     refs: [],
     vec0: [ sqrt(2)/2, sqrt(2)/2 ],
-    vec1: [ sqrt(2)/2, -sqrt(2)/2 ]
+    vec1: [ sqrt(2)/2, -sqrt(2)/2 ],
+    tile: [ sqrt(2), sqrt(2) ]
   },
 
   hexgrid: {
     rots: [],
     refs: [],
     vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0]
+    vec1: [ sqrt(3), 0.0],
+    tile: [ sqrt(3), 3 ]
   },
 
   //  Wallpaper Groups ----------------------------
@@ -540,14 +543,16 @@ export const planarSymmetries = {
     //vec0: [ sqrt(3)/2, 1.5 ]
     //vec1: [ sqrt(3), 0.0]
     vec0: [ 1, 0 ],
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   pm: {
     rots: [],
     refs: [ [ PI/2, 0, 0 ], [ PI/2, 0, -1/2 ] ],
     vec0: [ 1, 0 ],
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   cm: {
@@ -555,7 +560,8 @@ export const planarSymmetries = {
     refs: [ [PI/2, 0, 0] ],
     //does PI/4 introduce unwanted additional symmetry?
     vec0: [ sin(PI/4), cos(PI/4) ],
-    vec1: [ -sin(PI/4), cos(PI/4) ]
+    vec1: [ -sin(PI/4), cos(PI/4) ],
+    tile: [ sqrt(2), sqrt(2) ]
   },
 
   pg: {
@@ -564,7 +570,8 @@ export const planarSymmetries = {
     glides: [ [ PI/2, sqrt(3)/2, 0.0, 0.0] ],
     //glides: [ [ PI/2, 1/2, 0.0, 0.0] ]
     vec0: [ 1, 0 ],
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   // 180deg rotation containing groups
@@ -574,15 +581,17 @@ export const planarSymmetries = {
     //vec0: [ sqrt(3)/2, 1.5 ]
     //vec1: [ sqrt(3), 0.0]
     vec0: [ 1, 0 ],
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   pmg: {
     rots: [ [ PI, 1.0, 0.25 ] ],
     refs: [ [ 0.0, 0.0, 0.0] ],
-    glides: [ [ PI / 2, .5, 1.0, 0.0] ],
+    glides: [ [ PI / 2, 1/2.0, 1.0, 0.0] ],
     vec0: [ 1, 0 ],
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   pgg: {
@@ -590,7 +599,8 @@ export const planarSymmetries = {
     refs: [],
     glides: [ [ 0.0, 1.0, 0.0, 0.25 ], [ PI/2, 1/2, 1/2, 0.0] ],
     vec0: [ 1, 0 ],
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   pmm: {
@@ -598,7 +608,8 @@ export const planarSymmetries = {
     refs: [ [ 0, 0, 0 ], [ PI / 2, 0, 0 ] ],
     vec0: [ 1, 0 ],
     //vec1: [ 1.61803399, 0 ]
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   cmm: {
@@ -606,7 +617,8 @@ export const planarSymmetries = {
     refs: [ [PI/2, 0, 0], [0, 0, 0] ],
     //does PI/4 introduce unwanted additional symmetry?
     vec0: [ sin(PI/4), cos(PI/4) ],
-    vec1: [ -sin(PI/4), cos(PI/4) ]
+    vec1: [ -sin(PI/4), cos(PI/4) ],
+    tile: [ sqrt(2), sqrt(2) ]
   },
 
   // Square-ish Groups
@@ -614,15 +626,17 @@ export const planarSymmetries = {
     rots: [ [ PI/2, 0, 0 ], [ PI, 0, 0 ], [ (3 * PI)/2, 0, 0 ] ],
     refs: [],
     vec0: [ 1, 0 ],
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   p4g: {
     rots: [ [ PI/2, 0, 0 ], [ PI, 0, 0 ], [ (3 * PI)/2, 0, 0 ] ],
-    refs: [ [ -PI / 4, .5, 0.0] ],
+    refs: [ [ -PI / 4, 1/2.0, 0.0] ],
     refrot: true,
     vec0: [ 1, 0 ],
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   p4m: {
@@ -630,7 +644,8 @@ export const planarSymmetries = {
     refs: [ [ -PI / 4, 0.0, 0.0], [ PI / 4, 0.0, 0.0], [ 0.0, 0.0, 0.0] ],
     closeref: true,
     vec0: [ 1, 0 ],
-    vec1: [ 0, -1 ]
+    vec1: [ 0, -1 ],
+    tile: [ 1, 1 ]
   },
 
   // Hex-ish Groups
@@ -638,29 +653,33 @@ export const planarSymmetries = {
     rots: [ [ (2 * PI) / 3, sqrt(3)/2, -0.5 ], [ (4 * PI) / 3, sqrt(3)/2, -0.5 ] ],
     refs: [],
     vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0]
+    vec1: [ sqrt(3), 0.0],
+    tile: [ sqrt(3), 3 ]
   },
 
   p6: {
-    rots: [ [ (2 * PI) / 3, sqrt(3)/2, -0.5 ], [ (4 * PI) / 3, sqrt(3)/2, -0.5 ], [ PI / 3.0, 0.0, 0.0],
-            [ -PI / 3.0, 0.0, 0.0], [ (3 * PI) / 3.0, 0.0, 0.0] ],
+    rots: [ [ (2 * PI) / 3, sqrt(3)/2, -0.5 ], [ (4 * PI) / 3, sqrt(3)/2, -0.5 ],
+            [ PI / 3.0, 0.0, 0.0], [ -PI / 3.0, 0.0, 0.0], [ (3 * PI) / 3.0, 0.0, 0.0] ],
     refs: [],
     vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0]
+    vec1: [ sqrt(3), 0.0],
+    tile: [ sqrt(3), 3 ]
   },
 
   p31m: {
     rots: [ [ (2 * PI)/3, sqrt(3)/2, -0.5 ], [ (4*PI)/3, sqrt(3)/2, -0.5 ] ],
     refs: [ [ PI/3, 0.0, 0.0], [ -PI/3, 0.0, 0.0], [ 0.0, 0.0, 0.0] ],
     vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0]
+    vec1: [ sqrt(3), 0.0],
+    tile: [ sqrt(3), 3 ]
   },
 
   p3m1: {
     rots: [ [ (2 * PI) / 3, 0, 0 ], [ (4 * PI) / 3, 0, 0 ] ],
     refs: [ [ -PI/2, 0, 0 ], [ ((-2 * PI)/3) - (PI/2), 0, 0 ], [ ((2 * PI)/3) - (PI/2), 0, 0 ] ],
     vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0]
+    vec1: [ sqrt(3), 0.0],
+    tile: [ sqrt(3), 3 ]
   },
 
   p6m: {
@@ -669,6 +688,7 @@ export const planarSymmetries = {
             [ (4 * PI) / 6, 0, 0 ], [ (5 * PI) / 6, 0, 0 ], [ (6 * PI) / 6, 0, 0 ] ],
     closeref: true,
     vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0]
+    vec1: [ sqrt(3), 0.0],
+    tile: [ sqrt(3), 3 ]
   }
 };

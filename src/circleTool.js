@@ -16,17 +16,23 @@ import {gS, gConstants,
        } from './main';
 
 import {l2dist} from './math_utils';
-
+import {_} from 'underscore';
 
 // Draw Circles
 //------------------------------------------------------------------------------
 export class CircleOp {
-  constructor(center, radius) {
+  constructor(ctxStyle, center, radius) {
+    this.tool = "circle";
     this.center = center;
     this.radius = radius;
+    this.ctxStyle = _.clone(ctxStyle);
   }
 
   render(ctx){
+    _.assign(ctx, this.ctxStyle);
+    //_.assign(lctx, this.ctxStyle);
+    //_.extend(gS.ctxStyle, this.ctxStyle);
+    //console.log("render", this.ctxStyle.fillStyle);
     for (let af of affineset) {
       const Tc1 = af.onVec(this.center);
       const Tr = this.radius; //XXX: not true for scaling trafos! fix!
@@ -46,11 +52,18 @@ export class CircleOp {
   }
 }
 
+//State Labels
+const _INIT_ = 0;
+const _OFF_  = 1;
+const _ON_   = 2;
+const _MOVE_ = 3;
+
 export class CircleTool {
   constructor() {
     this.center = [];
     this.radius = 0;
-    this.on = false;
+    //this.on = false;
+    this.state = _INIT_;
   }
 
   liverender() {
@@ -65,22 +78,57 @@ export class CircleTool {
     }
   }
 
+  enter(op){
+    if(op){
+        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
+        _.assign(lctx, op.ctxStyle);
+        //console.log("loading ", op.ctxStyle.fillStyle);
+        //console.log("loading comp gS", gS.ctxStyle.fillStyle);
+        this.center = op.center;
+        this.radius = op.radius;
+        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
+        this.state = _OFF_;
+        this.liverender();
+    } else {
+      this.center = [];
+      this.radius = 0;
+      //this.on = false;
+      this.state = _INIT_;
+      this.liverender();
+    }
+  }
+
+  exit(){
+    if(this.state == _OFF_){
+      //this.commit(stack);
+    }
+    this.state = _INIT_;
+    this.center = [];
+    this.radius = 0;
+  }
+
   commit() {
-    commitOp( new CircleOp(this.center, this.radius) );
+    if(this.state==_INIT_){return;}
+    //let ctxStyle = _.assign({}, _.pick(gS.ctxStyle, ...gConstants.CTXPROPS));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    //console.log("saving ", ctxStyle.fillStyle);
+    commitOp( new CircleOp(ctxStyle, this.center, this.radius) );
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
   mouseDown(e) {
-    e.preventDefault();
-    var rect = canvas.getBoundingClientRect();
-    this.center = [e.clientX - rect.left,
-                   e.clientY - rect.top];
-    this.on = true;
+    if(this.state ==_OFF_){
+      this.commit();
+    }
+    var rect = livecanvas.getBoundingClientRect();
+    this.center = [e.clientX - rect.left, e.clientY - rect.top];
+    this.radius = 0;
+    this.state = _ON_;
   }
 
   mouseMove(e) {
-    if (this.on) {
-      var rect = canvas.getBoundingClientRect();
+    if (this.state == _ON_) {
+      var rect = livecanvas.getBoundingClientRect();
       var pt = [e.clientX - rect.left,
                 e.clientY - rect.top];
       this.radius = l2dist(this.center, pt);
@@ -89,9 +137,9 @@ export class CircleTool {
   }
 
   mouseUp(e) {
-    this.on = false;
-    this.commit();
-    this.center = {};
-    this.radius = 0;
+    this.state = _OFF_;
+    //this.commit();
+    //this.center = {};
+    //this.radius = 0;
   }
 }

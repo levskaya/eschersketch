@@ -28,15 +28,17 @@ export default {
         hex: rgb2hex(this.r,this.g,this.b),
         a: this.a
       };
+      //console.log("colorPicker ",this.target, newColor);
       return newColor;
       }
     },
   components: { 'chrome-picker': Chrome },
   methods: {
-    onUpdate: _.debounce(function(x){
+    onUpdate: //_.debounce(
+      function(x){
       gS.$emit('colorUpdate', {target:this.target,
                                r:x.rgba.r, g:x.rgba.g, b:x.rgba.b, a:x.rgba.a});
-    }, 200)
+    }//, 200)
   },
   mounted: function() {
     // HACK: harmonize vue color picker style...

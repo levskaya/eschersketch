@@ -14,19 +14,22 @@ import {gS, gConstants,
         livecanvas, lctx, canvas, ctx, affineset,
         commitOp
        } from './main';
-
+import { _ } from 'underscore';
 import {l2dist} from './math_utils';
 
 
 // Draw Single Line Segments
 //------------------------------------------------------------------------------
 export class LineOp {
-  constructor(start, end) {
+  constructor(ctxStyle, start, end) {
+    this.ctxStyle = ctxStyle;
+    this.tool = "line";
     this.start = start;
     this.end = end;
   }
 
   render(ctx){
+    _.assign(ctx, this.ctxStyle);
     for (let af of affineset) {
       const Tp1 = af.on(this.start.x, this.start.y);
       const Tp2 = af.on(this.end.x, this.end.y);
@@ -46,11 +49,18 @@ export class LineOp {
   }
 }
 
+//State Labels
+const _INIT_ = 0;
+const _OFF_  = 1;
+const _ON_   = 2;
+const _MOVESTART_ = 3;
+const _MOVEEND_ = 4;
+
 export class LineTool {
   constructor() {
     this.start = {};
     this.end = {};
-    this.state = "init";
+    this.state = _INIT_;
     this.hitRadius = 4;
   }
 
@@ -80,13 +90,15 @@ export class LineTool {
   }
 
   commit() {
-    commitOp(new LineOp(this.start, this.end));
+    if(this.state == _INIT_){return;}
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    commitOp(new LineOp(ctxStyle, this.start, this.end));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
   cancel() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.state = "init";
+    this.state = _INIT_;
     this.start = {};
     this.end = {};
   }
@@ -95,14 +107,14 @@ export class LineTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
     if(l2dist(pt,[this.start.x,this.start.y])<this.hitRadius) {
-      this.state = "moveStart";
+      this.state = _MOVESTART_;
     } else if(l2dist(pt,[this.end.x,this.end.y])<this.hitRadius) {
-      this.state = "moveEnd";
+      this.state = _MOVEEND_;
     } else {
-      if(this.state=="off") {
+      if(this.state==_OFF_) {
         this.commit();
       }
-      this.state = "newLine";
+      this.state = _ON_;
       this.start = { x: pt[0], y: pt[1] };
     }
   }
@@ -110,31 +122,31 @@ export class LineTool {
   mouseMove(e) {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
-    if (this.state == "newLine") {
+    if (this.state == _ON_) {
         this.end = { x: pt[0], y: pt[1] };
         this.liverender();
     }
-    else if (this.state == "moveStart") {
+    else if (this.state == _MOVESTART_) {
       this.start = { x: pt[0], y: pt[1] };
       this.liverender();
     }
-    else if (this.state == "moveEnd") {
+    else if (this.state == _MOVEEND_) {
       this.end = { x: pt[0], y: pt[1] };
       this.liverender();
     }
   }
 
   mouseUp(e) {
-    this.state = "off";
+    this.state = _OFF_;
   }
 
-  mouseLeave(e) {
-    this.exit();
-  }
+  //mouseLeave(e) {
+  //  this.exit();
+  //}
 
   keyDown(e) {
     if(e.code == "Enter"){
-      this.state = "off";
+      this.state = _OFF_;
       this.commit();
       this.start = {};
       this.end = {};
@@ -142,13 +154,28 @@ export class LineTool {
       this.cancel();
     }
   }
-
-  exit(){
-    if(this.state=="off") {
-      this.commit();
+  enter(op){
+    if(op){
+        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
+        _.assign(lctx, op.ctxStyle);
+        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
+        this.start = op.start;
+        this.end = op.end;
+        this.state = _OFF_;
+        this.liverender();
+    } else{
       this.start = {};
       this.end = {};
-      this.state = "init";
+      this.state = _INIT_;
+    }
+  }
+
+  exit(){
+    if(this.state==_OFF_) {
+      //this.commit();
+      this.start = {};
+      this.end = {};
+      this.state = _INIT_;
     }
   }
 }

@@ -443,3 +443,22 @@ var vueTest = new Vue({
     }
   }
 });
+
+
+const hexgrids = ["hexgrid","p3","p6","p31m","p3m1","p6m"];
+const diaggrids = ["diagonalgrid","cm","cmm"];
+const squaregrids = ["squaregrid","p1","pm","pg","pmg","pgg","pmm","p2","p4","p4g","p4m"];
+
+  if(hexgrids.includes(gS.params.symstate)){
+    //let dX = Math.abs(v0[0]+v0[0]) * gS.gridstate.d * pixelratio;
+    //let dY = Math.abs(v0[1]+v0[1]) * gS.gridstate.d * pixelratio;
+    dX = Math.sqrt(3) * gS.gridstate.d * pixelratio;
+    dY = 3 * gS.gridstate.d * pixelratio;
+  }
+  else if(diaggrids.includes(gS.params.symstate)){
+    dX = Math.sqrt(2) * gS.gridstate.d * pixelratio;
+    dY = Math.sqrt(2) * gS.gridstate.d * pixelratio;
+  } else {
+    dX = gS.gridstate.d * pixelratio;
+    dY = gS.gridstate.d * pixelratio;
+  }

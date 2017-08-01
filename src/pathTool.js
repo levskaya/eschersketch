@@ -15,17 +15,21 @@ import {gS, gConstants,
         affineset,
         commitOp
        } from './main';
-
+import { _ } from 'underscore';
 import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './math_utils';
 
 
 export class PathOp {
-  constructor(ops) {
+  constructor(ctxStyle, ops) {
+    this.ctxStyle = ctxStyle;
     // array of ["M",x,y] or ["L",x,y] or ["C",xc1,yc1,xc2,yc2,x,y] drawing ops
     this.ops = ops;
+    this.tool = "bezier";
   }
 
   render(ctx) {
+    //if(this.ops.length==0){return;} //empty data case
+    _.assign(ctx, this.ctxStyle);
     for (let af of affineset) {
       ctx.beginPath();
       for(let op of this.ops){
@@ -407,13 +411,14 @@ export class PathTool {
     this.liverender();
   }
 
-  mouseLeave(e) {
-    this.exit();
-  }
+  //mouseLeave(e) {
+  //  this.exit();
+  //}
 
   keyDown(e) {
     if(e.code == "Enter"){
       this.state = _OFF_;
+      this.commit();
       this.exit();
     } else if(e.code=="Escape"){
       this.cancel();
@@ -432,7 +437,9 @@ export class PathTool {
   }
 
   commit() {
-    commitOp(new PathOp(this.ops));
+    if(this.state==_INIT_){return;} //empty data case
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    commitOp(new PathOp(ctxStyle, this.ops));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
@@ -442,13 +449,30 @@ export class PathTool {
     this.ops = [];
   }
 
-  exit(){
-    if(this.state==_OFF_) { // remove conditional?
-      this.commit();
+  enter(op) {
+    if(op){
+        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
+        _.assign(lctx, op.ctxStyle);
+        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
+        this.ops = op.ops;
+        this.opselected = [];
+        this.cpoint = [];
+        this.state = _OFF_;
+        this.liverender();
+    } else{
       this.ops = [];
       this.opselected = [];
       this.cpoint = [];
       this.state = _INIT_;
     }
+  }
+  exit(){
+    //if(this.state==_OFF_) { // remove conditional?
+      //this.commit();
+      this.ops = [];
+      this.opselected = [];
+      this.cpoint = [];
+      this.state = _INIT_;
+    //}
   }
 }

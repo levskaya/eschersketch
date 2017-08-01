@@ -16,16 +16,21 @@ import {gS, gConstants,
        } from './main';
 
 import {l2dist} from './math_utils';
+import { _ } from 'underscore';
 
 
 // Polygon Drawing
 //------------------------------------------------------------------------------
 export class PolyOp {
-  constructor(points) {
+  constructor(ctxStyle, points) {
+    this.ctxStyle = _.clone(ctxStyle);
     this.points = points;
+    this.tool = "poly";
   }
 
   render(ctx) {
+    //if(this.points.length==0){return;} //empty data case
+    _.assign(ctx, this.ctxStyle);
     for (let af of affineset) {
       ctx.beginPath();
       let Tpt = af.on(this.points[0][0], this.points[0][1]);
@@ -93,8 +98,13 @@ export class PolyTool {
   }
 
   commit() {
-    commitOp( new PolyOp(this.points) );
+    //console.log("poly state at commit ", this.state);
+    if(this.state==_INIT_){return;} //empty data case
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    commitOp( new PolyOp(ctxStyle, this.points) );
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.state = _INIT_;
+    this.points = [];
   }
 
   cancel() {
@@ -156,9 +166,9 @@ export class PolyTool {
     this.state = _OFF_;
   }
 
-  mouseLeave(e) {
-    this.exit();
-  }
+  //mouseLeave(e) {
+    //this.exit();
+  //}
 
   keyDown(e) {
     if(e.code == "Enter"){
@@ -166,6 +176,7 @@ export class PolyTool {
       this.commit();
       this.points = [];
       this.selected = 0;
+      this.state = _INIT_;
     } else if(e.code=="Escape"){
       this.cancel();
     } else if(e.code=="KeyD"){
@@ -178,14 +189,30 @@ export class PolyTool {
     }
   }
 
+  enter(op){
+    if(op){
+        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
+        _.assign(lctx, op.ctxStyle);
+        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
+        this.points = op.points;
+        this.state = _OFF_;
+        this.selected = 0;
+        this.liverender();
+    } else{
+      this.points = [];
+      this.state = _INIT_;
+      this.selected = 0;
+    }
+  }
+
   exit(){
-    if(this.state==_OFF_) {
-      if(this.points.length >2){
-        this.commit();
-      }
+    //if(this.state==_OFF_) {
+    //  if(this.points.length >2){
+        //this.commit();
+    //  }
       this.points = [];
       this.selected = 0;
       this.state = _INIT_;
-    }
+    //}
   }
 }

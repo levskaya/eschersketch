@@ -14,7 +14,7 @@ import {gS, gConstants,
         livecanvas, lctx, canvas, ctx, lattice, affineset,
         commitOp
        } from './main';
-
+import { _ } from 'underscore';
 //import {l2dist} from './math_utils';
 
 
@@ -22,11 +22,15 @@ import {gS, gConstants,
 //------------------------------------------------------------------------------
 //TODO: add smoothing factor
 export class PencilOp {
-  constructor(points) {
+  constructor(ctxStyle, points) {
+    this.ctxStyle = ctxStyle;
     this.points = points;
+    this.tool = "pencil";
   }
 
   render(ctx){
+    //if(this.points.length==0){return;} //empty data case
+    _.assign(ctx, this.ctxStyle);
     for (let af of affineset) {
       ctx.beginPath();
       const Tpt0 = af.on(this.points[0].x, this.points[0].y);
@@ -48,11 +52,20 @@ export class PencilOp {
   }
 }
 
+
+//State Labels
+const _INIT_ = 0;
+const _OFF_  = 1;
+const _ON_   = 2;
+const _MOVE_ = 3;
+
 export class PencilTool {
   constructor() {
     this.points = [];
-    this.on = false;
+    //this.on = false;
+    this.state = _INIT_;
     //this.drawInterval = 0; //primitive throttling
+    this.liverender = this.liverender_fast;
   }
 
   liverender_precise() {
@@ -69,7 +82,7 @@ export class PencilTool {
     }
   }
 
-  liverender_fast() {
+  liverender_fast() { //  falsely darkens live transparent lines due to overlapping 3pt segments
     if(this.points.length >= 3) {
       for (let af of affineset) {
         const Tpt0 = af.on(this.points[this.points.length-3].x, this.points[this.points.length-3].y);
@@ -81,7 +94,7 @@ export class PencilTool {
         lctx.lineTo(Tpt2[0], Tpt2[1]);
         lctx.stroke();
       }
-    } else {
+    } else if(this.points.length >= 2){
       for (let af of affineset) {
         const Tpt0 = af.on(this.points[this.points.length-2].x, this.points[this.points.length-2].y);
         const Tpt1 = af.on(this.points[this.points.length-1].x, this.points[this.points.length-1].y);
@@ -93,24 +106,45 @@ export class PencilTool {
     }
   }
 
-  enter(){
-    this.liverender = this.liverender_fast;
+  enter(op){
+    if(op){
+        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
+        _.assign(lctx, op.ctxStyle);
+        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
+        this.points = op.points;
+        this.state = _OFF_;
+        this.liverender_precise();
+    } else{
+      this.points = [];
+      this.state = _INIT_;
+    }
+  }
+
+  exit(){
+    this.points = [];
+    this.state = _INIT_;
+    //return;
   }
 
   commit() {
-    commitOp(new PencilOp(this.points));
+    if(this.state===_INIT_){return;} //empty data case
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    commitOp(new PencilOp(ctxStyle, _.clone(this.points)));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
   mouseDown(e) {
+    if(this.state==_OFF_) {
+      this.commit();
+    }
+    this.state = _ON_;
     var rect = livecanvas.getBoundingClientRect();
-    this.points.push({ x: e.clientX - rect.left,
-                       y: e.clientY - rect.top});
-    this.on = true;
+    this.points = [{x: e.clientX - rect.left,
+                    y: e.clientY - rect.top}];
   }
 
   mouseMove(e) {
-    if (this.on) {
+    if (this.state == _ON_) {
       //if (this.drawInterval <= 0) {
         var rect = livecanvas.getBoundingClientRect();
         this.points.push({ x: e.clientX - rect.left,
@@ -123,8 +157,9 @@ export class PencilTool {
   }
 
   mouseUp(e) {
-    this.on = false;
+    this.state = _OFF_;
     this.commit();
     this.points = [];
+    this.state = _INIT_;
   }
 }

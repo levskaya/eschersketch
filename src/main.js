@@ -42,12 +42,14 @@ export const gConstants = {
   DELTA_LINEWIDTH:  0.1,
   GRIDNX:           18,
   GRIDNY:           14,
-  INITSYM:          'p6m',
+  INITSYM:          'p1',
   // All Symmetries made available
-  ALLSYMS:          ['p1','diagonalgrid','pm','cm','pg', //rot-free
-                     'pmg','pgg','pmm','p2','cmm',   //180deg containing
-                     'p4', 'p4g', 'p4m',             //square
-                     'hexgrid','p3','p6','p31m','p3m1','p6m'] //hex
+  ALLSYMS:          ['p1','diagonalgrid','pm','cm','pg',       //rot-free
+                     'pmg','pgg','pmm','p2','cmm',             //180deg containing
+                     'p4', 'p4g', 'p4m',                       //square
+                     'hexgrid','p3','p6','p31m','p3m1','p6m'], //hex
+  //ctx state to store inside draw ops
+  CTXPROPS:          ['fillStyle', 'strokeStyle', 'lineCap', 'lineJoin', 'miterLimit', 'lineWidth']
 };
 
 
@@ -60,7 +62,7 @@ export const gS = new Vue({
     // stupid hack, since Vue can't wrap atomics, have all simple atomic
     // state parameters in here, mutating params then induces reactivity
     params: {
-      curTool: 'line',                 // Tool State
+      curTool: 'circle',                 // Tool State
       symstate: gConstants.INITSYM     // Symmetry State
     },
     // grid Nx, Ny should NOT be too large, should clamp.
@@ -72,7 +74,9 @@ export const gS = new Vue({
       lineCap: "butt", // butt, round, square
       lineJoin: "round", // round, bevel, miter
       miterLimit: 10.0, // applies to miter setting above
-      lineWidth: 1.0
+      lineWidth: 1.0,
+      fillStyle: "rgba(200, 100, 100, 0)",
+      strokeStyle: "rgba(100, 100, 100, 1.0)"
     },
     fillcolor:   {target: "fill",   r: 200, g:100, b:100, a:0.0},
     strokecolor: {target: "stroke", r: 100, g:100, b:100, a:1.0},
@@ -89,24 +93,36 @@ gS.$on('symmUpdate',
          gS.cmdstack.push(op);
        });
 gS.$on('styleUpdate',
-       function(updateDict) {
-         let op = new StyleOp(_.clone(updateDict));
-         op.render(ctx);
-         gS.cmdstack.push(op);
+       function(styles) {
+         //let op = new StyleOp(_.clone(updateDict));
+         //op.render(ctx);
+         _.assign(lctx, styles);
+         drawTools[gS.params.curTool].liverender();
+         //gS.cmdstack.push(op);
        });
 gS.$on('colorUpdate',
        function(clr) {
-         let op = new ColorOp(clr.target, clr.r, clr.g, clr.b, clr.a);
-         op.render(ctx);
-         gS.cmdstack.push(op);
+         //let op = new ColorOp(clr.target, clr.r, clr.g, clr.b, clr.a);
+         //op.render(ctx);
+         if(clr.target == "stroke") {
+           lctx.strokeStyle = "rgba("+clr.r+","+clr.g+","+clr.b+","+clr.a+")";
+         } else {
+           lctx.fillStyle = "rgba("+clr.r+","+clr.g+","+clr.b+","+clr.a+")";
+         }
+         drawTools[gS.params.curTool].liverender();
+         //gS.cmdstack.push(op);
        });
-gS.$on('toolUpdate', function(tool){ changeTool(tool); });
+gS.$on('toolUpdate',
+       function(tool){
+         changeTool(tool);
+       });
 
 // HACK: for debugging
 window.gS=gS;
 
 // UNUSED, thinking about how to change color/style ops from ops altogether and
 // to bind drawing state more closely into actual drawing ops...
+/*
 export const getDrawState = function(){
   var Dstate = {
     params:      _.clone(gS.params),
@@ -122,7 +138,7 @@ export const setDrawState = function(Dstate){
     Object.assign(gS[key], Dstate[key]);
   }
 };
-
+*/
 
 
 // Canvas / Context Globals
@@ -154,6 +170,7 @@ export var drawTools = {
 
 var changeTool = function(toolName){
   let oldTool = drawTools[gS.params.curTool];
+  oldTool.commit(); //XXX: good?
   if('exit' in oldTool){
     oldTool.exit();
   }
@@ -220,11 +237,8 @@ var dispatchKeyDown = function(e) {
      unstable, keep color/symm inits in place...
 */
 
-export var commitOp = function(op, rerender=false){
-  gS.cmdstack.push(op);
-  op.render(ctx);
-  if(rerender) {rerender(ctx);} // never do this?
-};
+
+var undo_init_bound = 0;
 
 export var rerender = function(ctx, clear=true) {
   //console.log("rerendering ", gS.cmdstack.length, " ops");
@@ -236,27 +250,70 @@ export var rerender = function(ctx, clear=true) {
   }
 };
 
-var undo_init_bound = 0;
+export var commitOp = function(op){
+  gS.cmdstack.push(op);
+  op.render(ctx);
+};
+
+var switchTool = function(toolName, op){
+  let oldTool = drawTools[gS.params.curTool];
+  if('exit' in oldTool){
+    oldTool.exit();
+  }
+  // update global
+  gS.params.curTool = toolName;
+  let newTool = drawTools[toolName];
+  if('enter' in newTool){
+    newTool.enter(op);
+  }
+};
+
+
 var undo = function(){
   //make sure stateful drawing tool isn't left in a weird spot
-  if('exit' in drawTools[gS.params.curTool]) {drawTools[gS.params.curTool].exit();}
-  if(gS.cmdstack.length > undo_init_bound){
-    var cmd = gS.cmdstack.pop();
+  //if('exit' in drawTools[gS.params.curTool]) {drawTools[gS.params.curTool].exit();}
+  if(gS.cmdstack.length > undo_init_bound-1){
+    //if(gS.redostack.length > 0){
+    //let presentTool = drawTools[gS.params.curTool];
+    //presentTool.commit('redo'); //commit to redo stack
+    //lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    //}
+    drawTools[gS.params.curTool].commit();  //commit live tool op
+    let cmd = gS.cmdstack.pop(); //now remove it
     gS.redostack.push(cmd);
-    rerender(ctx);
+    let cmd2 = gS.cmdstack.pop(); //get last op
+    rerender(ctx); //rebuild history
+    switchTool(cmd2.tool, cmd2); //enter()s and exit()s
+    //gS.redostack.push(cmd);
+    //rerender(ctx);
+    //console.log("cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length, "curtool", cmd.tool);
+  } else {
+      //let presentTool = drawTools[gS.params.curTool];
+      //presentTool.enter(); //?
   }
 };
+
 var redo = function(){
   if(gS.redostack.length>0){
-    var cmd = gS.redostack.pop();
-    gS.cmdstack.push(cmd);
+    //let presentTool = drawTools[gS.params.curTool];
+    //presentTool.commit();
+    drawTools[gS.params.curTool].commit();  //commit live tool op
+    let cmd = gS.redostack.pop();
+    //gS.cmdstack.push(cmd);
     rerender(ctx);
+    switchTool(cmd.tool, cmd); //enter()s and exit()s
+    //gS.cmdstack.push(cmd);
+    //rerender(ctx);
+    //console.log("cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length, "curtool", cmd.tool);
   }
 };
+
 var reset = function(){
   //make sure stateful drawing tool isn't left in a weird spot
   if('exit' in drawTools[gS.params.curTool]) {drawTools[gS.params.curTool].exit();}
+  gS.redostack = [];
   gS.cmdstack = [];
+  lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   initState();
 };
 
@@ -332,6 +389,23 @@ var vueStyle = new Vue({
   data: gS.ctxStyle
 });
 
+var parseColor = function(clrstr){
+  if(/^#/.test(clrstr)){
+    clrstr = clrstr.slice(1);
+    var digit = clrstr.split("");
+    if(digit.length === 3){
+      digit = [ digit[0],digit[0],digit[1],digit[1],digit[2],digit[2] ]
+    }
+    var r = parseInt( [digit[0],digit[1] ].join(""), 16 );
+    var g = parseInt( [digit[2],digit[3] ].join(""), 16 );
+    var b = parseInt( [digit[4],digit[5] ].join(""), 16 );
+    return [r,g,b,1.0];
+  } else{
+    let tmp = clrstr.substring(5, clrstr.length-1).replace(/ /g, '').split(',');
+    return [parseInt(tmp[0]),parseInt(tmp[1]),parseInt(tmp[2]),parseFloat(tmp[3])];
+  }
+}
+
 // Color UI
 //------------------------------------------------------------------------------
 import colorUi from './components/colorUI';
@@ -339,8 +413,22 @@ var vueColor = new Vue({
   el: '#colorUI',
   template: `<color-ui :strokeColor="strokeColor" :fillColor="fillColor"/>`,
   components: {colorUi},
-  data: {strokeColor: gS.strokecolor,
-         fillColor: gS.fillcolor}
+  /*data: {strokeColor: gS.strokecolor,
+         fillColor: gS.fillcolor},
+         */
+  computed: { strokeColor:
+      function(){
+        let tmp = [].concat(parseColor(gS.ctxStyle.strokeStyle));
+        //console.log('ui-strokeColor', tmp);
+        return {r:tmp[0], g:tmp[1], b:tmp[2], a:tmp[3]};
+      },
+      fillColor:
+      function(){
+        let tmp = [].concat(parseColor(gS.ctxStyle.fillStyle));
+        //console.log('ui-fillColor ',tmp);
+        return {r:tmp[0], g:tmp[1], b:tmp[2], a:tmp[3]};
+      }
+  }
 });
 
 
@@ -352,6 +440,32 @@ var vueColor = new Vue({
 var saveSVG = function() {
   // canvas2svg fake context:
   var C2Sctx = new C2S(canvas.width, canvas.height);
+  rerender(C2Sctx);
+  //serialize the SVG
+  var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
+  //save text blob as SVG
+  var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
+  saveAs(blob, "eschersketch.svg");
+};
+
+var saveSVGTile = function() {
+  // get square tile dimensions
+  let [dX, dY] = planarSymmetries[gS.params.symstate].tile;
+  dX *= gS.gridstate.d;
+  dY *= gS.gridstate.d;
+
+  // canvas2svg fake context:
+  var C2Sctx = new C2S(dX, dY);
+  //correct for center off-set and pixel-scaling
+  //tctx.scale(pixelScale, pixelScale);
+  C2Sctx.translate(-1*gS.gridstate.x, -1*gS.gridstate.x);
+  /*C2Sctx.beginPath();
+  C2Sctx.moveTo(gS.gridstate.x, gS.gridstate.y);
+  C2Sctx.lineTo(gS.gridstate.x+dX, gS.gridstate.y);
+  C2Sctx.lineTo(gS.gridstate.x+dX, gS.gridstate.y+dY);
+  C2Sctx.lineTo(gS.gridstate.x, gS.gridstate.y+dY);
+  C2Sctx.closePath();
+  C2Sctx.clip();*/
   rerender(C2Sctx);
   //serialize the SVG
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
@@ -392,9 +506,12 @@ var savePNGTile = function(){
 document.getElementById("saveSVG").onmousedown = function(e) { saveSVG(); };
 document.getElementById("savePNG").onmousedown = function(e) { savePNG(); };
 document.getElementById("savePNGtile").onmousedown = function(e) { savePNGTile(); };
+//document.getElementById("saveSVGtile").onmousedown = function(e) { saveSVGTile(); };
+
 
 // should be "reset"
 var initState = function() {
+  /*
   gS.cmdstack.push(new ColorOp(
     "stroke",
     gS.strokecolor.r,
@@ -414,9 +531,19 @@ var initState = function() {
     lineJoin: "round",
     miterLimit: 10.0,
     lineWidth: 1.0}));
+*/
+let initStyle = {
+  lineCap: "butt",
+  lineJoin: "round",
+  miterLimit: 10.0,
+  lineWidth: 1.0,
+  strokeStyle: "rgba(100,100,100,1.0)",
+  fillStyle: "rgba(200,100,100,0.5)"
+};
+_.assign(lctx, initStyle);
 
-  gS.cmdstack.push(new SymmOp(
-    gConstants.INITSYM,
+gS.cmdstack.push(new SymmOp(
+  gConstants.INITSYM,
     _.clone(gS.gridstate)));
 
   // set global undo boundary so these initial
@@ -441,11 +568,12 @@ var initGUI = function() {
   livecanvas.height = gConstants.CANVAS_HEIGHT;
   pixelFix(livecanvas);
   lctx = livecanvas.getContext("2d");
+  window.lctx = lctx;//HACK
 
   livecanvas.onmousedown  = dispatchMouseDown; //disable for touch
   livecanvas.onmouseup    = dispatchMouseUp;   //disable for touch
   livecanvas.onmousemove  = dispatchMouseMove; //disable for touch
-  livecanvas.onmouseleave = dispatchMouseLeave;
+  livecanvas.onmouseleave = dispatchMouseLeave;//disable for touch
   document.getElementsByTagName("body")[0].onkeydown = dispatchKeyDown;
 
   initState();
@@ -486,7 +614,7 @@ var initTouchEvents = function() {
   livecanvas.onmousedown  = null;
   livecanvas.onmouseup    = null;
   livecanvas.onmousemove  = null;
-
+  livecanvas.onmouseleave = null;
   changeHitRadius(15);
 };
 window.initTouchEvents = initTouchEvents;

@@ -39,6 +39,7 @@ export class SymmOp {
   constructor(sym, grid) {
     this.sym = sym;
     this.grid = grid;
+    this.tool = "grid";
   }
 
   render(ctx){
@@ -156,6 +157,7 @@ export class GridTool {
                                   this.x, this.y);
     // Draw Lattice
     lctx.save();
+    lctx.lineWidth = 1.0;
     lctx.strokeStyle = "rgba(0,0,0,1.0)";
     for (let af of newlattice) {
       let Tp0 = af.on(p0[0],p0[1]);

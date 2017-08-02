@@ -10,9 +10,9 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gConstants,
+import {gS, gCONSTS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateTiling,
+        affineset, updateSymmetry,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -27,13 +27,12 @@ export class LineOp {
     this.tool = "line";
     this.start = start;
     this.end = end;
-    this.symstate = gS.params.symstate;
-    this.gridstate = _.clone(gS.gridstate);
+    this.symmState = _.clone(gS.symmState);
   }
 
   render(ctx){
     _.assign(ctx, this.ctxStyle);
-    updateTiling(this.symstate, this.gridstate);
+    updateSymmetry(this.symmState);
     for (let af of affineset) {
       const Tp1 = af.on(this.start.x, this.start.y);
       const Tp2 = af.on(this.end.x, this.end.y);
@@ -95,7 +94,7 @@ export class LineTool {
 
   commit() {
     if(this.state == _INIT_){return;}
-    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
     commitOp(new LineOp(ctxStyle, this.start, this.end));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
@@ -163,9 +162,8 @@ export class LineTool {
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
         this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
-        _.assign(gS.gridstate, op.gridstate);
-        gS.params.symstate = op.symstate;
-        updateTiling(op.symstate, op.gridstate);
+        _.assign(gS.symmState, op.symmState);
+        updateSymmetry(op.symmState);
         this.start = op.start;
         this.end = op.end;
         this.state = _OFF_;

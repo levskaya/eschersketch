@@ -6,14 +6,14 @@
   </div>
 </template>
 <script>
-import {gS, gConstants} from '../main.js';
+import {gS, gCONSTS} from '../main.js';
 
 export default {
   props: ['lineWidth'],
   created: function(){
-    this.max = gConstants.MAX_LINEWIDTH;
-    this.min = gConstants.MIN_LINEWIDTH;
-    this.step = gConstants.DELTA_LINEWIDTH;
+    this.max = gCONSTS.MAX_LINEWIDTH;
+    this.min = gCONSTS.MIN_LINEWIDTH;
+    this.step = gCONSTS.DELTA_LINEWIDTH;
     this.name = "styleUI";
   },
   computed: {

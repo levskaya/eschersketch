@@ -14,7 +14,7 @@ export default {
   components: {'es-numfield': es_numfield},
   props: ['Nrot','Nref','rot'],
   computed: {showme: function(){
-    if(gS.params.symstate == "rosette"){
+    if(gS.symmState.sym == "rosette"){
         return {display: "block"}
     } else {
       return {display: "none"}
@@ -22,9 +22,9 @@ export default {
   } },
   methods: {
     update: function(name, val){
-      var rosettecopy = _.clone(gS.rosettestate);
-      rosettecopy[name]=Number(val);
-      gS.$emit('rosetteUpdate', gS.params.symstate, rosettecopy);
+      var gridcopy = _.clone(gS.symmState);
+      gridcopy[name] = Number(val);
+      gS.$emit('symmUpdate', gridcopy);
     }
   },
 }

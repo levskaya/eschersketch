@@ -10,9 +10,9 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gConstants,
+import {gS, gCONSTS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateTiling,
+        affineset, updateSymmetry,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -25,14 +25,13 @@ export class PathOp {
     // array of ["M",x,y] or ["L",x,y] or ["C",xc1,yc1,xc2,yc2,x,y] drawing ops
     this.ops = ops;
     this.tool = "bezier";
-    this.symstate = gS.params.symstate;
-    this.gridstate = _.clone(gS.gridstate);
+    this.symmState = _.clone(gS.symmState);
   }
 
   render(ctx) {
     //if(this.ops.length==0){return;} //empty data case
     _.assign(ctx, this.ctxStyle);
-    updateTiling(this.symstate, this.gridstate);
+    updateSymmetry(this.symmState);
     for (let af of affineset) {
       ctx.beginPath();
       for(let op of this.ops){
@@ -441,7 +440,7 @@ export class PathTool {
 
   commit() {
     if(this.state==_INIT_){return;} //empty data case
-    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
     commitOp(new PathOp(ctxStyle, this.ops));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
@@ -457,9 +456,8 @@ export class PathTool {
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
         this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
-        _.assign(gS.gridstate, op.gridstate);
-        gS.params.symstate = op.symstate;
-        updateTiling(op.symstate, op.gridstate);
+        _.assign(gS.symmState, op.symmState);
+        updateSymmetry(op.symmState);
         this.ops = op.ops;
         this.opselected = [];
         this.cpoint = [];

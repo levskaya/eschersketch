@@ -33,14 +33,15 @@ import es_button from './ex_button';
 import {gS} from '../main.js';
 
 export default {
-  props: ['params'],
+  props: ['sym'],
   components: {'ex-button': es_button},
   computed: {
-    cursym: function(){ return this.params.symstate;},
+    cursym: function(){ return this.sym;},
   },
   methods: {
     changeSym: function(symname){
-      gS.$emit('symmUpdate', symname, gS.gridstate);
+      //gS.symmState.sym = symname;
+      gS.$emit('symmUpdate', {sym: symname});
     }
   },
 }

@@ -29,12 +29,11 @@ import {PencilTool}   from './pencilTool';
 import {PolyTool}     from './polyTool';
 import {PathTool}     from './pathTool';
 import {CircleTool}   from './circleTool';
-//import {ColorOp, StyleOp}     from './styleOps';
 
 
 // Global "Constants"
 //------------------------------------------------------------------------------
-export const gConstants = {
+export const gCONSTS = {
   CANVAS_WIDTH:     1600, //XXX: not necessarily constant!
   CANVAS_HEIGHT:    1200, //XXX: not necessarily constant!
   MIN_LINEWIDTH:    0.1,
@@ -69,23 +68,25 @@ export const gS = new Vue({
     // waaa... am I smoking crack? this shouldn't be necessary, or?
     params: {
       curTool: 'pencil',                 // Tool State
-      symstate: gConstants.INITSYM     // Symmetry State
+      showUI: true
     },
     // grid Nx, Ny should NOT be too large, should clamp.
-    gridstate: {x:800, y:400, d:100, t:0, Nx:18, Ny:14},
-    rosettestate: {Nrot: 3, Nref: 2, rot: 0},
+    symmState: {sym: gCONSTS.INITSYM,
+                x:800, y:400,
+                d:100, t:0,
+                Nx:18, Ny:14,
+                Nrot: 3, Nref: 2, rot: 0},
+
     // Style State
     //-------------------------------
     ctxStyle: {
-      lineCap: "butt", // butt, round, square
-      lineJoin: "round", // round, bevel, miter
-      miterLimit: 10.0, // applies to miter setting above
-      lineWidth: 1.0,
-      fillStyle: "rgba(200, 100, 100, 0)",
+      lineCap:     "butt", // butt, round, square
+      lineJoin:    "round", // round, bevel, miter
+      miterLimit:  10.0, // applies to miter setting above
+      lineWidth:   1.0,
+      fillStyle:   "rgba(200, 100, 100, 0)",
       strokeStyle: "rgba(100, 100, 100, 1.0)"
     },
-    //fillcolor:   {target: "fill",   r: 200, g:100, b:100, a:0.0},
-    //strokecolor: {target: "stroke", r: 100, g:100, b:100, a:1.0},
     // Global Command and Redo Stacks
     //-------------------------------
     cmdstack: [], //<-- needed in here?
@@ -96,27 +97,15 @@ export const gS = new Vue({
 // Global Events
 //------------------------------------------------------------------------------
 gS.$on('symmUpdate',
-       function(symName, gridSetting) {
-         updateTiling(symName, gridSetting);
-         // directly mutate global that's watched by vue
-         gS.params.symstate = symName;
-         _.assign(gS.gridstate, gridSetting);
-
+       function(gridSetting) {
+         _.assign(gS.symmState, gridSetting);
+         updateSymmetry(gS.symmState);
          //HACK: if the gridtool is active, update canvas if the grid ui is altered
          if(gS.params.curTool=="grid"){ drawTools["grid"].enter(); }
-
          drawTools[gS.params.curTool].liverender();
        });
-gS.$on('rosetteUpdate',
-      function(symName, rosetteSetting) {
-        gS.params.symstate = symName;
-        _.assign(gS.rosettestate, rosetteSetting);
-        updateTiling(symName, gS.gridstate);
-        drawTools[gS.params.curTool].liverender();
-      });
 gS.$on('styleUpdate',
        function(styles) {
-         styles.lineWidth = styles.lineWidth;
          _.assign(lctx, _.clone(styles));
          _.assign(gS.ctxStyle, _.clone(styles));
          drawTools[gS.params.curTool].liverender();
@@ -134,6 +123,20 @@ gS.$on('toolUpdate',
        function(tool){
          changeTool(tool);
        });
+gS.$on('undo', function(){ undo(); });
+gS.$on('undo', function(){ redo(); });
+gS.$on('reset', function(){ reset(); });
+gS.$on('toggleUI', function(){  // HACK: until everything wrapped by vue
+  if(gS.params.showUI){
+    gS.params.showUI = false;
+    document.getElementById("controls").style.display="none";
+    //document.getElementById("hideshow").innerHTML = "show";
+  } else {
+    gS.params.showUI = true;
+    document.getElementById("controls").style.display="block";
+    //document.getElementById("hideshow").innerHTML = "hide";
+  }
+ });
 
 // HACK: for debugging
 window.gS=gS;
@@ -152,27 +155,25 @@ export var pixelratio = 1;
 // Contains Symmetries used by all other operations
 //------------------------------------------------------------------------------
 export var affineset = {};
-export const updateSymmetry = function (newset) { affineset = newset; };
+//window.affineset = affineset; //HACK: debugging
 const memo_generateTiling = _.memoize(generateTiling,
                                 function(){return JSON.stringify(arguments);});
-export const updateTiling = function(sym, gridstate) {
-  if(sym == "none"){
-    let afset = IdentitySet();
-    console.log(afset);
-    updateSymmetry(afset);
+export const updateSymmetry = function(symmState) {
+  if(symmState.sym == "none"){
+    affineset = IdentitySet();
   }
-  else if(tilingSyms.includes(sym)) {
-    updateSymmetry(memo_generateTiling(planarSymmetries[sym],
-                                      gConstants.GRIDNX, gConstants.GRIDNY,
-                                      gridstate.d, gridstate.t,
-                                      gridstate.x, gridstate.y));
+  else if(tilingSyms.includes(symmState.sym)) {
+    affineset = memo_generateTiling(planarSymmetries[symmState.sym],
+                                    symmState.Nx,symmState.Ny,
+                                    symmState.d, symmState.t,
+                                    symmState.x, symmState.y);
   }
   else { //HACK: quick and dirty, fix the call structure to be clean interface
-    updateSymmetry(RosetteGroup(gS.rosettestate.Nrot,
-                                gS.rosettestate.Nref,
-                                gridstate.x,
-                                gridstate.y,
-                                gS.rosettestate.rot/180.0*Math.PI));
+    affineset = RosetteGroup(symmState.Nrot,
+                            symmState.Nref,
+                            symmState.x,
+                            symmState.y,
+                            symmState.rot/180.0*Math.PI);
   }
 };
 
@@ -187,6 +188,7 @@ export var drawTools = {
   poly: new PolyTool(),
   bezier: new PathTool()
 };
+window.drawTools = drawTools; //HACK: debugging
 
 var changeTool = function(toolName){
   let oldTool = drawTools[gS.params.curTool];
@@ -280,7 +282,7 @@ var switchTool = function(toolName, op){
 };
 
 var undo = function(){
-  console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
+  //console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
   if(gS.cmdstack.length > undo_init_bound){
     drawTools[gS.params.curTool].commit();  //commit live tool op
     let cmd = gS.cmdstack.pop(); //now remove it
@@ -319,37 +321,15 @@ var reset = function(){
   initState();
 };
 
-document.getElementById("undo").onmousedown =
-  function(e) {
-    e.preventDefault();
-    undo();
-  };
-document.getElementById("redo").onmousedown =
-  function(e) {
-    e.preventDefault();
-    redo();
-  };
-document.getElementById("reset").onmousedown =
-  function(e) {
-    e.preventDefault();
-    if(e.target.classList.contains('armed')){
-      reset();
-      e.target.classList.remove('armed');
-      e.target.innerHTML = "reset";
-    } else {
-      e.target.classList.add('armed');
-      e.target.innerHTML = "reset?!";
-    }
-  };
-document.getElementById("reset").onmouseleave =
-  function(e) {
-    if(e.target.classList.contains('armed')){
-      e.target.classList.remove('armed');
-      e.target.innerHTML = "reset";
-    }
-  };
-
-
+// Top State Control UI
+//------------------------------------------------------------------------------
+import stateUi from './components/stateUI';
+var vueSym = new Vue({
+  el: '#stateUI',
+  template: '<state-ui :showUI="showUI"/>',
+  components: { stateUi },
+  data: gS.params//{params: gS.params}
+});
 
 // Tool Selection UI
 //------------------------------------------------------------------------------
@@ -366,9 +346,9 @@ var vueSym = new Vue({
 import symmetryUi from './components/symmetryUI';
 var vueSym = new Vue({
   el: '#symUI',
-  template: '<symmetry-ui :params="params"/>',
+  template: '<symmetry-ui :sym="sym"/>',
   components: { symmetryUi },
-  data: { params: gS.params, cursym: gS.params.symstate}
+  data: gS.symmState
 });
 
 // Grid UI
@@ -378,7 +358,7 @@ var vueGrid = new Vue({
   el: '#gridUI',
   template: '<grid-ui :x="x" :y="y" :d="d"/>',
   components: {gridUi},
-  data: gS.gridstate
+  data: gS.symmState
 });
 
 // Rosette UI
@@ -388,7 +368,7 @@ var vueRosette = new Vue({
   el: '#rosetteUI',
   template: '<rosette-ui :Nrot="Nrot" :Nref="Nref" :rot="rot"/>',
   components: {rosetteUi},
-  data: gS.rosettestate
+  data: gS.symmState
 });
 
 // Line Styling UI
@@ -462,20 +442,20 @@ var saveSVG = function() {
 
 var saveSVGTile = function() {
   // get square tile dimensions
-  let [dX, dY] = planarSymmetries[gS.params.symstate].tile;
-  dX *= gS.gridstate.d;
-  dY *= gS.gridstate.d;
+  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
+  dX *= gS.symmState.d;
+  dY *= gS.symmState.d;
 
   // canvas2svg fake context:
   var C2Sctx = new C2S(dX, dY);
   //correct for center off-set and pixel-scaling
   //tctx.scale(pixelScale, pixelScale);
-  C2Sctx.translate(-1*gS.gridstate.x, -1*gS.gridstate.x);
+  C2Sctx.translate(-1*gS.symmState.x, -1*gS.symmState.y);
   /*C2Sctx.beginPath();
-  C2Sctx.moveTo(gS.gridstate.x, gS.gridstate.y);
-  C2Sctx.lineTo(gS.gridstate.x+dX, gS.gridstate.y);
-  C2Sctx.lineTo(gS.gridstate.x+dX, gS.gridstate.y+dY);
-  C2Sctx.lineTo(gS.gridstate.x, gS.gridstate.y+dY);
+  C2Sctx.moveTo(gS.symmState.x, gS.symmState.y);
+  C2Sctx.lineTo(gS.symmState.x+dX, gS.symmState.y);
+  C2Sctx.lineTo(gS.symmState.x+dX, gS.symmState.y+dY);
+  C2Sctx.lineTo(gS.symmState.x, gS.symmState.y+dY);
   C2Sctx.closePath();
   C2Sctx.clip();*/
   rerender(C2Sctx);
@@ -497,9 +477,9 @@ var savePNGTile = function(){
   const pixelScale = 4; // pixel density scaling factor
 
   // get square tile dimensions
-  let [dX, dY] = planarSymmetries[gS.params.symstate].tile;
-  dX *= gS.gridstate.d * pixelScale;
-  dY *= gS.gridstate.d * pixelScale;
+  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
+  dX *= gS.symmState.d * pixelScale;
+  dY *= gS.symmState.d * pixelScale;
 
   // Render into tile-sized canvas for blob conversion and export
   let tileCanvas = document.createElement('canvas');
@@ -508,7 +488,7 @@ var savePNGTile = function(){
   let tctx = tileCanvas.getContext("2d");
   //correct for center off-set and pixel-scaling
   tctx.scale(pixelScale, pixelScale);
-  tctx.translate(-1*gS.gridstate.x, -1*gS.gridstate.x);
+  tctx.translate(-1*gS.symmState.x, -1*gS.symmState.x);
   //rerender scene and export bitmap
   rerender(tctx);
   tileCanvas.toBlobHD(blob => saveAs(blob, "eschersketch_tile.png"));
@@ -519,20 +499,6 @@ document.getElementById("saveSVG").onmousedown = function(e) { saveSVG(); };
 document.getElementById("savePNG").onmousedown = function(e) { savePNG(); };
 document.getElementById("savePNGtile").onmousedown = function(e) { savePNGTile(); };
 //document.getElementById("saveSVGtile").onmousedown = function(e) { saveSVGTile(); };
-
-
-document.getElementById("hideshow").onclick =
-function(e) {
-  //e.preventDefault();
-  console.log("click", document.getElementById("controls").style.display);
-    if(document.getElementById("controls").style.display=="block"){
-      document.getElementById("controls").style.display="none";
-      document.getElementById("hideshow").innerHTML = "show";
-    } else {
-      document.getElementById("controls").style.display="block";
-      document.getElementById("hideshow").innerHTML = "hide";
-    }
-};
 
 
 // should be "reset"
@@ -548,18 +514,8 @@ var initState = function() {
   _.assign(lctx, initStyle);
   _.assign(gS.ctxStyle, initStyle);
 
-  /*gS.cmdstack.push(new SymmOp(
-    gConstants.INITSYM,
-      _.clone(gS.gridstate)));
-    */
-  updateTiling(gS.params.symstate, _.clone(gS.gridstate));
-
-  //gS.cmdstack.push(new NoOp());
-  // set global undo boundary so these initial
-  // settings don't get lost (needed for drawstate stability
-  // during reset on redraw)
+  updateSymmetry(_.clone(gS.symmState));
   undo_init_bound = gS.cmdstack.length;
-
   rerender(ctx);
 };
 
@@ -570,23 +526,23 @@ var initGUI = function() {
   var w = window.innerWidth;
   var h = window.innerHeight;
   console.log("window innerDims ", w, h);
-  gConstants.CANVAS_WIDTH = w;
-  gConstants.CANVAS_HEIGHT = h;
-  gS.gridstate.x = Math.round(w/2);
-  gS.gridstate.y = Math.round(h/2);
-  gS.gridstate.Nx = Math.round((w / gS.gridstate.d)*2);
-  gS.gridstate.Ny = Math.round((h / gS.gridstate.d)*2);
-  console.log("grid Nx,Ny ",gS.gridstate.Nx, gS.gridstate.Ny);
+  gCONSTS.CANVAS_WIDTH = w;
+  gCONSTS.CANVAS_HEIGHT = h;
+  gS.symmState.x = Math.round(w/2);
+  gS.symmState.y = Math.round(h/2);
+  gS.symmState.Nx = Math.round((w / gS.symmState.d)*2);
+  gS.symmState.Ny = Math.round((h / gS.symmState.d)*2);
+  console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
 
   canvas = document.getElementById("sketchrender");
-  canvas.width = gConstants.CANVAS_WIDTH;
-  canvas.height = gConstants.CANVAS_HEIGHT;
+  canvas.width = gCONSTS.CANVAS_WIDTH;
+  canvas.height = gCONSTS.CANVAS_HEIGHT;
   pixelratio = pixelFix(canvas);
   ctx = canvas.getContext("2d");
 
   livecanvas = document.getElementById("sketchlive");
-  livecanvas.width = gConstants.CANVAS_WIDTH;
-  livecanvas.height = gConstants.CANVAS_HEIGHT;
+  livecanvas.width = gCONSTS.CANVAS_WIDTH;
+  livecanvas.height = gCONSTS.CANVAS_HEIGHT;
   pixelFix(livecanvas);
   lctx = livecanvas.getContext("2d");
   window.lctx = lctx;//HACK

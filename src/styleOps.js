@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gConstants,
+import {gS, gCONSTS,
         livecanvas, lctx, canvas, ctx, affineset,
         commitOp
        } from './main';

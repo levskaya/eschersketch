@@ -10,9 +10,9 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gConstants,
+import {gS, gCONSTS,
         livecanvas, lctx, canvas, ctx, lattice,
-        affineset, updateTiling,
+        affineset, updateSymmetry,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -27,14 +27,13 @@ export class PencilOp {
     this.ctxStyle = ctxStyle;
     this.points = points;
     this.tool = "pencil";
-    this.symstate = gS.params.symstate;
-    this.gridstate = _.clone(gS.gridstate);
+    this.symmState = _.clone(gS.symmState);
   }
 
   render(ctx){
     //if(this.points.length==0){return;} //empty data case
     _.assign(ctx, this.ctxStyle);
-    updateTiling(this.symstate, this.gridstate);
+    updateSymmetry(this.symmState);
     for (let af of affineset) {
       ctx.beginPath();
       const Tpt0 = af.on(this.points[0].x, this.points[0].y);
@@ -119,9 +118,8 @@ export class PencilTool {
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
         this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
-        _.assign(gS.gridstate, op.gridstate)
-        gS.params.symstate = op.symstate;
-        updateTiling(op.symstate, op.gridstate);
+        _.assign(gS.symmState, op.symmState)
+        updateSymmetry(op.symmState);
         this.points = op.points;
         this.state = _OFF_;
         this.liverender_precise();
@@ -139,7 +137,7 @@ export class PencilTool {
 
   commit() {
     if(this.state===_INIT_){return;} //empty data case
-    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
     commitOp(new PencilOp(ctxStyle, _.clone(this.points)));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }

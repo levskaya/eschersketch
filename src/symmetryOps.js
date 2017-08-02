@@ -10,9 +10,9 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gConstants,
+import {gS, gCONSTS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry, updateTiling,
+        affineset, updateSymmetry,
         commitOp,
         drawTools,
        } from './main';
@@ -35,13 +35,13 @@ export class SymmOp {
   render(ctx){
     //return; //HACK
     // update global storing current affineset
-    updateTiling(this.sym, this.grid);
+    updateSymmetry(this.grid);
     // directly mutate global that's watched by vue
-    gS.params.symstate = this.sym;
-    gS.gridstate.x = this.grid.x;
-    gS.gridstate.y = this.grid.y;
-    gS.gridstate.d = this.grid.d;
-    gS.gridstate.t = this.grid.t;
+    gS.symmState.sym = this.sym;
+    gS.symmState.x = this.grid.x;
+    gS.symmState.y = this.grid.y;
+    gS.symmState.d = this.grid.d;
+    gS.symmState.t = this.grid.t;
 
     //HACK: if the gridtool is active, update canvas if the grid ui is altered
     if(gS.params.curTool=="grid"){ drawTools["grid"].enter(); }
@@ -63,7 +63,7 @@ export class SymmOp {
 
 export class GridTool {
   constructor() {
-    Object.assign(this, gS.gridstate); //x,y,d,t
+    Object.assign(this, gS.symmState); //x,y,d,t
     this.p0 = [0,0];
     this.p1 = [0,0];
     this.hitRadius = 10;
@@ -71,7 +71,7 @@ export class GridTool {
   }
 
   enter(){
-    Object.assign(this, gS.gridstate); //x,y,d,t
+    Object.assign(this, gS.symmState); //x,y,d,t
     this.liverender();
   }
 
@@ -80,9 +80,9 @@ export class GridTool {
   }
 
   commit(){
-    //console.log("gridstate ",gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t})
-    updateTiling(gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t});
-    _.assign(gS.gridstate, {x: this.x, y: this.y, d: this.d, t: this.t});
+    //console.log("symmState ",gS.symmState.sym, {x: this.x, y: this.y, d: this.d, t: this.t})
+    _.assign(gS.symmState, {x: this.x, y: this.y, d: this.d, t: this.t});
+    updateSymmetry({x: this.x, y: this.y, d: this.d, t: this.t});
   }
 
   mouseDown(e) {
@@ -135,18 +135,18 @@ export class GridTool {
 
   liverender() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    //const v0 = RotationTransform(this.t).onVec(planarSymmetries[gS.params.symstate].vec0);
-    //const v1 = RotationTransform(this.t).onVec(planarSymmetries[gS.params.symstate].vec1);
-    const v0 = planarSymmetries[gS.params.symstate].vec0;
-    const v1 = planarSymmetries[gS.params.symstate].vec1;
+    //const v0 = RotationTransform(this.t).onVec(planarSymmetries[gS.symmState.sym].vec0);
+    //const v1 = RotationTransform(this.t).onVec(planarSymmetries[gS.symmState.sym].vec1);
+    const v0 = planarSymmetries[gS.symmState.sym].vec0;
+    const v1 = planarSymmetries[gS.symmState.sym].vec1;
     let p0 = [this.x, this.y];
     let p1 = [(this.d * v0[0]) + this.x, (this.d * v0[1]) + this.y];
     let p2 = [(this.d * v1[0]) + this.x, (this.d * v1[1]) + this.y];
     this.p0 = p0; //save for canvas hit-detection
     this.p1 = p1;
 
-    let newlattice = generateLattice(planarSymmetries[gS.params.symstate],
-                                  gConstants.GRIDNX, gConstants.GRIDNY,
+    let newlattice = generateLattice(planarSymmetries[gS.symmState.sym],
+                                  gS.symmState.Nx, gS.symmState.Ny,
                                   this.d, this.t,
                                   this.x, this.y);
     // Draw Lattice

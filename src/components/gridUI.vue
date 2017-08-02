@@ -19,10 +19,10 @@ export default {
   props: ['x','y','d'], // ['x','y','d','Nx','Ny'],
   methods: {
     update: function(name, val){
-      var gridcopy = _.clone(gS.gridstate);
+      var gridcopy = _.clone(gS.symmState);
       gridcopy[name]=Number(val);
 
-      gS.$emit('symmUpdate', gS.params.symstate, gridcopy);
+      gS.$emit('symmUpdate', gridcopy);
     },
     halveD: function(){ this.update("d", this.d/2.0); },
     doubleD: function(){ this.update("d", this.d*2.0); },

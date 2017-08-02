@@ -10,9 +10,9 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gConstants,
+import {gS, gCONSTS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateTiling,
+        affineset, updateSymmetry,
         commitOp
        } from './main';
 
@@ -27,17 +27,12 @@ export class CircleOp {
     this.center = center;
     this.radius = radius;
     this.ctxStyle = _.clone(ctxStyle);
-    this.symstate = gS.params.symstate;
-    this.gridstate = _.clone(gS.gridstate);
+    this.symmState = _.clone(gS.symmState);
   }
 
   render(ctx){
     _.assign(ctx, this.ctxStyle);
-    //console.log("circle ", this.symstate, this.gridstate);
-    updateTiling(this.symstate, this.gridstate);
-    //_.assign(lctx, this.ctxStyle);
-    //_.extend(gS.ctxStyle, this.ctxStyle);
-    //console.log("render", this.ctxStyle.fillStyle);
+    updateSymmetry(this.symmState);
     for (let af of affineset) {
       const Tc1 = af.onVec(this.center);
       const Tr = this.radius; //XXX: not true for scaling trafos! fix!
@@ -86,9 +81,8 @@ export class CircleTool {
     if(op){
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
-        _.assign(gS.gridstate, op.gridstate);
-        gS.params.symstate = op.symstate;
-        updateTiling(op.symstate, op.gridstate);
+        _.assign(gS.symmState, op.symmState);
+        updateSymmetry(op.symmState);
         //console.log("loading ", op.ctxStyle.fillStyle);
         //console.log("loading comp gS", gS.ctxStyle.fillStyle);
         this.center = op.center;
@@ -115,8 +109,8 @@ export class CircleTool {
 
   commit() {
     if(this.state==_INIT_){return;}
-    //let ctxStyle = _.assign({}, _.pick(gS.ctxStyle, ...gConstants.CTXPROPS));
-    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    //let ctxStyle = _.assign({}, _.pick(gS.ctxStyle, ...gCONSTS.CTXPROPS));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
     //console.log("saving ", ctxStyle.fillStyle);
     commitOp( new CircleOp(ctxStyle, this.center, this.radius) );
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);

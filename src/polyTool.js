@@ -10,9 +10,9 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gConstants,
+import {gS, gCONSTS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateTiling,
+        affineset, updateSymmetry,
         commitOp
        } from './main';
 
@@ -27,14 +27,13 @@ export class PolyOp {
     this.ctxStyle = _.clone(ctxStyle);
     this.points = points;
     this.tool = "poly";
-    this.symstate = gS.params.symstate;
-    this.gridstate = _.clone(gS.gridstate);
+    this.symmState = _.clone(gS.symmState);
   }
 
   render(ctx) {
     //if(this.points.length==0){return;} //empty data case
     _.assign(ctx, this.ctxStyle);
-    updateTiling(this.symstate, this.gridstate);
+    updateSymmetry(this.symmState);
     for (let af of affineset) {
       ctx.beginPath();
       let Tpt = af.on(this.points[0][0], this.points[0][1]);
@@ -105,7 +104,7 @@ export class PolyTool {
   commit() {
     //console.log("poly state at commit ", this.state);
     if(this.state==_INIT_){return;} //empty data case
-    let ctxStyle = _.assign({}, _.pick(lctx, ...gConstants.CTXPROPS));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
     commitOp( new PolyOp(ctxStyle, this.points) );
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.state = _INIT_;
@@ -199,9 +198,8 @@ export class PolyTool {
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
         this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
-        _.assign(gS.gridstate, op.gridstate)
-        gS.params.symstate = op.symstate;
-        updateTiling(op.symstate, op.gridstate);
+        _.assign(gS.symmState, op.symmState)
+        updateSymmetry(op.symmState);
         this.points = op.points;
         this.state = _OFF_;
         this.selected = 0;

@@ -30,7 +30,4 @@ export default {
 }
 </script>
 <style scoped>
-/*span {
-    margin:5px;
-}*/
 </style>

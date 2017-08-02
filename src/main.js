@@ -19,7 +19,7 @@ import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
 
 import {pixelFix, setCanvasPixelDensity} from './canvas_utils';
-import {generateTiling, planarSymmetries} from './symmetryGenerator';
+import {generateTiling, planarSymmetries, RosetteGroup, IdentitySet} from './symmetryGenerator';
 
 // Import all the Drawing Tools
 //------------------------------------------------------------------------------
@@ -52,6 +52,11 @@ export const gConstants = {
   CTXPROPS:          ['fillStyle', 'strokeStyle', 'lineCap', 'lineJoin', 'miterLimit', 'lineWidth']
 };
 
+const tilingSyms = ['p1','diagonalgrid','pm','cm','pg',       //rot-free
+                   'pmg','pgg','pmm','p2','cmm',             //180deg containing
+                   'p4', 'p4g', 'p4m',                       //square
+                   'hexgrid','p3','p6','p31m','p3m1','p6m'];
+const rosetteSyms = ['rosette'];
 
 // gS = global State
 // holds the UI state as well as acting as top-level event bus
@@ -68,7 +73,7 @@ export const gS = new Vue({
     },
     // grid Nx, Ny should NOT be too large, should clamp.
     gridstate: {x:800, y:400, d:100, t:0, Nx:18, Ny:14},
-
+    rosettestate: {Nrot: 3, Nref: 2, rot: 0},
     // Style State
     //-------------------------------
     ctxStyle: {
@@ -102,6 +107,13 @@ gS.$on('symmUpdate',
 
          drawTools[gS.params.curTool].liverender();
        });
+gS.$on('rosetteUpdate',
+      function(symName, rosetteSetting) {
+        gS.params.symstate = symName;
+        _.assign(gS.rosettestate, rosetteSetting);
+        updateTiling(symName, gS.gridstate);
+        drawTools[gS.params.curTool].liverender();
+      });
 gS.$on('styleUpdate',
        function(styles) {
          styles.lineWidth = styles.lineWidth;
@@ -126,26 +138,6 @@ gS.$on('toolUpdate',
 // HACK: for debugging
 window.gS=gS;
 
-// UNUSED, thinking about how to change color/style ops from ops altogether and
-// to bind drawing state more closely into actual drawing ops...
-/*
-export const getDrawState = function(){
-  var Dstate = {
-    params:      _.clone(gS.params),
-    gridstate:   _.clone(gS.gridstate),
-    ctxStyle:    _.clone(gS.ctxStyle),
-    fillcolor:   _.clone(gS.fillcolor),
-    strokecolor: _.clone(gS.strokecolor)
-  };
-  return Dstate;
-};
-export const setDrawState = function(Dstate){
-  for(key in Object.keys(Dstate)){
-    Object.assign(gS[key], Dstate[key]);
-  }
-};
-*/
-
 
 // Canvas / Context Globals
 //------------------------------------------------------------------------------
@@ -164,10 +156,24 @@ export const updateSymmetry = function (newset) { affineset = newset; };
 const memo_generateTiling = _.memoize(generateTiling,
                                 function(){return JSON.stringify(arguments);});
 export const updateTiling = function(sym, gridstate) {
-  updateSymmetry(memo_generateTiling(planarSymmetries[sym],
-                                     gConstants.GRIDNX, gConstants.GRIDNY,
-                                     gridstate.d, gridstate.t,
-                                     gridstate.x, gridstate.y));
+  if(sym == "none"){
+    let afset = IdentitySet();
+    console.log(afset);
+    updateSymmetry(afset);
+  }
+  else if(tilingSyms.includes(sym)) {
+    updateSymmetry(memo_generateTiling(planarSymmetries[sym],
+                                      gConstants.GRIDNX, gConstants.GRIDNY,
+                                      gridstate.d, gridstate.t,
+                                      gridstate.x, gridstate.y));
+  }
+  else { //HACK: quick and dirty, fix the call structure to be clean interface
+    updateSymmetry(RosetteGroup(gS.rosettestate.Nrot,
+                                gS.rosettestate.Nref,
+                                gridstate.x,
+                                gridstate.y,
+                                gS.rosettestate.rot/180.0*Math.PI));
+  }
 };
 
 
@@ -360,9 +366,9 @@ var vueSym = new Vue({
 import symmetryUi from './components/symmetryUI';
 var vueSym = new Vue({
   el: '#symUI',
-  template: '<symmetry-ui :params="params" :allsyms="allsyms"/>',
+  template: '<symmetry-ui :params="params"/>',
   components: { symmetryUi },
-  data: { params: gS.params, 'allsyms': gConstants.ALLSYMS}
+  data: { params: gS.params, cursym: gS.params.symstate}
 });
 
 // Grid UI
@@ -373,6 +379,16 @@ var vueGrid = new Vue({
   template: '<grid-ui :x="x" :y="y" :d="d"/>',
   components: {gridUi},
   data: gS.gridstate
+});
+
+// Rosette UI
+//------------------------------------------------------------------------------
+import rosetteUi from './components/rosetteUI';
+var vueRosette = new Vue({
+  el: '#rosetteUI',
+  template: '<rosette-ui :Nrot="Nrot" :Nref="Nref" :rot="rot"/>',
+  components: {rosetteUi},
+  data: gS.rosettestate
 });
 
 // Line Styling UI

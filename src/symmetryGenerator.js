@@ -374,7 +374,13 @@ const reflectRosette = function(n, x, y, offsetangle) {
   return findclosure(Afs);
 };
 
-const RosetteGroup = function(n1, n2, x, y, offsetangle) {
+export const IdentitySet = function(){
+  const Afs = [];
+  Afs.push(IdentityTransform());
+  return Afs;
+}
+
+export const RosetteGroup = function(n1, n2, x, y, offsetangle) {
   offsetangle = offsetangle || 0;
   const Af1 = rotateRosette(n1, x, y);
   const Af2 = reflectRosette(n2, x, y);

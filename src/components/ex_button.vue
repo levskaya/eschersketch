@@ -22,20 +22,7 @@ export default {
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-/*.button {
-    //outline:1px solid #ddd;
-    background: #eeeeee;
-    text-indent:0px;
-    text-align: center;
-    border-radius: 2px;
-    margin: 2px;
-    padding: 3px;
-    display: inline-block;
-    cursor:pointer;
-    color:#666;
-}*/
 .selected {
     background: rgba(250,150,150,0.6);
 }

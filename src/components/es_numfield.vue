@@ -25,7 +25,6 @@
 .ghost-input {
   display: inline;
   font-weight:300;
-  //font-size: 12px;
   border:0px;
   outline: none;
   -webkit-box-sizing: border-box;

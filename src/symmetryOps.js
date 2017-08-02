@@ -12,29 +12,19 @@
 // DRAWING GLOBALS
 import {gS, gConstants,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry,
+        affineset, updateSymmetry, updateTiling,
         commitOp,
         drawTools,
        } from './main';
 
 import { _ } from 'underscore';
 import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './math_utils';
-import {generateTiling, generateLattice, planarSymmetries} from './symmetryGenerator';
-
-
-
-var memo_generateTiling = _.memoize(generateTiling,
-                                function(){return JSON.stringify(arguments);});
-var updateTiling = function(sym, gridstate) {
-  updateSymmetry(memo_generateTiling(planarSymmetries[sym],
-                                     gConstants.GRIDNX, gConstants.GRIDNY,
-                                     gridstate.d, gridstate.t,
-                                     gridstate.x, gridstate.y));
-};
+import {generateLattice, planarSymmetries} from './symmetryGenerator';
 
 
 // SymmOp sets up set of affine trafos for a given symmetry
 //------------------------------------------------------------------------------
+/*
 export class SymmOp {
   constructor(sym, grid) {
     this.sym = sym;
@@ -43,6 +33,7 @@ export class SymmOp {
   }
 
   render(ctx){
+    //return; //HACK
     // update global storing current affineset
     updateTiling(this.sym, this.grid);
     // directly mutate global that's watched by vue
@@ -64,9 +55,10 @@ export class SymmOp {
     return new SymmOp(data[1], data[2], data[3], data[4], data[5]);
   }
 }
+*/
 
-//------------------------------------------------------------------------------
-// Drawing Ops and Tools
+
+// Grid Adjustment Tool
 //------------------------------------------------------------------------------
 
 export class GridTool {
@@ -88,7 +80,9 @@ export class GridTool {
   }
 
   commit(){
-    commitOp(new SymmOp(gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t}));
+    //console.log("gridstate ",gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t})
+    updateTiling(gS.params.symstate, {x: this.x, y: this.y, d: this.d, t: this.t});
+    _.assign(gS.gridstate, {x: this.x, y: this.y, d: this.d, t: this.t});
   }
 
   mouseDown(e) {
@@ -166,8 +160,9 @@ export class GridTool {
       lctx.beginPath();
       lctx.moveTo(Tp0[0],Tp0[1]);
       lctx.lineTo(Tp1[0],Tp1[1]);
-      lctx.moveTo(Tp0[0],Tp0[1]);
+      lctx.lineTo(Tp1[0]+Tp2[0]-Tp0[0],Tp1[1]+Tp2[1]-Tp0[1]);
       lctx.lineTo(Tp2[0],Tp2[1]);
+      lctx.closePath();
       lctx.stroke();
     }
     lctx.restore();

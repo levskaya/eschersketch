@@ -11,7 +11,8 @@
 
 // DRAWING GLOBALS
 import {gS, gConstants,
-        livecanvas, lctx, canvas, ctx, affineset,
+        livecanvas, lctx, canvas, ctx,
+        affineset, updateTiling,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -26,10 +27,13 @@ export class LineOp {
     this.tool = "line";
     this.start = start;
     this.end = end;
+    this.symstate = gS.params.symstate;
+    this.gridstate = _.clone(gS.gridstate);
   }
 
   render(ctx){
     _.assign(ctx, this.ctxStyle);
+    updateTiling(this.symstate, this.gridstate);
     for (let af of affineset) {
       const Tp1 = af.on(this.start.x, this.start.y);
       const Tp2 = af.on(this.end.x, this.end.y);
@@ -159,6 +163,9 @@ export class LineTool {
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
         this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
+        _.assign(gS.gridstate, op.gridstate);
+        gS.params.symstate = op.symstate;
+        updateTiling(op.symstate, op.gridstate);
         this.start = op.start;
         this.end = op.end;
         this.state = _OFF_;

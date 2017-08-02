@@ -34,11 +34,11 @@ export default {
     },
   components: { 'chrome-picker': Chrome },
   methods: {
-    onUpdate: //_.debounce(
+    onUpdate:
       function(x){
       gS.$emit('colorUpdate', {target:this.target,
                                r:x.rgba.r, g:x.rgba.g, b:x.rgba.b, a:x.rgba.a});
-    }//, 200)
+    }
   },
   mounted: function() {
     // HACK: harmonize vue color picker style...

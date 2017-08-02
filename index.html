@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EscherSketch</title>
 
 <!-- CSS -->
@@ -18,26 +19,31 @@
 </head>
 <body>
 
+
 <!-- Main Canvas -->
 <div id="sketch-container">
   <canvas id="sketchrender" width="1600" height="1200" style="z-index:0"></canvas>
   <canvas id="sketchlive" width="1600" height="1200" style="z-index:1"></canvas>
 </div>
 
+
 <!-- GUI Elements -->
 <div id="sketch-UI" style="z-index:2">
   <!-- Logo -->
-  <div class="Aligner" style="margin-left:-10px;">
+  <a>
+  <div id="logo" class="Aligner systemfont" style="margin-left:-10px;">
     <div class="Aligner-item">
-      <span style="font-variant:small-caps;margin-right:10px;">escher</span>
+      <span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">escher</span><br>
+      <!--<span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">sketch</span>-->
     </div>
     <div class="Aligner-item">
-      <img src="static/svg/es_logo.svg" height="50px" style="margin-top:6px;"/>
+      <img src="static/svg/es_logo.svg" height="30px" style="margin-top:6px;"/>
     </div>
     <div class="Aligner-item">
-      <span style="font-variant:small-caps;margin-left:10px;">sketch</span>
+      <span class="eslogotext" style="font-variant:small-caps;margin-left:10px;">sketch</span>
     </div>
   </div>
+  </a>
 
   <!-- State Control -->
   <!--<span style="font-variant: small-caps;">undo / redo</span><br>-->
@@ -50,7 +56,12 @@
   <div id="reset" class="button">
     reset
   </div>
+  <div id="hideshow" class="button" style="background-color:#aaccaa;">
+    hide
+  </div>
 
+
+  <div id="controls" style="display:block;">
   <hr>
 
   <!-- Tool Selection -->
@@ -71,16 +82,20 @@
 
   <hr>
 
-  <div id="saveSVG" class="button">Save SVG</div>
   <!--<div id="saveSVGtile" class="button">Save SVG Tile</div>-->
-  <div id="savePNG" class="button">Save PNG</div>
-  <div id="savePNGtile" class="button">Save PNG Tile</div>
+  <span style="font-variant: small-caps;">export</span><br>
+  <div id="savePNG" class="button">Save PNG</div><br>
+  <div id="savePNGtile" class="button">Save PNG Tile</div><br>
+  <div id="saveSVG" class="button">Save SVG</div>
 
 
-  <br><br><br>
+<br><br>
   <div style="font-size:10px;text-align:center;">Anselm Levskaya &copy; 2017</div>
 
+</div><!-- controls -->
+
 </div> <!-- /sketch-UI  -->
+
 
 </body>
 </html>

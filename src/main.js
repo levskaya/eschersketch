@@ -19,30 +19,30 @@ import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
 
 import {pixelFix, setCanvasPixelDensity} from './canvas_utils';
-import {planarSymmetries} from './symmetryGenerator';
+import {generateTiling, planarSymmetries} from './symmetryGenerator';
 
-// Import all the Drawing Ops and Tools
+// Import all the Drawing Tools
 //------------------------------------------------------------------------------
-import {SymmOp, GridTool}     from './symmetryOps';
-import {LineOp, LineTool}     from './lineTool';
-import {PencilOp, PencilTool} from './pencilTool';
-import {PolyOp, PolyTool}     from './polyTool';
-import {PathOp, PathTool}     from './pathTool';
-import {CircleOp, CircleTool} from './circleTool';
-import {ColorOp, StyleOp}     from './styleOps';
+import {GridTool}     from './symmetryOps';
+import {LineTool}     from './lineTool';
+import {PencilTool}   from './pencilTool';
+import {PolyTool}     from './polyTool';
+import {PathTool}     from './pathTool';
+import {CircleTool}   from './circleTool';
+//import {ColorOp, StyleOp}     from './styleOps';
 
 
-// Global Constants
+// Global "Constants"
 //------------------------------------------------------------------------------
 export const gConstants = {
-  CANVAS_WIDTH:     1600, //TODO: should be dynamic based on max screen size!
-  CANVAS_HEIGHT:    1200, //
+  CANVAS_WIDTH:     1600, //XXX: not necessarily constant!
+  CANVAS_HEIGHT:    1200, //XXX: not necessarily constant!
   MIN_LINEWIDTH:    0.1,
   MAX_LINEWIDTH:    10,
   DELTA_LINEWIDTH:  0.1,
-  GRIDNX:           18,
-  GRIDNY:           14,
-  INITSYM:          'p1',
+  GRIDNX:           18,   //XXX: not necessarily constant!
+  GRIDNY:           14,   //XXX: not necessarily constant!
+  INITSYM:          'p6m',
   // All Symmetries made available
   ALLSYMS:          ['p1','diagonalgrid','pm','cm','pg',       //rot-free
                      'pmg','pgg','pmm','p2','cmm',             //180deg containing
@@ -61,8 +61,9 @@ export const gS = new Vue({
   data: {
     // stupid hack, since Vue can't wrap atomics, have all simple atomic
     // state parameters in here, mutating params then induces reactivity
+    // waaa... am I smoking crack? this shouldn't be necessary, or?
     params: {
-      curTool: 'circle',                 // Tool State
+      curTool: 'pencil',                 // Tool State
       symstate: gConstants.INITSYM     // Symmetry State
     },
     // grid Nx, Ny should NOT be too large, should clamp.
@@ -78,39 +79,44 @@ export const gS = new Vue({
       fillStyle: "rgba(200, 100, 100, 0)",
       strokeStyle: "rgba(100, 100, 100, 1.0)"
     },
-    fillcolor:   {target: "fill",   r: 200, g:100, b:100, a:0.0},
-    strokecolor: {target: "stroke", r: 100, g:100, b:100, a:1.0},
+    //fillcolor:   {target: "fill",   r: 200, g:100, b:100, a:0.0},
+    //strokecolor: {target: "stroke", r: 100, g:100, b:100, a:1.0},
     // Global Command and Redo Stacks
     //-------------------------------
     cmdstack: [], //<-- needed in here?
     redostack: [],
   }
 });
+
+// Global Events
+//------------------------------------------------------------------------------
 gS.$on('symmUpdate',
        function(symName, gridSetting) {
-         let op = new SymmOp(symName, _.clone(gridSetting));
-         op.render(ctx);
-         gS.cmdstack.push(op);
+         updateTiling(symName, gridSetting);
+         // directly mutate global that's watched by vue
+         gS.params.symstate = symName;
+         _.assign(gS.gridstate, gridSetting);
+
+         //HACK: if the gridtool is active, update canvas if the grid ui is altered
+         if(gS.params.curTool=="grid"){ drawTools["grid"].enter(); }
+
+         drawTools[gS.params.curTool].liverender();
        });
 gS.$on('styleUpdate',
        function(styles) {
-         //let op = new StyleOp(_.clone(updateDict));
-         //op.render(ctx);
-         _.assign(lctx, styles);
+         styles.lineWidth = styles.lineWidth;
+         _.assign(lctx, _.clone(styles));
+         _.assign(gS.ctxStyle, _.clone(styles));
          drawTools[gS.params.curTool].liverender();
-         //gS.cmdstack.push(op);
        });
 gS.$on('colorUpdate',
        function(clr) {
-         //let op = new ColorOp(clr.target, clr.r, clr.g, clr.b, clr.a);
-         //op.render(ctx);
          if(clr.target == "stroke") {
            lctx.strokeStyle = "rgba("+clr.r+","+clr.g+","+clr.b+","+clr.a+")";
          } else {
            lctx.fillStyle = "rgba("+clr.r+","+clr.g+","+clr.b+","+clr.a+")";
          }
          drawTools[gS.params.curTool].liverender();
-         //gS.cmdstack.push(op);
        });
 gS.$on('toolUpdate',
        function(tool){
@@ -154,7 +160,15 @@ export var pixelratio = 1;
 // Contains Symmetries used by all other operations
 //------------------------------------------------------------------------------
 export var affineset = {};
-export var updateSymmetry = function (newset) { affineset = newset; };
+export const updateSymmetry = function (newset) { affineset = newset; };
+const memo_generateTiling = _.memoize(generateTiling,
+                                function(){return JSON.stringify(arguments);});
+export const updateTiling = function(sym, gridstate) {
+  updateSymmetry(memo_generateTiling(planarSymmetries[sym],
+                                     gConstants.GRIDNX, gConstants.GRIDNY,
+                                     gridstate.d, gridstate.t,
+                                     gridstate.x, gridstate.y));
+};
 
 
 // Set up Globals and UI for calling into Drawing Tools
@@ -230,14 +244,8 @@ var dispatchKeyDown = function(e) {
 /* - objectify this
    - think about adding "caching layers" of canvas contexts to speed up render
      times during redos of complicated scenes
-   - figure out how to fuse context updaters, e.g. color, symmetry, etc, they
-     don't need to be stacked deep in the command stack
    - when to clear out redo stack?
-   - shoudn't be able to clear the context initialization ops, otherwise redos
-     unstable, keep color/symm inits in place...
 */
-
-
 var undo_init_bound = 0;
 
 export var rerender = function(ctx, clear=true) {
@@ -255,56 +263,44 @@ export var commitOp = function(op){
   op.render(ctx);
 };
 
+//only used for undo/redo
 var switchTool = function(toolName, op){
   let oldTool = drawTools[gS.params.curTool];
-  if('exit' in oldTool){
-    oldTool.exit();
-  }
+  if('exit' in oldTool){ oldTool.exit();  }
   // update global
   gS.params.curTool = toolName;
   let newTool = drawTools[toolName];
-  if('enter' in newTool){
-    newTool.enter(op);
-  }
+  if('enter' in newTool){ newTool.enter(op); }
 };
 
-
 var undo = function(){
-  //make sure stateful drawing tool isn't left in a weird spot
-  //if('exit' in drawTools[gS.params.curTool]) {drawTools[gS.params.curTool].exit();}
-  if(gS.cmdstack.length > undo_init_bound-1){
-    //if(gS.redostack.length > 0){
-    //let presentTool = drawTools[gS.params.curTool];
-    //presentTool.commit('redo'); //commit to redo stack
-    //lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    //}
+  console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
+  if(gS.cmdstack.length > undo_init_bound){
     drawTools[gS.params.curTool].commit();  //commit live tool op
     let cmd = gS.cmdstack.pop(); //now remove it
     gS.redostack.push(cmd);
-    let cmd2 = gS.cmdstack.pop(); //get last op
-    rerender(ctx); //rebuild history
-    switchTool(cmd2.tool, cmd2); //enter()s and exit()s
-    //gS.redostack.push(cmd);
-    //rerender(ctx);
-    //console.log("cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length, "curtool", cmd.tool);
+    if(gS.cmdstack.length>0){
+      let cmd2 = gS.cmdstack.pop(); //get last op
+      rerender(ctx); //rebuild history
+      switchTool(cmd2.tool, cmd2); //enter()s and exit()s
+    } else {
+      drawTools[gS.params.curTool].exit();
+      rerender(ctx); //rebuild history
+      lctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
   } else {
-      //let presentTool = drawTools[gS.params.curTool];
-      //presentTool.enter(); //?
+      drawTools[gS.params.curTool].exit();
+      lctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 };
 
 var redo = function(){
+  console.log("redo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
   if(gS.redostack.length>0){
-    //let presentTool = drawTools[gS.params.curTool];
-    //presentTool.commit();
     drawTools[gS.params.curTool].commit();  //commit live tool op
     let cmd = gS.redostack.pop();
-    //gS.cmdstack.push(cmd);
     rerender(ctx);
     switchTool(cmd.tool, cmd); //enter()s and exit()s
-    //gS.cmdstack.push(cmd);
-    //rerender(ctx);
-    //console.log("cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length, "curtool", cmd.tool);
   }
 };
 
@@ -509,43 +505,40 @@ document.getElementById("savePNGtile").onmousedown = function(e) { savePNGTile()
 //document.getElementById("saveSVGtile").onmousedown = function(e) { saveSVGTile(); };
 
 
+document.getElementById("hideshow").onclick =
+function(e) {
+  //e.preventDefault();
+  console.log("click", document.getElementById("controls").style.display);
+    if(document.getElementById("controls").style.display=="block"){
+      document.getElementById("controls").style.display="none";
+      document.getElementById("hideshow").innerHTML = "show";
+    } else {
+      document.getElementById("controls").style.display="block";
+      document.getElementById("hideshow").innerHTML = "hide";
+    }
+};
+
+
 // should be "reset"
 var initState = function() {
-  /*
-  gS.cmdstack.push(new ColorOp(
-    "stroke",
-    gS.strokecolor.r,
-    gS.strokecolor.g,
-    gS.strokecolor.b,
-    gS.strokecolor.a));
-
-  gS.cmdstack.push(new ColorOp(
-    "fill",
-    gS.fillcolor.r,
-    gS.fillcolor.g,
-    gS.fillcolor.b,
-    gS.fillcolor.a));
-
-  gS.cmdstack.push(new StyleOp({
+  let initStyle = {
     lineCap: "butt",
     lineJoin: "round",
     miterLimit: 10.0,
-    lineWidth: 1.0}));
-*/
-let initStyle = {
-  lineCap: "butt",
-  lineJoin: "round",
-  miterLimit: 10.0,
-  lineWidth: 1.0,
-  strokeStyle: "rgba(100,100,100,1.0)",
-  fillStyle: "rgba(200,100,100,0.5)"
-};
-_.assign(lctx, initStyle);
+    lineWidth: 1.0,
+    strokeStyle: "rgba(100,100,100,1.0)",
+    fillStyle: "rgba(200,100,100,0.5)"
+  };
+  _.assign(lctx, initStyle);
+  _.assign(gS.ctxStyle, initStyle);
 
-gS.cmdstack.push(new SymmOp(
-  gConstants.INITSYM,
-    _.clone(gS.gridstate)));
+  /*gS.cmdstack.push(new SymmOp(
+    gConstants.INITSYM,
+      _.clone(gS.gridstate)));
+    */
+  updateTiling(gS.params.symstate, _.clone(gS.gridstate));
 
+  //gS.cmdstack.push(new NoOp());
   // set global undo boundary so these initial
   // settings don't get lost (needed for drawstate stability
   // during reset on redraw)
@@ -556,6 +549,18 @@ gS.cmdstack.push(new SymmOp(
 
 
 var initGUI = function() {
+
+  // set up symmetry grid based on screen size
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  console.log("window innerDims ", w, h);
+  gConstants.CANVAS_WIDTH = w;
+  gConstants.CANVAS_HEIGHT = h;
+  gS.gridstate.x = Math.round(w/2);
+  gS.gridstate.y = Math.round(h/2);
+  gS.gridstate.Nx = Math.round((w / gS.gridstate.d)*2);
+  gS.gridstate.Ny = Math.round((h / gS.gridstate.d)*2);
+  console.log("grid Nx,Ny ",gS.gridstate.Nx, gS.gridstate.Ny);
 
   canvas = document.getElementById("sketchrender");
   canvas.width = gConstants.CANVAS_WIDTH;
@@ -589,7 +594,7 @@ var initTouchEvents = function() {
   var mc = new Hammer.Manager(stage);
   var Pan = new Hammer.Pan({
     direction: Hammer.DIRECTION_ALL,
-    threshold: 1
+    threshold: 0
   });
   mc.add(Pan);
   mc.on('panstart', function(e) {
@@ -611,10 +616,13 @@ var initTouchEvents = function() {
     dispatchMouseUp(fakeEv);
   });
 
+  // disable mouse-event handlers to prevent interference
   livecanvas.onmousedown  = null;
   livecanvas.onmouseup    = null;
   livecanvas.onmousemove  = null;
   livecanvas.onmouseleave = null;
+
+  //XXX: should scale w. screen size, too big on tablets I suspect
   changeHitRadius(15);
 };
 window.initTouchEvents = initTouchEvents;

@@ -11,7 +11,8 @@
 
 // DRAWING GLOBALS
 import {gS, gConstants,
-        livecanvas, lctx, canvas, ctx, lattice, affineset,
+        livecanvas, lctx, canvas, ctx, lattice,
+        affineset, updateTiling,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -26,11 +27,14 @@ export class PencilOp {
     this.ctxStyle = ctxStyle;
     this.points = points;
     this.tool = "pencil";
+    this.symstate = gS.params.symstate;
+    this.gridstate = _.clone(gS.gridstate);
   }
 
   render(ctx){
     //if(this.points.length==0){return;} //empty data case
     _.assign(ctx, this.ctxStyle);
+    updateTiling(this.symstate, this.gridstate);
     for (let af of affineset) {
       ctx.beginPath();
       const Tpt0 = af.on(this.points[0].x, this.points[0].y);
@@ -83,6 +87,9 @@ export class PencilTool {
   }
 
   liverender_fast() { //  falsely darkens live transparent lines due to overlapping 3pt segments
+    lctx.save();
+    //lctx.fillStyle
+    lctx.globalAlpha = 0.5;
     if(this.points.length >= 3) {
       for (let af of affineset) {
         const Tpt0 = af.on(this.points[this.points.length-3].x, this.points[this.points.length-3].y);
@@ -104,6 +111,7 @@ export class PencilTool {
         lctx.stroke();
       }
     }
+    lctx.restore();
   }
 
   enter(op){
@@ -111,6 +119,9 @@ export class PencilTool {
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
         this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
+        _.assign(gS.gridstate, op.gridstate)
+        gS.params.symstate = op.symstate;
+        updateTiling(op.symstate, op.gridstate);
         this.points = op.points;
         this.state = _OFF_;
         this.liverender_precise();

@@ -11,7 +11,8 @@
 
 // DRAWING GLOBALS
 import {gS, gConstants,
-        livecanvas, lctx, canvas, ctx, affineset,
+        livecanvas, lctx, canvas, ctx,
+        affineset, updateTiling,
         commitOp
        } from './main';
 
@@ -26,10 +27,14 @@ export class CircleOp {
     this.center = center;
     this.radius = radius;
     this.ctxStyle = _.clone(ctxStyle);
+    this.symstate = gS.params.symstate;
+    this.gridstate = _.clone(gS.gridstate);
   }
 
   render(ctx){
     _.assign(ctx, this.ctxStyle);
+    //console.log("circle ", this.symstate, this.gridstate);
+    updateTiling(this.symstate, this.gridstate);
     //_.assign(lctx, this.ctxStyle);
     //_.extend(gS.ctxStyle, this.ctxStyle);
     //console.log("render", this.ctxStyle.fillStyle);
@@ -62,7 +67,6 @@ export class CircleTool {
   constructor() {
     this.center = [];
     this.radius = 0;
-    //this.on = false;
     this.state = _INIT_;
   }
 
@@ -82,6 +86,9 @@ export class CircleTool {
     if(op){
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
+        _.assign(gS.gridstate, op.gridstate);
+        gS.params.symstate = op.symstate;
+        updateTiling(op.symstate, op.gridstate);
         //console.log("loading ", op.ctxStyle.fillStyle);
         //console.log("loading comp gS", gS.ctxStyle.fillStyle);
         this.center = op.center;
@@ -92,7 +99,6 @@ export class CircleTool {
     } else {
       this.center = [];
       this.radius = 0;
-      //this.on = false;
       this.state = _INIT_;
       this.liverender();
     }

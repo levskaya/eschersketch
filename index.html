@@ -28,9 +28,9 @@
 
 
 <!-- GUI Elements -->
-<div id="sketch-UI" style="z-index:2">
+<div id="sketch-UI" style="z-index:2; border:1px;border-radius:5px;">
   <!-- Logo -->
-  <a>
+  <div class="button" style="padding-left:10px;padding-right:10px;width:90%;">
   <div id="logo" class="Aligner systemfont" style="margin-left:-10px;">
     <div class="Aligner-item">
       <span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">escher</span><br>
@@ -43,7 +43,7 @@
       <span class="eslogotext" style="font-variant:small-caps;margin-left:10px;">sketch</span>
     </div>
   </div>
-  </a>
+</div>
 
   <!-- State Control -->
   <!--<span style="font-variant: small-caps;">undo / redo</span><br>-->
@@ -60,7 +60,7 @@
   <div id="hideshow" class="button" style="background-color:#aaccaa;">
     hide
   </div>
-  -->       
+  -->
   <div id="stateUI"></div>
 
   <div id="controls" style="display:block;">
@@ -87,11 +87,12 @@
 
   <!--<div id="saveSVGtile" class="button">Save SVG Tile</div>-->
   <span style="font-variant: small-caps;">export</span><br>
-  <div id="savePNG" class="button">Save PNG</div><br>
+  <div id="savePNG" class="button">Save PNG</div>
   <div id="savePNGtile" class="button">Save PNG Tile</div><br>
   <div id="saveSVG" class="button">Save SVG</div>
-
-
+  <br>
+  <div id="save-json" class="button">Save JSON</div>
+  <label class="fileContainer">Load JSON <input id="the-file-input" type="file"></label>
 <br><br>
   <div style="font-size:10px;text-align:center;">Anselm Levskaya &copy; 2017</div>
 

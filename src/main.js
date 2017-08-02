@@ -15,20 +15,22 @@
 import { _ } from 'underscore';
 import Vue from 'vue';
 import Hammer from 'hammerjs';
+import Pressure from 'pressure';
 import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
 
 import {pixelFix, setCanvasPixelDensity} from './canvas_utils';
 import {generateTiling, planarSymmetries, RosetteGroup, IdentitySet} from './symmetryGenerator';
 
+
 // Import all the Drawing Tools
 //------------------------------------------------------------------------------
 import {GridTool}     from './symmetryOps';
-import {LineTool}     from './lineTool';
-import {PencilTool}   from './pencilTool';
-import {PolyTool}     from './polyTool';
-import {PathTool}     from './pathTool';
-import {CircleTool}   from './circleTool';
+import {LineTool, LineOp}     from './lineTool';
+import {PencilTool, PencilOp}   from './pencilTool';
+import {PolyTool, PolyOp}     from './polyTool';
+import {PathTool, PathOp}     from './pathTool';
+import {CircleTool, CircleOp}   from './circleTool';
 
 
 // Global "Constants"
@@ -124,17 +126,15 @@ gS.$on('toolUpdate',
          changeTool(tool);
        });
 gS.$on('undo', function(){ undo(); });
-gS.$on('undo', function(){ redo(); });
+gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){ reset(); });
 gS.$on('toggleUI', function(){  // HACK: until everything wrapped by vue
   if(gS.params.showUI){
     gS.params.showUI = false;
     document.getElementById("controls").style.display="none";
-    //document.getElementById("hideshow").innerHTML = "show";
   } else {
     gS.params.showUI = true;
     document.getElementById("controls").style.display="block";
-    //document.getElementById("hideshow").innerHTML = "hide";
   }
  });
 
@@ -188,7 +188,7 @@ export var drawTools = {
   poly: new PolyTool(),
   bezier: new PathTool()
 };
-window.drawTools = drawTools; //HACK: debugging
+//window.drawTools = drawTools; //HACK: debugging
 
 var changeTool = function(toolName){
   let oldTool = drawTools[gS.params.curTool];
@@ -270,6 +270,7 @@ export var commitOp = function(op){
   gS.cmdstack.push(op);
   op.render(ctx);
 };
+window.commitOp=commitOp; //HACK
 
 //only used for undo/redo
 var switchTool = function(toolName, op){
@@ -282,7 +283,7 @@ var switchTool = function(toolName, op){
 };
 
 var undo = function(){
-  //console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
+  console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
   if(gS.cmdstack.length > undo_init_bound){
     drawTools[gS.params.curTool].commit();  //commit live tool op
     let cmd = gS.cmdstack.pop(); //now remove it
@@ -300,6 +301,7 @@ var undo = function(){
       drawTools[gS.params.curTool].exit();
       lctx.clearRect(0, 0, canvas.width, canvas.height);
   }
+  console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
 };
 
 var redo = function(){
@@ -320,6 +322,36 @@ var reset = function(){
   lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   initState();
 };
+
+var serialize = function(){
+  let jsonStr = JSON.stringify(gS.cmdstack);
+  return jsonStr;
+}
+
+const opsTable = {line: LineOp,
+                  pencil: PencilOp,
+                  circle: CircleOp,
+                  bezier: PathOp,
+                  poly: PolyOp};
+
+var ressurectOp = function(deadOp){
+    let op = new opsTable[deadOp.tool];
+    return _.assign(op, deadOp)
+}
+
+var deserialize = function(jsonStr){
+  reset();
+  let deadArr = JSON.parse(jsonStr);
+  let newstack = [];
+  for(let obj of deadArr){
+    newstack.push(ressurectOp(obj));
+  }
+  gS.cmdstack = newstack;
+  rerender(ctx);
+}
+window.serialize=serialize; //HACK
+window.deserialize=deserialize; //HACK
+
 
 // Top State Control UI
 //------------------------------------------------------------------------------
@@ -439,6 +471,28 @@ var saveSVG = function() {
   var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
   saveAs(blob, "eschersketch.svg");
 };
+
+var saveJSON = function() {
+  let sketchdata = serialize();
+  var blob = new Blob([sketchdata], {type: "application/json"});
+  saveAs(blob, "eschersketch.json");
+}
+window.saveJSON=saveJSON;
+
+document.getElementById("save-json").onmousedown = function() {
+  saveJSON();
+};
+
+document.getElementById("the-file-input").onchange = function() {
+    renderImage(this.files[0]);
+};
+function renderImage(file) {
+  var reader = new FileReader();
+  reader.onload = function(event) {
+    deserialize(event.target.result);
+  }
+  reader.readAsText(file);
+}
 
 var saveSVGTile = function() {
   // get square tile dimensions
@@ -597,8 +651,21 @@ var initTouchEvents = function() {
   //XXX: should scale w. screen size, too big on tablets I suspect
   changeHitRadius(15);
 };
-window.initTouchEvents = initTouchEvents;
+//window.initTouchEvents = initTouchEvents;
 
+/* // This Works! -------------------------------------------------------------
+export var pressure;
+// Pressure.js
+Pressure.set('#sketchlive', {
+  change: function(force, event){
+    //console.log("force", force);
+    pressure = force;
+  },
+  //unsupported: function(){
+  //  console.log("nopressure");
+  //}
+}, {polyfill: false});
+*/
 
 // Finally, Initialize the UI
 //------------------------------------------------------------------------------

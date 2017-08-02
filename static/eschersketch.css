@@ -28,7 +28,7 @@ input {
     font-size: 18px;
   }
   input {
-    font-size: 18px;  
+    font-size: 18px;
   }
 }
 
@@ -64,12 +64,14 @@ input {
 
 #sketch-UI {
     overflow-y: scroll;
+    overflow-x: hidden;
     position: absolute;
     top: 0px;
     left: 0px;
     width: 250px;
     //height: 100%;
-    margin: 5px;
+    margin: 10px;
+    padding: 10px;
     background: rgba(245,245,245,0.9);
 }
 
@@ -126,3 +128,39 @@ input {
 }
 
 /* ------------------------------------- temporary hacky CSS - use a framework ------------------------------- */
+
+.fileContainer {
+    overflow: hidden;
+    position: relative;
+}
+.fileContainer [type=file] {
+    cursor: inherit;
+    display: block;
+    font-size: 999px;
+    filter: alpha(opacity=0);
+    min-height: 100%;
+    min-width: 100%;
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    text-align: right;
+    top: 0;
+}
+/* Example stylistic flourishes */
+.fileContainer {
+  border:1px solid #ddd;
+  background: #eeeeee;
+  text-indent:0px;
+  text-align: center;
+  border-radius: 2px;
+  margin: 2px;
+  padding: 3px;
+  display: inline-block;
+  cursor: pointer;
+  color: #666;
+  float: left;
+}
+
+.fileContainer [type=file] {
+    cursor: pointer;
+}

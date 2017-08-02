@@ -462,3 +462,27 @@ const squaregrids = ["squaregrid","p1","pm","pg","pmg","pgg","pmm","p2","p4","p4
     dX = gS.symmState.d * pixelratio;
     dY = gS.symmState.d * pixelratio;
   }
+
+
+
+  <select style="font-size:16px" class="button">
+    <option value="p1">p1</option>
+    <option value="diag">diag</option>
+    <option value="pm">pm</option>
+    <option value="cm">cm</option>
+    <option value="pg">pg</option>
+    <option value="pmg">pmg</option>
+    <option value="pgg">pgg</option>
+    <option value="pmm">pmm</option>
+    <option value="p2">p2</option>
+    <option value="cmm">cmm</option>
+    <option value="p4">p4</option>
+    <option value="p4g">p4g</option>
+    <option value="p4m">p4m</option>
+    <option value="hexgrid">hexgrid</option>
+    <option value="p3">p3</option>
+    <option value="p6">p6</option>
+    <option value="p31m">p31m</option>
+    <option value="p3m1">p3m1</option>
+    <option value="p6">p6</option>
+  </select>

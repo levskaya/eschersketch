@@ -2,7 +2,6 @@
 
 ## MVP
 - gridsize nx,ny limit to some max so as not to crash browser...
-- rosette groups UI and identity (no trafo)
 - save/load command-set, not just output - (versioned, no stability guarantee)
 
 later...
@@ -165,4 +164,4 @@ SVG
 - isPointInPath()
 - createPattern()
 - globalCompositeOperation
-- 
+-

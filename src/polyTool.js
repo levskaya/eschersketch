@@ -47,14 +47,6 @@ export class PolyOp {
       ctx.fill();
     }
   }
-
-  serialize() {
-    return ["polygon", this.points];
-  }
-
-  deserialize(data) {
-    return new PolyOp(data[1]);
-  }
 }
 
 //State Labels

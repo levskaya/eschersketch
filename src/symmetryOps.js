@@ -22,42 +22,6 @@ import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './ma
 import {generateLattice, planarSymmetries} from './symmetryGenerator';
 
 
-// SymmOp sets up set of affine trafos for a given symmetry
-//------------------------------------------------------------------------------
-/*
-export class SymmOp {
-  constructor(sym, grid) {
-    this.sym = sym;
-    this.grid = grid;
-    this.tool = "grid";
-  }
-
-  render(ctx){
-    //return; //HACK
-    // update global storing current affineset
-    updateSymmetry(this.grid);
-    // directly mutate global that's watched by vue
-    gS.symmState.sym = this.sym;
-    gS.symmState.x = this.grid.x;
-    gS.symmState.y = this.grid.y;
-    gS.symmState.d = this.grid.d;
-    gS.symmState.t = this.grid.t;
-
-    //HACK: if the gridtool is active, update canvas if the grid ui is altered
-    if(gS.params.curTool=="grid"){ drawTools["grid"].enter(); }
-  }
-
-  serialize(){
-    return ["sym", this.sym, this.grid.x, this.grid.y, this.grid.d, this.grid.t];
-  }
-
-  deserialize(data){
-    return new SymmOp(data[1], data[2], data[3], data[4], data[5]);
-  }
-}
-*/
-
-
 // Grid Adjustment Tool
 //------------------------------------------------------------------------------
 

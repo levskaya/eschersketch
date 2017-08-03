@@ -4,7 +4,8 @@
   </div>
 </template>
 <script>
-import { Chrome } from 'vue-color';
+//import { Chrome } from 'vue-color';
+import { Chrome } from '../../static/vue-color-es.min.js';
 import { _ } from 'underscore';
 import {gS} from '../main.js';
 
@@ -40,14 +41,6 @@ export default {
                                r:x.rgba.r, g:x.rgba.g, b:x.rgba.b, a:x.rgba.a});
     }
   },
-  mounted: function() {
-    // HACK: harmonize vue color picker style...
-    // need to fix in source...
-    this.$el.querySelector(".vue-color__chrome")
-      .style.boxShadow="none";
-    this.$el.querySelector(".vue-color__chrome__chrome-body")
-      .style.backgroundColor="#f9f9f9";
-  }
 }
 </script>
 <style>

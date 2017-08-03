@@ -45,14 +45,6 @@ export class PencilOp {
       ctx.stroke();
     }
   }
-
-  serialize(){
-    return ["pencil", this.points];
-  }
-
-  deserialize(data){
-    return new PencilOp(data[1]);
-  }
 }
 
 
@@ -94,15 +86,16 @@ export class PencilTool {
         const Tpt0 = af.on(this.points[this.points.length-3].x, this.points[this.points.length-3].y);
         const Tpt1 = af.on(this.points[this.points.length-2].x, this.points[this.points.length-2].y);
         const Tpt2 = af.on(this.points[this.points.length-1].x, this.points[this.points.length-1].y);
-        lctx.save();
+        // This actually works... hmm...
+        //lctx.save();
         //lctx.lineWidth = pressure*30;
-        lctx.strokeStyle = "rgba(200,100,100,"+pressure+")";
+        //lctx.strokeStyle = "rgba(200,100,100,"+pressure+")";
         lctx.beginPath();
         lctx.moveTo(Tpt0[0], Tpt0[1]);
         lctx.lineTo(Tpt1[0], Tpt1[1]);
         lctx.lineTo(Tpt2[0], Tpt2[1]);
         lctx.stroke();
-        lctx.restore();
+        //lctx.restore();
       }
     } else if(this.points.length >= 2){
       for (let af of affineset) {

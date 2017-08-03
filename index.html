@@ -1,105 +1,80 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EscherSketch</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EscherSketch</title>
 
-<!-- CSS -->
-<link rel="stylesheet" type="text/css" href="static/eschersketch.css">
+    <link rel="stylesheet" type="text/css" href="static/eschersketch.css">
 
-<!-- Static Libs-->
-<!-- need to use my tweaked version of canvas2svg -->
-<script type="text/javascript" src="static/lib/canvas2svg.js"></script>
-<!-- modifies global canvas object -->
-<script type="text/javascript" src="static/lib/canvas-toBlob.js"></script>
-<!-- detect touch -->
-<script type="text/javascript" src="static/lib/modernizr-custom.js"></script>
+    <!-- Static Libs-->
+    <!-- need to use my tweaked version of canvas2svg to avoid regex recursion limit -->
+    <script type="text/javascript" src="static/lib/canvas2svg.js"></script>
+    <!-- polyfill - modifies global canvas object -->
+    <script type="text/javascript" src="static/lib/canvas-toBlob.js"></script>
+    <!-- detect presence of touch / pointer events -->
+    <script type="text/javascript" src="static/lib/modernizr-custom.js"></script>
 
 </head>
 <body>
 
+  <!-- Main Canvas -->
+  <div id="sketch-container">
+    <canvas id="sketchrender" width="1600" height="1200" style="z-index:0"></canvas>
+    <canvas id="sketchlive" width="1600" height="1200" style="z-index:1"></canvas>
+  </div>
 
-<!-- Main Canvas -->
-<div id="sketch-container">
-  <canvas id="sketchrender" width="1600" height="1200" style="z-index:0"></canvas>
-  <canvas id="sketchlive" width="1600" height="1200" style="z-index:1"></canvas>
-</div>
-
-
-<!-- GUI Elements -->
-<div id="sketch-UI" style="z-index:2; border:1px;border-radius:5px;">
-  <!-- Logo -->
-  <div class="button" style="padding-left:10px;padding-right:10px;width:90%;">
-  <div id="logo" class="Aligner systemfont" style="margin-left:-10px;">
-    <div class="Aligner-item">
-      <span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">escher</span><br>
-      <!--<span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">sketch</span>-->
+  <!-- GUI Elements -->
+  <div id="sketch-UI" style="z-index:2;">
+    <!-- Logo -->
+    <div class="button" style="padding-left:10px;padding-right:10px;width:90%;">
+    <div id="logo" class="Aligner systemfont" style="margin-left:-10px;">
+      <div class="Aligner-item">
+        <span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">escher</span><br>
+        <!--<span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">sketch</span>-->
+      </div>
+      <div class="Aligner-item">
+        <img src="static/svg/es_logo.svg" height="30px" style="margin-top:6px;"/>
+      </div>
+      <div class="Aligner-item">
+        <span class="eslogotext" style="font-variant:small-caps;margin-left:10px;">sketch</span>
+      </div>
     </div>
-    <div class="Aligner-item">
-      <img src="static/svg/es_logo.svg" height="30px" style="margin-top:6px;"/>
-    </div>
-    <div class="Aligner-item">
-      <span class="eslogotext" style="font-variant:small-caps;margin-left:10px;">sketch</span>
-    </div>
   </div>
-</div>
 
-  <!-- State Control -->
-  <!--<span style="font-variant: small-caps;">undo / redo</span><br>-->
-  <!--
-  <div id="undo" class="button">
-    <img src="static/svg/ic_skip_previous_black_24px.svg"/> undo
-  </div>
-  <div id="redo" class="button">
-    redo <img src="static/svg/ic_skip_next_black_24px.svg"/>
-  </div>
-  <div id="reset" class="button">
-    reset
-  </div>
-  <div id="hideshow" class="button" style="background-color:#aaccaa;">
-    hide
-  </div>
-  -->
   <div id="stateUI"></div>
 
   <div id="controls" style="display:block;">
-  <hr>
+
 
   <!-- Tool Selection -->
   <span style="font-variant: small-caps;">drawing tools</span><br>
   <div id="toolUI"></div>
-  <hr>
 
-  <!-- Symmetry Selection -->
-  <span style="font-variant: small-caps;">symmetries</span><br>
-  <div id="symUI"></div>
-  <!-- Grid Control -->
-  <div id="gridUI"> </div>
-  <div id="rosetteUI"> </div>
-  <hr>
-  <!-- Line Styling -->
+  <!-- Color and Draw Styling -->
   <span style="font-variant: small-caps;">line width</span>
   <div id="styleUI"></div>
   <div id="colorUI"></div>
 
-  <hr>
+  <!-- Symmetry Selection -->
+  <span style="font-variant: small-caps;">symmetries</span><br>
+  <div id="symUI"></div>
+
+  <!-- Grid Control -->
+  <div id="gridUI"> </div>
+  <div id="rosetteUI"> </div>
 
   <!--<div id="saveSVGtile" class="button">Save SVG Tile</div>-->
   <span style="font-variant: small-caps;">export</span><br>
   <div id="savePNG" class="button">Save PNG</div>
   <div id="savePNGtile" class="button">Save PNG Tile</div><br>
-  <div id="saveSVG" class="button">Save SVG</div>
-  <br>
+  <div id="saveSVG" class="button">Save SVG</div><br>
   <div id="save-json" class="button">Save JSON</div>
   <label class="fileContainer">Load JSON <input id="the-file-input" type="file"></label>
-<br><br>
+  <br><br>
   <div style="font-size:10px;text-align:center;">Anselm Levskaya &copy; 2017</div>
 
 </div><!-- controls -->
-
-</div> <!-- /sketch-UI  -->
-
-
+</div><!-- /sketch-UI -->
 </body>
 </html>

@@ -42,14 +42,6 @@ export class LineOp {
       ctx.stroke();
     }
   }
-
-  serialize(){
-    return ["line", this.start, this.end];
-  }
-
-  deserialize(data){
-    return new LineOp(data[1], data[2]);
-  }
 }
 
 //State Labels

@@ -54,14 +54,6 @@ export class PathOp {
       ctx.fill();
     }
   }
-
-  serialize() {
-    return ["bezier", this.ops];
-  }
-
-  deserialize(data) {
-    return new PolyOp(data[1]);
-  }
 }
 
 //State Labels

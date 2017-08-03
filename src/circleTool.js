@@ -42,22 +42,6 @@ export class CircleOp {
       ctx.fill();
     }
   }
-
-  serialize(){
-    //const props = ["tool","center","radius","ctxStyle","symmState"];
-    //return _.assign({},_pick(this, ...props));
-    return {tool:"circle",
-            center:this.center,
-            radius:this.radius,
-            ctxStyle: _.pick(this.ctxStyle,  ...Object.keys(this.ctxStyle)),
-            symmState:_.pick(this.symmState, ...Object.keys(this.symmState))
-            };
-  }
-
-  deserialize(data){
-    let op = new CircleOp();
-    return _.assign(op, data);
-  }
 }
 
 //State Labels

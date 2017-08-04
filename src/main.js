@@ -70,7 +70,9 @@ export const gS = new Vue({
     // waaa... am I smoking crack? this shouldn't be necessary, or?
     params: {
       curTool: 'pencil',         // Tool State
-      showUI: true
+      showUI: true,
+      showHelp: false,
+      showConfig: false
     },
     options: {
       dynamicGridSize: true      // recalculate grid Nx,Ny on grid delta change
@@ -132,15 +134,16 @@ gS.$on('toolUpdate',
 gS.$on('undo', function(){ undo(); });
 gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){ reset(); });
-gS.$on('toggleUI', function(){  // HACK: until everything wrapped by vue
+gS.$on('toggleUI', function() {  // HACK: until everything wrapped by vue
   if(gS.params.showUI){
     gS.params.showUI = false;
     document.getElementById("controls").style.display="none";
   } else {
     gS.params.showUI = true;
     document.getElementById("controls").style.display="block";
-  }
- });
+  }});
+gS.$on('help', function(){ gS.params.showHelp = ! gS.params.showHelp; });
+gS.$on('config', function(){ gS.params.showConfig = ! gS.params.showConfig; });
 
 // HACK: for debugging
 window.gS=gS;
@@ -230,7 +233,6 @@ const changeHitRadius = function(newR){
   }
 };
 //window.changeHitRadius = changeHitRadius;
-
 
 
 
@@ -369,6 +371,96 @@ const deserialize = function(jsonStr){
 //window.deserialize=deserialize; //HACK
 
 
+// Set up Save of Scene to JSON and Restore
+//------------------------------------------------------------------------------
+export const saveJSON = function() {
+  let sketchdata = serialize();
+  var blob = new Blob([sketchdata], {type: "application/json"});
+  saveAs(blob, "eschersketch.json");
+}
+//window.saveJSON=saveJSON;
+
+export const renderImage = function(file) {
+  var reader = new FileReader();
+  reader.onload = function(event) {
+    deserialize(event.target.result);
+  }
+  reader.readAsText(file);
+}
+
+// Set up Save SVG / Save PNG
+//------------------------------------------------------------------------------
+// XXX: this can take a long damn time with a complicated scene! At minimum should
+// do redraws with smaller grid Nx,Ny by default or just restrict SVG export to
+// tile?
+export const saveSVG = function() {
+  // canvas2svg fake context:
+  var C2Sctx = new C2S(canvas.width, canvas.height);
+  rerender(C2Sctx);
+  //serialize the SVG
+  var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
+  //save text blob as SVG
+  var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
+  saveAs(blob, "eschersketch.svg");
+};
+
+export const saveSVGTile = function() {
+  // get square tile dimensions
+  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
+  dX *= gS.symmState.d;
+  dY *= gS.symmState.d;
+
+  // canvas2svg fake context:
+  var C2Sctx = new C2S(dX, dY);
+  //correct for center off-set and pixel-scaling
+  //tctx.scale(pixelScale, pixelScale);
+  C2Sctx.translate(-1*gS.symmState.x, -1*gS.symmState.y);
+  /*C2Sctx.beginPath();
+  C2Sctx.moveTo(gS.symmState.x, gS.symmState.y);
+  C2Sctx.lineTo(gS.symmState.x+dX, gS.symmState.y);
+  C2Sctx.lineTo(gS.symmState.x+dX, gS.symmState.y+dY);
+  C2Sctx.lineTo(gS.symmState.x, gS.symmState.y+dY);
+  C2Sctx.closePath();
+  C2Sctx.clip();*/
+  rerender(C2Sctx);
+  //serialize the SVG
+  var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
+  //save text blob as SVG
+  var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
+  saveAs(blob, "eschersketch.svg");
+};
+
+// TODO : allow arbitrary upscaling of canvas pixel backing density using
+//        setCanvasPixelDensity
+export const savePNG = function() {
+  canvas.toBlobHD(blob => saveAs(blob, "eschersketch.png"));
+};
+
+// Export small, hi-res, square-tileable PNG
+export const savePNGTile = function(){
+  const pixelScale = 4; // pixel density scaling factor
+
+  // get square tile dimensions
+  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
+  dX *= gS.symmState.d * pixelScale;
+  dY *= gS.symmState.d * pixelScale;
+
+  // Render into tile-sized canvas for blob conversion and export
+  let tileCanvas = document.createElement('canvas');
+  tileCanvas.width = dX;
+  tileCanvas.height = dY;
+  let tctx = tileCanvas.getContext("2d");
+  //correct for center off-set and pixel-scaling
+  tctx.scale(pixelScale, pixelScale);
+  tctx.translate(-1*gS.symmState.x, -1*gS.symmState.x);
+  //rerender scene and export bitmap
+  rerender(tctx);
+  tileCanvas.toBlobHD(blob => saveAs(blob, "eschersketch_tile.png"));
+  tileCanvas.remove();
+};
+
+
+
 // Top State Control UI
 //------------------------------------------------------------------------------
 import stateUi from './components/stateUI';
@@ -378,6 +470,18 @@ var vueSym = new Vue({
   components: { stateUi },
   data: gS.params//{params: gS.params}
 });
+
+
+// Top State Control UI
+//------------------------------------------------------------------------------
+import helpPanel from './components/helpPanel';
+var vueHelpPanel = new Vue({
+  el: '#helpPanel',
+  template: '<help-panel :showHelp="showHelp"/>',
+  components: { helpPanel },
+  data: gS.params
+});
+window.helpP = vueHelpPanel;
 
 // Tool Selection UI
 //------------------------------------------------------------------------------
@@ -399,28 +503,6 @@ var vueSym = new Vue({
   data: {symmState: gS.symmState, params: gS.params}
 });
 
-// Grid UI
-//------------------------------------------------------------------------------
-/*
-import gridUi from './components/gridUI';
-var vueGrid = new Vue({
-  el: '#gridUI',
-  template: '<grid-ui :x="x" :y="y" :d="d" :Nrot="Nrot" :Nref="Nref" :rot="rot" :t="t"/>',
-  components: {gridUi},
-  data: gS.symmState
-});
-*/
-// Rosette UI
-//------------------------------------------------------------------------------
-/*
-import rosetteUi from './components/rosetteUI';
-var vueRosette = new Vue({
-  el: '#rosetteUI',
-  template: '<rosette-ui :Nrot="Nrot" :Nref="Nref" :rot="rot"/>',
-  components: {rosetteUi},
-  data: gS.symmState
-});
-*/
 // Line Styling UI
 //------------------------------------------------------------------------------
 import styleUi from './components/styleUI';
@@ -473,104 +555,15 @@ var vueColor = new Vue({
   }
 });
 
-
-// Set up Save SVG / Save PNG
+// File UI
 //------------------------------------------------------------------------------
-// XXX: this can take a long damn time with a complicated scene! At minimum should
-// do redraws with smaller grid Nx,Ny by default or just restrict SVG export to
-// tile?
-const saveSVG = function() {
-  // canvas2svg fake context:
-  var C2Sctx = new C2S(canvas.width, canvas.height);
-  rerender(C2Sctx);
-  //serialize the SVG
-  var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
-  //save text blob as SVG
-  var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
-  saveAs(blob, "eschersketch.svg");
-};
+import fileUi from './components/fileUI';
+var vueFile = new Vue({
+  el: '#fileUI',
+  template: '<file-ui />',
+  components: {fileUi},
+});
 
-const saveJSON = function() {
-  let sketchdata = serialize();
-  var blob = new Blob([sketchdata], {type: "application/json"});
-  saveAs(blob, "eschersketch.json");
-}
-window.saveJSON=saveJSON;
-
-document.getElementById("save-json").onmousedown = function() {
-  saveJSON();
-};
-document.getElementById("the-file-input").onchange = function() {
-    renderImage(this.files[0]);
-};
-
-const renderImage = function(file) {
-  var reader = new FileReader();
-  reader.onload = function(event) {
-    deserialize(event.target.result);
-  }
-  reader.readAsText(file);
-}
-
-const saveSVGTile = function() {
-  // get square tile dimensions
-  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
-  dX *= gS.symmState.d;
-  dY *= gS.symmState.d;
-
-  // canvas2svg fake context:
-  var C2Sctx = new C2S(dX, dY);
-  //correct for center off-set and pixel-scaling
-  //tctx.scale(pixelScale, pixelScale);
-  C2Sctx.translate(-1*gS.symmState.x, -1*gS.symmState.y);
-  /*C2Sctx.beginPath();
-  C2Sctx.moveTo(gS.symmState.x, gS.symmState.y);
-  C2Sctx.lineTo(gS.symmState.x+dX, gS.symmState.y);
-  C2Sctx.lineTo(gS.symmState.x+dX, gS.symmState.y+dY);
-  C2Sctx.lineTo(gS.symmState.x, gS.symmState.y+dY);
-  C2Sctx.closePath();
-  C2Sctx.clip();*/
-  rerender(C2Sctx);
-  //serialize the SVG
-  var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
-  //save text blob as SVG
-  var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
-  saveAs(blob, "eschersketch.svg");
-};
-
-// TODO : allow arbitrary upscaling of canvas pixel backing density using
-//        setCanvasPixelDensity
-const savePNG = function() {
-  canvas.toBlobHD(blob => saveAs(blob, "eschersketch.png"));
-};
-
-// Export small, hi-res, square-tileable PNG
-const savePNGTile = function(){
-  const pixelScale = 4; // pixel density scaling factor
-
-  // get square tile dimensions
-  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
-  dX *= gS.symmState.d * pixelScale;
-  dY *= gS.symmState.d * pixelScale;
-
-  // Render into tile-sized canvas for blob conversion and export
-  let tileCanvas = document.createElement('canvas');
-  tileCanvas.width = dX;
-  tileCanvas.height = dY;
-  let tctx = tileCanvas.getContext("2d");
-  //correct for center off-set and pixel-scaling
-  tctx.scale(pixelScale, pixelScale);
-  tctx.translate(-1*gS.symmState.x, -1*gS.symmState.x);
-  //rerender scene and export bitmap
-  rerender(tctx);
-  tileCanvas.toBlobHD(blob => saveAs(blob, "eschersketch_tile.png"));
-  tileCanvas.remove();
-};
-
-document.getElementById("saveSVG").onmousedown = function(e) { saveSVG(); };
-document.getElementById("savePNG").onmousedown = function(e) { savePNG(); };
-document.getElementById("savePNGtile").onmousedown = function(e) { savePNGTile(); };
-//document.getElementById("saveSVGtile").onmousedown = function(e) { saveSVGTile(); };
 
 
 // set up initial context and symmetry

@@ -6,7 +6,7 @@
     <title>EscherSketch</title>
 
     <link rel="stylesheet" type="text/css" href="static/eschersketch.css">
-    <!-- fonts -->
+    <!-- icon fonts -->
     <link rel="stylesheet" type="text/css" href="static/icomoon.css">
 
     <!-- Static Libs-->
@@ -20,17 +20,22 @@
 </head>
 <body>
 
+
   <!-- Main Canvas -->
   <div id="sketch-container">
+    <!-- where scene is rendering -->
     <canvas id="sketchrender" width="1600" height="1200" style="z-index:0"></canvas>
+    <!-- canvas for interactive elements / live rendering -->
     <canvas id="sketchlive" width="1600" height="1200" style="z-index:1"></canvas>
   </div>
 
-  <!-- GUI Elements -->
+  <!-- GUI Element Container -->
   <div id="sketch-UI" style="z-index:2;">
 
+  <!-- Top Level State Control -->
   <div id="stateUI"></div>
 
+  <!-- Hideable UI Elements -->
   <div id="controls" style="display:block;">
   <div style="padding-top:10px;"></div>
 
@@ -38,40 +43,33 @@
   <span style="font-variant: small-caps;">drawing tools</span><br>
   <div id="toolUI"></div>
   <div style="padding-top:10px;"></div>
-  <!-- Color and Draw Styling -->
+
+  <!-- Color UI -->
   <span style="font-variant: small-caps;">color</span>
   <div id="colorUI"></div>
+
+  <!-- Line Style UI -->
   <span style="font-variant: small-caps;">stroke options</span>
   <div id="styleUI"></div>
-
   <div style="padding-top:10px;"></div>
 
   <!-- Symmetry and Grid Selection -->
   <span style="font-variant: small-caps;">symmetries</span><br>
   <div id="symUI"></div>
 
-  <!-- Grid Control -->
-  <!--<span style="font-variant: small-caps;">grid</span><br>
-  <div id="gridUI"> </div>
-  <div id="rosetteUI"> </div>
-  -->
+  <!-- Loading and Saving -->
+  <span style="font-variant: small-caps;">export</span><br>
+  <div id="fileUI"></div>
 
   <div style="padding-top:10px;"></div>
-  <!--<div id="saveSVGtile" class="button">Save SVG Tile</div>-->
-  <span style="font-variant: small-caps;">export</span><br>
-  <div id="saveSVG" class="button"><span class="icon-folder-download"></span> SVG</div>
-  <div id="savePNG" class="button"><span class="icon-folder-download"></span> PNG</div>
-  <div id="savePNGtile" class="button"><span class="icon-folder-download"></span> PNG Tile</div>
-  <br>
-  <span style="font-variant: small-caps;">save&load <span style="color:red">experimental</span></span><br>
-  <div id="save-json" class="button"><span class="icon-folder-download"></span> JSON</div>
-  <label class="fileContainer"><span class="icon-folder-upload"></span>
-    JSON <input id="the-file-input" type="file">
-  </label>
   <br><br>
   <div style="font-size:10px;text-align:center;">Anselm Levskaya &copy; 2017</div>
 
 </div><!-- controls -->
 </div><!-- /sketch-UI -->
+
+<div id="helpPanel"></div>
+<div id="configPanel"></div>
+
 </body>
 </html>

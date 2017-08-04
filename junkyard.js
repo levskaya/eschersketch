@@ -463,7 +463,7 @@ const squaregrids = ["squaregrid","p1","pm","pg","pmg","pgg","pmm","p2","p4","p4
     dY = gS.symmState.d * pixelratio;
   }
 
-
+style="border:1px;border-style:solid;border-color:#ddd;border-radius:5px;padding:5px;"
 
   <select style="font-size:16px" class="button">
     <option value="p1">p1</option>

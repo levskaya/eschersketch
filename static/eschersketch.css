@@ -14,7 +14,6 @@ body {
     height: 100%;
     width: 100%;
     //overflow: hidden;
-    /*font-family: Georgia, "Times New Roman", Times, serif;*/
     //font-family: Helvetica, Arial, sans-serif;
     font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size: 14px;
@@ -23,6 +22,7 @@ body {
 input {
   font-size: 14px;
 }
+
 @media (max-width: 768px) {
   body {
     font-size: 18px;
@@ -32,12 +32,12 @@ input {
   }
 }
 
-ul{ padding: 0 1em; margin: 1.1em 0; list-style: none; }
-li { line-height: 15px; color: #444; }
-li > span { font-size: 1.4em; color: #000; }
+//ul{ padding: 0 1em; margin: 1.1em 0; list-style: none; }
+//li { line-height: 15px; color: #444; }
+//li > span { font-size: 1.4em; color: #000; }
 i { color: #000; }
-a { color: #444; text-decoration: none; }
-a:hover, a.enabled { color: #000; }
+a { color: #a44; text-decoration: none; }
+a:hover, a.enabled { color: #f00; }
 
 input {
     vertical-align:text-top;
@@ -137,72 +137,11 @@ input {
 }
 
 
-.systemfont {
-  font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
-  //font-size: 1.5em;
-}
-
 /* ------------------------------------- temporary hacky CSS - use a framework ------------------------------- */
 
-.fileContainer {
-    overflow: hidden;
-    position: relative;
-}
-.fileContainer [type=file] {
-    cursor: inherit;
-    display: block;
-    font-size: 999px;
-    filter: alpha(opacity=0);
-    min-height: 100%;
-    min-width: 100%;
-    opacity: 0;
-    position: absolute;
-    right: 0;
-    text-align: right;
-    top: 0;
-}
-/* Example stylistic flourishes */
-.fileContainer {
-  border:1px solid #ddd;
-  background: #eeeeee;
-  text-indent:0px;
-  text-align: center;
-  border-radius: 2px;
-  margin: 2px;
-  padding: 3px;
-  display: inline-block;
-  cursor: pointer;
-  color: #666;
-  float: left;
-}
-
-.fileContainer [type=file] {
-    cursor: pointer;
-}
-
 /* ----------------------------------- input select ---------------------------- */
-
-select {
-    //font-family:Arial, Helvetica, sans-serif;/* need to set for IE6/7 or it won't inhereit properly*/
-}
 select{
     display:inline-block;
     vertical-align:middle;
-    //font-size:13px;
-}
-select{
-    //width:80px;
-    //color:#999;
-    //border:1px solid #999;
-}
-/* for inputs don't use line-height as chrome will do something weird with the text highlighting.
-Firefox chrome and IE9+ will vertically align the text in the height of the input anyway.
-For IE8 and under you have to use line-height so use CCs.
-*/
-select{/* height,line-height and padding can't be changed at all in IE6 and 7*/
-    //padding:7px 2px 5px 10px;
-    //height:32px;/* uses border box model (so padding and borders are included inside the width and height)*/
-    //width:160px;
-    //line-height:26px;/* webkit mac doesn't use height but fiddle with line-height until it looks right*/
-    background:transparent;/* if you change the background then safari and chrome mac will use height !!!!*/
+    background: transparent;
 }

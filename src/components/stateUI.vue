@@ -1,7 +1,7 @@
 <template>
   <div>
     <template v-if="showUI">
-      <div id="logo" class="Aligner systemfont" style="margin-left:-10px;">
+      <div id="logo" class="Aligner" style="margin-left:-10px;">
         <div class="Aligner-item">
           <span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">escher</span><br>
         </div>

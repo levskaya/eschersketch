@@ -1,6 +1,6 @@
 <template>
   <div>
-    <input type="range" :value="lineWidth"
+    width <input type="range" :value="lineWidth"
            :min="min" :max="max" :step="step" :name="name" @change="changethick">
     <span>{{roundedLineWidth}}</span>
     <br>
@@ -74,7 +74,7 @@ input {
 input[type=range] {
   height: 19px;
   -webkit-appearance: none;
-  margin: 10px 0;
+  margin: 0px 0;
   width: 150px;
   background-color: rgba(0,0,0,0.0);
 }

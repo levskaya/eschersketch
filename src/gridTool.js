@@ -35,7 +35,7 @@ export class GridTool {
   }
 
   enter(){
-    Object.assign(this, gS.symmState); //x,y,d,t
+    _.assign(this, gS.symmState); //x,y,d,t
     this.liverender();
   }
 
@@ -46,7 +46,8 @@ export class GridTool {
   commit(){
     //console.log("symmState ",gS.symmState.sym, {x: this.x, y: this.y, d: this.d, t: this.t})
     _.assign(gS.symmState, {x: this.x, y: this.y, d: this.d, t: this.t});
-    updateSymmetry({x: this.x, y: this.y, d: this.d, t: this.t});
+    //updateSymmetry({x: this.x, y: this.y, d: this.d, t: this.t});
+    updateSymmetry(gS.symmState);
   }
 
   mouseDown(e) {
@@ -56,7 +57,7 @@ export class GridTool {
     if(l2dist(pt,this.p0)<this.hitRadius){
       this.state = "move";
     }
-    if(l2dist(pt,this.p1)<this.hitRadius){
+    if(l2dist(pt,this.p1)<this.hitRadius && gCONSTS.TILINGSYMS.includes(gS.symmState.sym)){
       this.state = "scale";
     }
   }
@@ -99,37 +100,42 @@ export class GridTool {
 
   liverender() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    //const v0 = RotationTransform(this.t).onVec(planarSymmetries[gS.symmState.sym].vec0);
-    //const v1 = RotationTransform(this.t).onVec(planarSymmetries[gS.symmState.sym].vec1);
-    const v0 = planarSymmetries[gS.symmState.sym].vec0;
-    const v1 = planarSymmetries[gS.symmState.sym].vec1;
-    let p0 = [this.x, this.y];
-    let p1 = [(this.d * v0[0]) + this.x, (this.d * v0[1]) + this.y];
-    let p2 = [(this.d * v1[0]) + this.x, (this.d * v1[1]) + this.y];
-    this.p0 = p0; //save for canvas hit-detection
-    this.p1 = p1;
 
-    let newlattice = generateLattice(planarSymmetries[gS.symmState.sym],
-                                  gS.symmState.Nx, gS.symmState.Ny,
-                                  this.d, this.t,
-                                  this.x, this.y);
-    // Draw Lattice
-    lctx.save();
-    lctx.lineWidth = 1.0;
-    lctx.strokeStyle = "rgba(0,0,0,1.0)";
-    for (let af of newlattice) {
-      let Tp0 = af.on(p0[0],p0[1]);
-      let Tp1 = af.on(p1[0],p1[1]);
-      let Tp2 = af.on(p2[0],p2[1]);
-      lctx.beginPath();
-      lctx.moveTo(Tp0[0],Tp0[1]);
-      lctx.lineTo(Tp1[0],Tp1[1]);
-      lctx.lineTo(Tp1[0]+Tp2[0]-Tp0[0],Tp1[1]+Tp2[1]-Tp0[1]);
-      lctx.lineTo(Tp2[0],Tp2[1]);
-      lctx.closePath();
-      lctx.stroke();
+    let p0 = [this.x, this.y];
+    this.p0 = p0; //save for canvas hit-detection
+
+    if(gCONSTS.TILINGSYMS.includes(gS.symmState.sym)){
+      //const v0 = RotationTransform(this.t).onVec(planarSymmetries[gS.symmState.sym].vec0);
+      //const v1 = RotationTransform(this.t).onVec(planarSymmetries[gS.symmState.sym].vec1);
+      const v0 = planarSymmetries[gS.symmState.sym].vec0;
+      const v1 = planarSymmetries[gS.symmState.sym].vec1;
+      var p1 = [(this.d * v0[0]) + this.x, (this.d * v0[1]) + this.y];
+      var p2 = [(this.d * v1[0]) + this.x, (this.d * v1[1]) + this.y];
+      //this.p0 = p0; //save for canvas hit-detection
+      this.p1 = p1;   //save for canvas hit-detection
+
+      var newlattice = generateLattice(planarSymmetries[gS.symmState.sym],
+                                    gS.symmState.Nx, gS.symmState.Ny,
+                                    this.d, this.t,
+                                    this.x, this.y);
+      // Draw Lattice
+      lctx.save();
+      lctx.lineWidth = 1.0;
+      lctx.strokeStyle = "rgba(0,0,0,1.0)";
+      for (let af of newlattice) {
+        let Tp0 = af.on(p0[0],p0[1]);
+        let Tp1 = af.on(p1[0],p1[1]);
+        let Tp2 = af.on(p2[0],p2[1]);
+        lctx.beginPath();
+        lctx.moveTo(Tp0[0],Tp0[1]);
+        lctx.lineTo(Tp1[0],Tp1[1]);
+        lctx.lineTo(Tp1[0]+Tp2[0]-Tp0[0],Tp1[1]+Tp2[1]-Tp0[1]);
+        lctx.lineTo(Tp2[0],Tp2[1]);
+        lctx.closePath();
+        lctx.stroke();
+      }
+      lctx.restore();
     }
-    lctx.restore();
 
     const circR = this.hitRadius;
     lctx.save();
@@ -141,12 +147,15 @@ export class GridTool {
     lctx.arc(p0[0], p0[1], circR, 0, 2*Math.PI);
     lctx.stroke();
     lctx.fill();
-    if(this.state == "scale"){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
-    else {lctx.strokeStyle = "rgba(0,0,0,0.5)";}
-    lctx.beginPath();
-    lctx.arc(p1[0], p1[1], circR, 0, 2*Math.PI);
-    lctx.stroke();
-    lctx.fill();
-    lctx.restore();
+
+    if(gCONSTS.TILINGSYMS.includes(gS.symmState.sym)){
+      if(this.state == "scale"){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
+      else {lctx.strokeStyle = "rgba(0,0,0,0.5)";}
+      lctx.beginPath();
+      lctx.arc(p1[0], p1[1], circR, 0, 2*Math.PI);
+      lctx.stroke();
+      lctx.fill();
+      lctx.restore();
+    }
   }
 }

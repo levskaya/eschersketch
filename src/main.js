@@ -25,7 +25,7 @@ import {generateTiling, planarSymmetries, RosetteGroup, IdentitySet} from './sym
 
 // Import all the Drawing Tools
 //------------------------------------------------------------------------------
-import {GridTool}     from './symmetryOps';
+import {GridTool}     from './gridTool';
 import {LineTool, LineOp}     from './lineTool';
 import {PencilTool, PencilOp}   from './pencilTool';
 import {PolyTool, PolyOp}     from './polyTool';
@@ -48,16 +48,16 @@ export const gCONSTS = {
   ALLSYMS:          ['p1','diagonalgrid','pm','cm','pg',       //rot-free
                      'pmg','pgg','pmm','p2','cmm',             //180deg containing
                      'p4', 'p4g', 'p4m',                       //square
-                     'hexgrid','p3','p6','p31m','p3m1','p6m'], //hex
+                     'hexgrid','p3','p6','p31m','p3m1','p6m', //hex
+                     'rosette'],
   //ctx state to store inside draw ops
-  CTXPROPS:          ['fillStyle', 'strokeStyle', 'lineCap', 'lineJoin', 'miterLimit', 'lineWidth']
+  CTXPROPS:          ['fillStyle', 'strokeStyle', 'lineCap', 'lineJoin', 'miterLimit', 'lineWidth'],
+  TILINGSYMS:       ['p1','diagonalgrid','pm','cm','pg',      //rot-free
+                     'pmg','pgg','pmm','p2','cmm',             //180deg containing
+                     'p4', 'p4g', 'p4m',                       //square
+                     'hexgrid','p3','p6','p31m','p3m1','p6m']
 };
 
-const tilingSyms = ['p1','diagonalgrid','pm','cm','pg',       //rot-free
-                   'pmg','pgg','pmm','p2','cmm',             //180deg containing
-                   'p4', 'p4g', 'p4m',                       //square
-                   'hexgrid','p3','p6','p31m','p3m1','p6m'];
-const rosetteSyms = ['rosette'];
 
 // gS = global State
 // holds the UI state as well as acting as top-level event bus
@@ -69,8 +69,11 @@ export const gS = new Vue({
     // state parameters in here, mutating params then induces reactivity
     // waaa... am I smoking crack? this shouldn't be necessary, or?
     params: {
-      curTool: 'pencil',                 // Tool State
+      curTool: 'pencil',         // Tool State
       showUI: true
+    },
+    options: {
+      dynamicGridSize: true      // recalculate grid Nx,Ny on grid delta change
     },
     // grid Nx, Ny should NOT be too large, should clamp.
     symmState: {sym: gCONSTS.INITSYM,
@@ -86,7 +89,7 @@ export const gS = new Vue({
       lineJoin:    "round", // round, bevel, miter
       miterLimit:  10.0, // applies to miter setting above
       lineWidth:   1.0,
-      fillStyle:   "rgba(200, 100, 100, 0)",
+      fillStyle:   "rgba(200, 100, 100, 0.5)",
       strokeStyle: "rgba(100, 100, 100, 1.0)"
     },
     // Global Command and Redo Stacks
@@ -95,6 +98,7 @@ export const gS = new Vue({
     redostack: [],
   }
 });
+
 
 // Global Events
 //------------------------------------------------------------------------------
@@ -155,20 +159,33 @@ export var pixelratio = 1;
 // Contains Symmetries used by all other operations
 //------------------------------------------------------------------------------
 export var affineset = {};
-//window.affineset = affineset; //HACK: debugging
+window.currentAffine = () => affineset; //HACK: debugging
+
 const memo_generateTiling = _.memoize(generateTiling,
                                 function(){return JSON.stringify(arguments);});
+
+//HACK: quick and dirty, fix the call structure to be clean interface
 export const updateSymmetry = function(symmState) {
+
+  if(gS.options.dynamicGridSize) {
+    let newNx = Math.round((gCONSTS.CANVAS_WIDTH  / gS.symmState.d)*2);
+    let newNy = Math.round((gCONSTS.CANVAS_HEIGHT / gS.symmState.d)*2);
+    // basic safety so as not to grind CPU to a halt...
+    gS.symmState.Nx = newNx < 50 ? newNx : 50;
+    gS.symmState.Ny = newNy < 50 ? newNy : 50;
+    console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
+  }
+
   if(symmState.sym == "none"){
     affineset = IdentitySet();
   }
-  else if(tilingSyms.includes(symmState.sym)) {
+  else if(gCONSTS.TILINGSYMS.includes(symmState.sym)) {
     affineset = memo_generateTiling(planarSymmetries[symmState.sym],
                                     symmState.Nx,symmState.Ny,
                                     symmState.d, symmState.t,
                                     symmState.x, symmState.y);
   }
-  else { //HACK: quick and dirty, fix the call structure to be clean interface
+  else {
     affineset = RosetteGroup(symmState.Nrot,
                             symmState.Nref,
                             symmState.x,
@@ -180,7 +197,7 @@ export const updateSymmetry = function(symmState) {
 
 // Set up Globals and UI for calling into Drawing Tools
 //------------------------------------------------------------------------------
-export var drawTools = {
+export const drawTools = {
   line: new LineTool(),
   circle: new CircleTool(),
   pencil: new PencilTool(),
@@ -190,9 +207,9 @@ export var drawTools = {
 };
 //window.drawTools = drawTools; //HACK: debugging
 
-var changeTool = function(toolName){
+const changeTool = function(toolName){
   let oldTool = drawTools[gS.params.curTool];
-  oldTool.commit(); //XXX: good?
+  oldTool.commit();
   if('exit' in oldTool){
     oldTool.exit();
   }
@@ -205,7 +222,7 @@ var changeTool = function(toolName){
 };
 
 // alter sensitivity radius of manually canvas-rendered UI elements
-var changeHitRadius = function(newR){
+const changeHitRadius = function(newR){
   for(var key of Object.keys(drawTools)){
     if(drawTools[key].hasOwnProperty("hitRadius")){
       drawTools[key].hitRadius=newR;
@@ -219,28 +236,28 @@ var changeHitRadius = function(newR){
 
 // Canvas Mouse/Key Events -- dispatched to active Drawing Tool
 //------------------------------------------------------------------------------
-var dispatchMouseDown = function(e) {
+const dispatchMouseDown = function(e) {
   e.preventDefault();
   drawTools[gS.params.curTool].mouseDown(e);
 };
 
-var dispatchMouseUp = function(e) {
+const dispatchMouseUp = function(e) {
   e.preventDefault();
   drawTools[gS.params.curTool].mouseUp(e);
 };
 
-var dispatchMouseMove = function(e) {
+const dispatchMouseMove = function(e) {
   e.preventDefault();
   drawTools[gS.params.curTool].mouseMove(e);
 };
 
-var dispatchMouseLeave = function(e) {
+const dispatchMouseLeave = function(e) {
   if("mouseLeave" in drawTools[gS.params.curTool]) {
     drawTools[gS.params.curTool].mouseLeave(e);
   }
 };
 
-var dispatchKeyDown = function(e) {
+const dispatchKeyDown = function(e) {
   if("keyDown" in drawTools[gS.params.curTool]) {
     drawTools[gS.params.curTool].keyDown(e);
   }
@@ -256,8 +273,7 @@ var dispatchKeyDown = function(e) {
 */
 var undo_init_bound = 0;
 
-export var rerender = function(ctx, clear=true) {
-  //console.log("rerendering ", gS.cmdstack.length, " ops");
+export const rerender = function(ctx, clear=true) {
   if(clear){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
@@ -266,14 +282,14 @@ export var rerender = function(ctx, clear=true) {
   }
 };
 
-export var commitOp = function(op){
+export const commitOp = function(op){
   gS.cmdstack.push(op);
   op.render(ctx);
 };
-window.commitOp=commitOp; //HACK
+//window.commitOp=commitOp; //HACK
 
 //only used for undo/redo
-var switchTool = function(toolName, op){
+const switchTool = function(toolName, op){
   let oldTool = drawTools[gS.params.curTool];
   if('exit' in oldTool){ oldTool.exit();  }
   // update global
@@ -282,7 +298,7 @@ var switchTool = function(toolName, op){
   if('enter' in newTool){ newTool.enter(op); }
 };
 
-var undo = function(){
+const undo = function(){
   console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
   if(gS.cmdstack.length > undo_init_bound){
     drawTools[gS.params.curTool].commit();  //commit live tool op
@@ -304,7 +320,7 @@ var undo = function(){
   console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
 };
 
-var redo = function(){
+const redo = function(){
   console.log("redo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
   if(gS.redostack.length>0){
     drawTools[gS.params.curTool].commit();  //commit live tool op
@@ -314,7 +330,7 @@ var redo = function(){
   }
 };
 
-var reset = function(){
+const reset = function(){
   //make sure stateful drawing tool isn't left in a weird spot
   if('exit' in drawTools[gS.params.curTool]) {drawTools[gS.params.curTool].exit();}
   gS.redostack = [];
@@ -323,7 +339,7 @@ var reset = function(){
   initState();
 };
 
-var serialize = function(){
+const serialize = function(){
   let jsonStr = JSON.stringify(gS.cmdstack);
   return jsonStr;
 }
@@ -334,12 +350,12 @@ const opsTable = {line: LineOp,
                   bezier: PathOp,
                   poly: PolyOp};
 
-var ressurectOp = function(deadOp){
+const ressurectOp = function(deadOp){
     let op = new opsTable[deadOp.tool];
     return _.assign(op, deadOp)
 }
 
-var deserialize = function(jsonStr){
+const deserialize = function(jsonStr){
   reset();
   let deadArr = JSON.parse(jsonStr);
   let newstack = [];
@@ -349,8 +365,8 @@ var deserialize = function(jsonStr){
   gS.cmdstack = newstack;
   rerender(ctx);
 }
-window.serialize=serialize; //HACK
-window.deserialize=deserialize; //HACK
+//window.serialize=serialize; //HACK
+//window.deserialize=deserialize; //HACK
 
 
 // Top State Control UI
@@ -378,23 +394,25 @@ var vueSym = new Vue({
 import symmetryUi from './components/symmetryUI';
 var vueSym = new Vue({
   el: '#symUI',
-  template: '<symmetry-ui :sym="sym"/>',
+  template: '<symmetry-ui :symmState="symmState" :params="params"/>',
   components: { symmetryUi },
-  data: gS.symmState
+  data: {symmState: gS.symmState, params: gS.params}
 });
 
 // Grid UI
 //------------------------------------------------------------------------------
+/*
 import gridUi from './components/gridUI';
 var vueGrid = new Vue({
   el: '#gridUI',
-  template: '<grid-ui :x="x" :y="y" :d="d"/>',
+  template: '<grid-ui :x="x" :y="y" :d="d" :Nrot="Nrot" :Nref="Nref" :rot="rot" :t="t"/>',
   components: {gridUi},
   data: gS.symmState
 });
-
+*/
 // Rosette UI
 //------------------------------------------------------------------------------
+/*
 import rosetteUi from './components/rosetteUI';
 var vueRosette = new Vue({
   el: '#rosetteUI',
@@ -402,7 +420,7 @@ var vueRosette = new Vue({
   components: {rosetteUi},
   data: gS.symmState
 });
-
+*/
 // Line Styling UI
 //------------------------------------------------------------------------------
 import styleUi from './components/styleUI';
@@ -413,7 +431,7 @@ var vueStyle = new Vue({
   data: gS.ctxStyle
 });
 
-var parseColor = function(clrstr){
+const parseColor = function(clrstr){
   if(/^#/.test(clrstr)){
     clrstr = clrstr.slice(1);
     var digit = clrstr.split("");
@@ -461,7 +479,7 @@ var vueColor = new Vue({
 // XXX: this can take a long damn time with a complicated scene! At minimum should
 // do redraws with smaller grid Nx,Ny by default or just restrict SVG export to
 // tile?
-var saveSVG = function() {
+const saveSVG = function() {
   // canvas2svg fake context:
   var C2Sctx = new C2S(canvas.width, canvas.height);
   rerender(C2Sctx);
@@ -472,7 +490,7 @@ var saveSVG = function() {
   saveAs(blob, "eschersketch.svg");
 };
 
-var saveJSON = function() {
+const saveJSON = function() {
   let sketchdata = serialize();
   var blob = new Blob([sketchdata], {type: "application/json"});
   saveAs(blob, "eschersketch.json");
@@ -482,11 +500,11 @@ window.saveJSON=saveJSON;
 document.getElementById("save-json").onmousedown = function() {
   saveJSON();
 };
-
 document.getElementById("the-file-input").onchange = function() {
     renderImage(this.files[0]);
 };
-function renderImage(file) {
+
+const renderImage = function(file) {
   var reader = new FileReader();
   reader.onload = function(event) {
     deserialize(event.target.result);
@@ -494,7 +512,7 @@ function renderImage(file) {
   reader.readAsText(file);
 }
 
-var saveSVGTile = function() {
+const saveSVGTile = function() {
   // get square tile dimensions
   let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
   dX *= gS.symmState.d;
@@ -522,12 +540,12 @@ var saveSVGTile = function() {
 
 // TODO : allow arbitrary upscaling of canvas pixel backing density using
 //        setCanvasPixelDensity
-var savePNG = function() {
+const savePNG = function() {
   canvas.toBlobHD(blob => saveAs(blob, "eschersketch.png"));
 };
 
 // Export small, hi-res, square-tileable PNG
-var savePNGTile = function(){
+const savePNGTile = function(){
   const pixelScale = 4; // pixel density scaling factor
 
   // get square tile dimensions
@@ -555,18 +573,17 @@ document.getElementById("savePNGtile").onmousedown = function(e) { savePNGTile()
 //document.getElementById("saveSVGtile").onmousedown = function(e) { saveSVGTile(); };
 
 
-// should be "reset"
-var initState = function() {
-  let initStyle = {
-    lineCap: "butt",
-    lineJoin: "round",
-    miterLimit: 10.0,
-    lineWidth: 1.0,
-    strokeStyle: "rgba(100,100,100,1.0)",
-    fillStyle: "rgba(200,100,100,0.5)"
-  };
-  _.assign(lctx, initStyle);
-  _.assign(gS.ctxStyle, initStyle);
+// set up initial context and symmetry
+const initState = function() {
+  _.assign(lctx, gS.ctxStyle);
+
+  let w = window.innerWidth;
+  let h = window.innerHeight;
+  gS.symmState.x = Math.round(w/2);
+  gS.symmState.y = Math.round(h/2);
+  gS.symmState.Nx = Math.round((w / gS.symmState.d)*2);
+  gS.symmState.Ny = Math.round((h / gS.symmState.d)*2);
+  console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
 
   updateSymmetry(_.clone(gS.symmState));
   undo_init_bound = gS.cmdstack.length;
@@ -574,19 +591,14 @@ var initState = function() {
 };
 
 
-var initGUI = function() {
+const initGUI = function() {
 
   // set up symmetry grid based on screen size
-  var w = window.innerWidth;
-  var h = window.innerHeight;
+  let w = window.innerWidth;
+  let h = window.innerHeight;
   console.log("window innerDims ", w, h);
   gCONSTS.CANVAS_WIDTH = w;
   gCONSTS.CANVAS_HEIGHT = h;
-  gS.symmState.x = Math.round(w/2);
-  gS.symmState.y = Math.round(h/2);
-  gS.symmState.Nx = Math.round((w / gS.symmState.d)*2);
-  gS.symmState.Ny = Math.round((h / gS.symmState.d)*2);
-  console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
 
   canvas = document.getElementById("sketchrender");
   canvas.width = gCONSTS.CANVAS_WIDTH;
@@ -613,7 +625,7 @@ var initGUI = function() {
 
 // This "works" for both mouse and touch events, but
 // really the whole UI needs major rework for mobile...
-var initTouchEvents = function() {
+const initTouchEvents = function() {
   // get a reference to top canvas element
   var stage = document.getElementById('sketchlive');
   // create a manager for that element

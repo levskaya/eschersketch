@@ -1,6 +1,11 @@
 <template>
   <div class="button" :class="isSelected" @click="bclick">
-    {{ name }}
+    <template v-if="this.$slots.default">
+      <slot></slot>
+    </template>
+    <template v-else>
+      {{name}}
+    </template>
   </div>
 </template>
 
@@ -17,8 +22,9 @@ export default {
   computed: {
     isSelected: function() {
       //console.log(this.selected);
-      return {selected: this.name==this.selected}; }
-  }
+      return {selected: this.name==this.selected}; },
+    isSlot: function() {if(this.$slots.default){return true;};}
+  },
 }
 </script>
 

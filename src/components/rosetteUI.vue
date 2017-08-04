@@ -2,7 +2,7 @@
   <div :style="showme"><br>
   <es-numfield param="Nrot" :val="Nrot" @numchange="update"></es-numfield>
   <es-numfield param="Nref" :val="Nref" @numchange="update"></es-numfield>
-  <es-numfield param="rot" label="&theta;" :val="rot" @numchange="update"></es-numfield>
+  <!--<es-numfield param="rot" label="&theta;" :val="rot" @numchange="update"></es-numfield>-->
   </div>
 </template>
 <script>

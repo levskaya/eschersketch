@@ -380,6 +380,7 @@ export const IdentitySet = function(){
   return Afs;
 }
 
+//XXX: rotation is badly broken (but visually interesting!!)
 export const RosetteGroup = function(n1, n2, x, y, offsetangle) {
   offsetangle = offsetangle || 0;
   const Af1 = rotateRosette(n1, x, y);

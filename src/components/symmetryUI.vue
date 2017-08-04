@@ -1,35 +1,35 @@
 <template>
   <div>
-    <ex-button name="none" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="rosette" :selected="cursym" @bclick="changeSym"></ex-button><br>
+    <es-button name="none" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="rosette" :selected="cursym" @bclick="changeSym"></es-button><br>
     <!--Rotation Free<br>-->
-    <ex-button name="p1" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="diagonalgrid" :selected="cursym" @bclick="changeSym">diaggrid</ex-button>
-    <ex-button name="pm" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="cm" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="pg" :selected="cursym" @bclick="changeSym"></ex-button>
+    <es-button name="p1" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="diagonalgrid" :selected="cursym" @bclick="changeSym">diaggrid</es-button>
+    <es-button name="pm" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="cm" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="pg" :selected="cursym" @bclick="changeSym"></es-button>
     <!--<br>180&deg;</br>-->
-    <ex-button name="pmg" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="pgg" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="pmm" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="p2" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="cmm" :selected="cursym" @bclick="changeSym"></ex-button>
+    <es-button name="pmg" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="pgg" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="pmm" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="p2" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="cmm" :selected="cursym" @bclick="changeSym"></es-button>
     <!--<br>Square<br>-->
-    <ex-button name="p4" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="p4g" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="p4m" :selected="cursym" @bclick="changeSym"></ex-button>
+    <es-button name="p4" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="p4g" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="p4m" :selected="cursym" @bclick="changeSym"></es-button>
     <!--<br>Hexagonal<br>-->
-    <ex-button name="hexgrid" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="p3" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="p6" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="p31m" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="p3m1" :selected="cursym" @bclick="changeSym"></ex-button>
-    <ex-button name="p6m" :selected="cursym" @bclick="changeSym"></ex-button>
+    <es-button name="hexgrid" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="p3" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="p6" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="p31m" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="p3m1" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="p6m" :selected="cursym" @bclick="changeSym"></es-button>
     <br>
 
-    <ex-button name="grid"   :selected="curtool" @bclick="changeTool">
+    <es-button name="grid"   :selected="curtool" @bclick="changeTool">
       grid adjust
-    </ex-button>
+    </es-button>
 
     <es-numfield param="X" :val="symmState.x" @numchange="update"></es-numfield>
     <es-numfield param="Y" :val="symmState.y" @numchange="update"></es-numfield>
@@ -53,13 +53,13 @@
 
 <script>
 import es_numfield from './es_numfield';
-import ex_button from './ex_button';
+import es_button from './es_button';
 import {gS, gCONSTS} from '../main.js';
 
 export default {
   props: ['symmState','params'],
   components: {
-    'ex-button': ex_button,
+    'es-button': es_button,
     'es-numfield': es_numfield
   },
   computed: {

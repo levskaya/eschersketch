@@ -1,35 +1,35 @@
 <template>
   <div>
-    <ex-button name="pencil" :selected="curtool" @bclick="changeTool">
+    <es-button name="pencil" :selected="curtool" @bclick="changeTool">
       <span class="icon-pencil"></span>
-    </ex-button>
-    <ex-button name="line"   :selected="curtool" @bclick="changeTool">
+    </es-button>
+    <es-button name="line"   :selected="curtool" @bclick="changeTool">
       <span class="icon-line"></span>
-    </ex-button>
-    <ex-button name="circle" :selected="curtool" @bclick="changeTool">
+    </es-button>
+    <es-button name="circle" :selected="curtool" @bclick="changeTool">
       <span class="icon-radio-unchecked"></span>
-    </ex-button>
-    <ex-button name="poly"   :selected="curtool" @bclick="changeTool">
+    </es-button>
+    <es-button name="poly"   :selected="curtool" @bclick="changeTool">
       <span class="icon-hexagon"></span>
-    </ex-button>
-    <ex-button name="bezier" :selected="curtool" @bclick="changeTool">
+    </es-button>
+    <es-button name="bezier" :selected="curtool" @bclick="changeTool">
       <span class="icon-pen"></span>
-    </ex-button>
+    </es-button>
 
-    <ex-button name="grid"   :selected="curtool" @bclick="changeTool">
+    <es-button name="grid"   :selected="curtool" @bclick="changeTool">
       grid adjust
-    </ex-button>
+    </es-button>
 
   </div>
 </template>
 
 <script>
-import ex_button from './ex_button';
+import es_button from './es_button';
 import {gS} from '../main.js';
 
 export default {
   props: ['params'],
-  components: {'ex-button': ex_button},
+  components: {'es-button': es_button},
   computed:{
     curtool: function(){ return this.params.curTool; }
   },

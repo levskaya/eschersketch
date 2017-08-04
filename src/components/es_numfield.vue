@@ -2,13 +2,13 @@
   <span>
     <label v-if="label" v-html="label" :for="param"></label>
     <label v-else :for="param">{{param}}</label>
-    <input class="ghost-input" type="text" @change="numchange" :name="param" :value="val" size="3"/>
+    <input class="ghost-input" type="text" @change="numchange" :name="param" :value="val" :size="size"/>
 </span>
 </template>
 <script>
   export default {
     name: 'es-numfield',
-    props: ['param', 'val', 'label'],
+    props: ['param', 'val', 'label', 'size'],
     methods: {
       numchange: function({type, target}){
         target.blur();

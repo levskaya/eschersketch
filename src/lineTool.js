@@ -140,6 +140,7 @@ export class LineTool {
   //}
 
   keyDown(e) {
+    if(e.target.type){return;} // don't interfere with input UI key-events
     if(e.code == "Enter"){
       this.state = _OFF_;
       this.commit();
@@ -149,6 +150,7 @@ export class LineTool {
       this.cancel();
     }
   }
+
   enter(op){
     if(op){
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));

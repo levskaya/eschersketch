@@ -77,10 +77,14 @@ export class PencilTool {
     }
   }
 
-  liverender_fast() { //  falsely darkens live transparent lines due to overlapping 3pt segments
+  liverender_fast() {
     lctx.save();
-    //lctx.fillStyle
-    lctx.globalAlpha = 0.5;
+    // correct alpha to give accurate preview transparency given the 3-pt line overlap that this hack uses:
+    let alpha=1.0;
+    let tmp = lctx.strokeStyle.split("(")[1];
+    if(tmp){ alpha = parseFloat(tmp.split(",")[3]); }
+    lctx.globalAlpha = 0.5 + 0.5*Math.pow(alpha,2);
+
     if(this.points.length >= 3) {
       for (let af of affineset) {
         const Tpt0 = af.on(this.points[this.points.length-3].x, this.points[this.points.length-3].y);
@@ -151,21 +155,19 @@ export class PencilTool {
 
   mouseMove(e) {
     if (this.state == _ON_) {
-      //if (this.drawInterval <= 0) {
         var rect = livecanvas.getBoundingClientRect();
         this.points.push({ x: e.clientX - rect.left,
                            y: e.clientY - rect.top});
         this.liverender();
-        //this.drawInterval = 1;
-      //}
-      //this.drawInterval--;
     }
   }
 
   mouseUp(e) {
-    this.state = _OFF_;
-    this.commit();
-    this.points = [];
-    this.state = _INIT_;
+    if(this.state != _INIT_){
+      this.commit();
+      //this.state = _OFF_;
+      this.points = [];
+      this.state = _INIT_;
+    }
   }
 }

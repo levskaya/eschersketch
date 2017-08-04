@@ -30,12 +30,12 @@
     <es-button name="grid"   :selected="curtool" @bclick="changeTool">
       grid adjust
     </es-button>
-
-    <es-numfield param="X" :val="symmState.x" @numchange="update"></es-numfield>
-    <es-numfield param="Y" :val="symmState.y" @numchange="update"></es-numfield>
+    <br>
+    <es-numfield param="X" :val="symmState.x" size="4" @numchange="update"></es-numfield>
+    <es-numfield param="Y" :val="symmState.y" size="4" @numchange="update"></es-numfield>
 
     <span :style="showGridParams">
-      <es-numfield param="d" label="&Delta;" :val="symmState.d" @numchange="update"></es-numfield>
+      <es-numfield param="d" label="&Delta;" :val="symmState.d" size="3" @numchange="update"></es-numfield>
       <!--<es-numfield param="Nx" :val="Nx" @numchange="update"></es-numfield>
           <es-numfield param="Ny" :val="Ny" @numchange="update"></es-numfield>-->
       <div class="button" @click="halveD">&frac12;</div>
@@ -43,8 +43,8 @@
     </span>
 
     <span :style="showPointParams">
-      <es-numfield param="Nrot" :val="symmState.Nrot" @numchange="update"></es-numfield>
-      <es-numfield param="Nref" :val="symmState.Nref" @numchange="update"></es-numfield>
+      <es-numfield param="Nrot" :val="symmState.Nrot" size="2" @numchange="update"></es-numfield>
+      <es-numfield param="Nref" :val="symmState.Nref" size="2" @numchange="update"></es-numfield>
       <!--<es-numfield param="rot" label="&theta;" :val="rot" @numchange="update"></es-numfield>-->
     </span>
 
@@ -55,6 +55,7 @@
 import es_numfield from './es_numfield';
 import es_button from './es_button';
 import {gS, gCONSTS} from '../main.js';
+import {_} from 'underscore';
 
 export default {
   props: ['symmState','params'],

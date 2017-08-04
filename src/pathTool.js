@@ -410,6 +410,7 @@ export class PathTool {
   //}
 
   keyDown(e) {
+    if(e.target.type){return;} // don't interfere with input UI key-events
     if(e.code == "Enter"){
       this.state = _OFF_;
       this.commit();

@@ -179,3 +179,30 @@ input {
 .fileContainer [type=file] {
     cursor: pointer;
 }
+
+/* ----------------------------------- input select ---------------------------- */
+
+select {
+    //font-family:Arial, Helvetica, sans-serif;/* need to set for IE6/7 or it won't inhereit properly*/
+}
+select{
+    display:inline-block;
+    vertical-align:middle;
+    //font-size:13px;
+}
+select{
+    //width:80px;
+    //color:#999;
+    //border:1px solid #999;
+}
+/* for inputs don't use line-height as chrome will do something weird with the text highlighting.
+Firefox chrome and IE9+ will vertically align the text in the height of the input anyway.
+For IE8 and under you have to use line-height so use CCs.
+*/
+select{/* height,line-height and padding can't be changed at all in IE6 and 7*/
+    //padding:7px 2px 5px 10px;
+    //height:32px;/* uses border box model (so padding and borders are included inside the width and height)*/
+    //width:160px;
+    //line-height:26px;/* webkit mac doesn't use height but fiddle with line-height until it looks right*/
+    background:transparent;/* if you change the background then safari and chrome mac will use height !!!!*/
+}

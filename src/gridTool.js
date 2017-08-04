@@ -22,16 +22,21 @@ import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './ma
 import {generateLattice, planarSymmetries} from './symmetryGenerator';
 
 
+//State Labels
+const _INIT_ = 0; //not used
+const _OFF_  = 1;
+const _SCALE_= 2;
+const _MOVE_ = 3;
+
 // Grid Adjustment Tool
 //------------------------------------------------------------------------------
-
 export class GridTool {
   constructor() {
     Object.assign(this, gS.symmState); //x,y,d,t
     this.p0 = [0,0];
     this.p1 = [0,0];
     this.hitRadius = 10;
-    this.state = "off";
+    this.state = _OFF_;
   }
 
   enter(){
@@ -55,10 +60,10 @@ export class GridTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
     if(l2dist(pt,this.p0)<this.hitRadius){
-      this.state = "move";
+      this.state = _MOVE_;
     }
     if(l2dist(pt,this.p1)<this.hitRadius && gCONSTS.TILINGSYMS.includes(gS.symmState.sym)){
-      this.state = "scale";
+      this.state = _SCALE_;
     }
   }
 
@@ -66,22 +71,22 @@ export class GridTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
     // dynamic mouse-pointer logic
-    if(l2dist(pt, this.p0)<this.hitRadius && this.state == "off"){
+    if(l2dist(pt, this.p0)<this.hitRadius && this.state == _OFF_){
       livecanvas.style.cursor="all-scroll";
-    } else if(l2dist(pt, this.p1)<this.hitRadius && this.state == "off"){
+    } else if(l2dist(pt, this.p1)<this.hitRadius && this.state == _OFF_){
       livecanvas.style.cursor="ew-resize";
-    } else if(this.state == "off"){
+    } else if(this.state == _OFF_){
       livecanvas.style.cursor="crosshair";
     } else {
       livecanvas.style.cursor="none";
     }
 
-    if (this.state == "move") {
+    if (this.state == _MOVE_) {
       this.x = pt[0];
       this.y = pt[1];
       this.liverender();
     }
-    if (this.state == "scale") {
+    if (this.state == _SCALE_) {
       let dist = l2dist(pt, this.p0);
       //grid vector not unit vectors! so we correct:
       let alpha = l2dist(this.p1, this.p0)/this.d;
@@ -91,9 +96,9 @@ export class GridTool {
   }
 
   mouseUp(e) {
-    if(this.state != "off"){
+    if(this.state != _OFF_){
       this.commit();
-      this.state = "off";
+      this.state = _OFF_;
       this.liverender();
     }
   }
@@ -141,7 +146,7 @@ export class GridTool {
     lctx.save();
     lctx.fillStyle = "rgba(0,0,0,0.1)";
     lctx.lineWidth = 4.0;
-    if(this.state == "move"){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
+    if(this.state == _MOVE_){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
     else {lctx.strokeStyle = "rgba(0,0,0,0.5)";}
     lctx.beginPath();
     lctx.arc(p0[0], p0[1], circR, 0, 2*Math.PI);
@@ -149,7 +154,7 @@ export class GridTool {
     lctx.fill();
 
     if(gCONSTS.TILINGSYMS.includes(gS.symmState.sym)){
-      if(this.state == "scale"){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
+      if(this.state == _SCALE_){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
       else {lctx.strokeStyle = "rgba(0,0,0,0.5)";}
       lctx.beginPath();
       lctx.arc(p1[0], p1[1], circR, 0, 2*Math.PI);

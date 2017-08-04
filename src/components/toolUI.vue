@@ -15,11 +15,11 @@
     <es-button name="bezier" :selected="curtool" @bclick="changeTool">
       <span class="icon-pen"></span>
     </es-button>
-
+    <!--
     <es-button name="grid"   :selected="curtool" @bclick="changeTool">
       grid adjust
     </es-button>
-
+  -->
   </div>
 </template>
 

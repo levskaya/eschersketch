@@ -426,7 +426,7 @@ var vueRosette = new Vue({
 import styleUi from './components/styleUI';
 var vueStyle = new Vue({
   el: '#styleUI',
-  template: '<style-ui :lineWidth="lineWidth"/>',
+  template: '<style-ui :lineWidth="lineWidth" :miterLimit="miterLimit" :lineJoin="lineJoin" :lineCap="lineCap"/>',
   components: {styleUi},
   data: gS.ctxStyle
 });

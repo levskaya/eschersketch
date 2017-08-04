@@ -42,7 +42,7 @@ export default {
   z-index:10;
   padding:0 1% 0 1%;
   //width:768px;
-  width: 80%;
+  width: 60%;
   background-color:rgba(245,245,245,1.0);
 }
 

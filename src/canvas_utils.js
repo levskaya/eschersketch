@@ -1,5 +1,35 @@
 //------------------------------------------------------------------------------
-// Canvas Tweaks
+//
+// Eschersketch - A drawing program for exploring symmetrical designs
+//
+//
+// Copyright (c) 2017 Anselm Levskaya (http://anselmlevskaya.com)
+// Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
+// license.
+//
+//------------------------------------------------------------------------------
+
+// Parse colors of the form #rgb, #rrggbb, rgba(r,g,b,a)
+//------------------------------------------------------------------------------
+export const parseColor = function(clrstr){
+  if(/^#/.test(clrstr)){
+    clrstr = clrstr.slice(1);
+    var digit = clrstr.split("");
+    if(digit.length === 3){
+      digit = [ digit[0],digit[0],digit[1],digit[1],digit[2],digit[2] ]
+    }
+    var r = parseInt( [digit[0],digit[1] ].join(""), 16 );
+    var g = parseInt( [digit[2],digit[3] ].join(""), 16 );
+    var b = parseInt( [digit[4],digit[5] ].join(""), 16 );
+    return [r,g,b,1.0];
+  } else{
+    let tmp = clrstr.substring(5, clrstr.length-1).replace(/ /g, '').split(',');
+    return [parseInt(tmp[0]),parseInt(tmp[1]),parseInt(tmp[2]),parseFloat(tmp[3])];
+  }
+};
+
+
+// Canvas DPI Tweaks
 //------------------------------------------------------------------------------
 
 // Fixes DPI issues with Retina displays on Chrome

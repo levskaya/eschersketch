@@ -17,6 +17,7 @@ import {gS, gCONSTS,
        } from './main';
 import { _ } from 'underscore';
 //import {l2dist} from './math_utils';
+import {parseColor} from './canvas_utils';
 
 
 // Draw Raw Mousepath (Pencil)
@@ -57,9 +58,7 @@ const _MOVE_ = 3;
 export class PencilTool {
   constructor() {
     this.points = [];
-    //this.on = false;
     this.state = _INIT_;
-    //this.drawInterval = 0; //primitive throttling
     this.liverender = this.liverender_fast;
   }
 
@@ -80,9 +79,7 @@ export class PencilTool {
   liverender_fast() {
     lctx.save();
     // correct alpha to give accurate preview transparency given the 3-pt line overlap that this hack uses:
-    let alpha=1.0;
-    let tmp = lctx.strokeStyle.split("(")[1];
-    if(tmp){ alpha = parseFloat(tmp.split(",")[3]); }
+    let alpha = parseColor(lctx.strokeStyle)[3];
     lctx.globalAlpha = 0.5 + 0.5*Math.pow(alpha,2);
 
     if(this.points.length >= 3) {
@@ -90,7 +87,7 @@ export class PencilTool {
         const Tpt0 = af.on(this.points[this.points.length-3].x, this.points[this.points.length-3].y);
         const Tpt1 = af.on(this.points[this.points.length-2].x, this.points[this.points.length-2].y);
         const Tpt2 = af.on(this.points[this.points.length-1].x, this.points[this.points.length-1].y);
-        // This actually works... hmm...
+        // A global pressure var from pressure.js actually works... hmm!
         //lctx.save();
         //lctx.lineWidth = pressure*30;
         //lctx.strokeStyle = "rgba(200,100,100,"+pressure+")";
@@ -133,7 +130,6 @@ export class PencilTool {
   exit(){
     this.points = [];
     this.state = _INIT_;
-    //return;
   }
 
   commit() {
@@ -141,6 +137,11 @@ export class PencilTool {
     let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
     commitOp(new PencilOp(ctxStyle, _.clone(this.points)));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+  }
+
+  cancel() { //not used, just here for consistency
+    this.points = [];
+    this.state = _INIT_;
   }
 
   mouseDown(e) {
@@ -165,7 +166,6 @@ export class PencilTool {
   mouseUp(e) {
     if(this.state != _INIT_){
       this.commit();
-      //this.state = _OFF_;
       this.points = [];
       this.state = _INIT_;
     }

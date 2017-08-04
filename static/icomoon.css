@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?jsyxrs');
-  src:  url('fonts/icomoon.eot?jsyxrs#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?jsyxrs') format('truetype'),
-    url('fonts/icomoon.woff?jsyxrs') format('woff'),
-    url('fonts/icomoon.svg?jsyxrs#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?jvq6tq');
+  src:  url('fonts/icomoon.eot?jvq6tq#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?jvq6tq') format('truetype'),
+    url('fonts/icomoon.woff?jvq6tq') format('woff'),
+    url('fonts/icomoon.svg?jvq6tq#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -24,6 +24,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-symmetries:before {
+  content: "\e910";
+}
+.icon-palette:before {
+  content: "\e911";
+}
+.icon-linejoin-miter:before {
+  content: "\e912";
+}
+.icon-linejoin-bevel:before {
+  content: "\e913";
+}
+.icon-linejoin-round:before {
+  content: "\e914";
+}
+.icon-linecap-butt:before {
+  content: "\e915";
+}
+.icon-linecap-round:before {
+  content: "\e916";
+}
+.icon-linecap-square:before {
+  content: "\e917";
+}
 .icon-no-stroke .path1:before {
   content: "\e904";
   color: rgb(0, 0, 0);

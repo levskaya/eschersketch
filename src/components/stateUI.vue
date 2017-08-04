@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div id="stateUI">
     <template v-if="showUI">
-      <div id="logo" class="Aligner" style="margin-left:-10px;">
+      <div id="logo" class="Aligner">
         <div class="Aligner-item">
           <span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">escher</span><br>
         </div>
@@ -12,7 +12,7 @@
           <span class="eslogotext" style="font-variant:small-caps;margin-left:10px;">sketch</span>
         </div>
         <div class="Aligner-item">
-          <div class="button" :class="{selected: !showUI}" style="margin-left:100%"
+          <div class="button" :class="{selected: !showUI}" style="margin-left:80%"
                title="minimize UI" @click="toggleUI">
             <span class="icon-shrink2"></span>
           </div>
@@ -22,20 +22,24 @@
     <template v-else>
         <span><img src="static/svg/es_logo.svg" height="30px" style="margin-bottom:-8px; padding:0px"/></span>
     </template>
-    <div class="button" @click="help" title="help"><b>¿?</b></div>
-    <div class="button" @click="config" title="settings"><span class="icon-cog"></span></div>
+
+    <div class="button"  @click="help"   title="help" key="stateui-help-button"><b>¿?</b></div>
+    <div class="button"  @click="config" title="settings"><span class="icon-cog"></span></div>
 
     <div class="button"  @click="undo" title="undo"><span class="icon-undo"></span></div>
     <div class="button"  @click="redo" title="redo"><span class="icon-redo"></span></div>
+
     <div class="button" :class="{armed: armed}" @click="reset" title="reset">
       <template v-if="armed"><span class="icon-bin"></span>?</template>
       <template v-else><span class="icon-bin"></span></template>
     </div>
+
     <template v-if="!showUI">
       <div class="button" @click="toggleUI" key="stateui-enlarge-button" title="full UI">
         <span class="icon-enlarge2"></span>
       </div>
     </template>
+
 </div>
 </template>
 
@@ -65,8 +69,8 @@ export default {
         setTimeout(() => this.armed=false, 1000);
       }
     },
-    toggleUI: function(){ gS.$emit('toggleUI'); },
-    help: function(){ gS.$emit('help'); },
+    toggleUI: function(){ console.log("call toggle"); gS.$emit('toggleUI'); },
+    help: function(){ console.log("call help"); gS.$emit('help'); },
     config: function(){ gS.$emit('config'); },
     }
 }

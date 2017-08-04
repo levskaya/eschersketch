@@ -1,22 +1,30 @@
 <template>
-  <div>
+  <div id="styleUI">
+
+    <span style="font-variant: small-caps;">line</span><br>
     width <input type="range" :value="lineWidth"
            :min="min" :max="max" :step="step" :name="name" @change="changethick">
-    <span>{{roundedLineWidth}}</span>
-    <br>
-    cap
-    <select name="lineCap" id="lineCap" @change="changeItem($event)">
-      <!--<option selected disabled>line cap</option>-->
-      <option value="butt"   :selected="lineCap=='butt'">butt</option>
-      <option value="round"  :selected="lineCap=='round'">round</option>
-      <option value="square" :selected="lineCap=='square'">square</option>
-    </select>
-    join
-    <select name="lineJoin" id="lineJoin" @change="changeItem($event)">
-      <option value="round" :selected="lineJoin=='round'">round</option>
-      <option value="bevel" :selected="lineJoin=='bevel'">bevel</option>
-      <option value="miter" :selected="lineJoin=='miter'">miter</option>
-    </select>
+    <span>{{roundedLineWidth}}</span> <br>
+
+    <es-button name="butt" :selected="lineCap" @bclick="changeCap">
+      <span class="icon-linecap-butt"/>
+    </es-button>
+    <es-button name="round" :selected="lineCap" @bclick="changeCap">
+      <span class="icon-linecap-round"/>
+    </es-button>
+    <es-button name="square" :selected="lineCap" @bclick="changeCap">
+      <span class="icon-linecap-square"/>
+    </es-button>
+
+    <es-button name="round" :selected="lineJoin" @bclick="changeJoin">
+      <span class="icon-linejoin-round"/>
+    </es-button>
+    <es-button name="bevel" :selected="lineJoin" @bclick="changeJoin">
+      <span class="icon-linejoin-bevel"/>
+    </es-button>
+    <es-button name="miter" :selected="lineJoin" @bclick="changeJoin">
+      <span class="icon-linejoin-miter"/>
+    </es-button>
 
     <template v-if="lineJoin=='miter'">
       <es-numfield param="miterLimit" label="limit" :val="miterLimit" size="3"
@@ -29,11 +37,14 @@
 <script>
 import {gS, gCONSTS} from '../main.js';
 import es_numfield from './es_numfield';
+import es_button from './es_button';
 
 export default {
   props: ['lineWidth', 'miterLimit', 'lineCap', 'lineJoin'],
+  //data: function() {  return {linecap: "butt" }; },
   components: {
-        'es-numfield': es_numfield
+        'es-numfield': es_numfield,
+        'es-button': es_button,
   },
   created: function(){
     this.max = gCONSTS.MAX_LINEWIDTH;
@@ -52,10 +63,11 @@ export default {
       //console.log(target.value);
       gS.$emit('styleUpdate', {lineWidth: target.value});
     },
-    changeItem(e) {
-      //console.log(e.target.name, e.target.value);
-      gS.$emit('styleUpdate', {[e.target.name]: e.target.value});
-    },
+    changeCap:  function(capName){ gS.$emit('styleUpdate', {"lineCap": capName}); },
+    changeJoin: function(joinName){ gS.$emit('styleUpdate', {"lineJoin": joinName}); },
+    //changeItem: function(e) {
+    //      gS.$emit('styleUpdate', {[e.target.name]: e.target.value});
+    //},
     changeMiter: function(name, val){
       //console.log(name, val);
       gS.$emit('styleUpdate', {miterLimit: val});

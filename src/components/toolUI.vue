@@ -1,5 +1,7 @@
 <template>
-  <div>
+  <div id="toolUI">
+    <span style="font-variant: small-caps;">drawing tools</span><br>
+
     <es-button name="pencil" :selected="curtool" @bclick="changeTool">
       <span class="icon-pencil"></span>
     </es-button>

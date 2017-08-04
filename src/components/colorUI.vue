@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div id="colorUI">
+    <span style="font-variant: small-caps;">color</span><br>
     <!-- buttons to select which color to pick -->
     <div class="button" :class="{selected: isStroke}" @mousedown="pickStroke">
       <span class="icon-stroke"></span>

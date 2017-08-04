@@ -19,7 +19,7 @@ import Pressure from 'pressure';
 import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
 
-import {pixelFix, setCanvasPixelDensity} from './canvas_utils';
+import {pixelFix, setCanvasPixelDensity, parseColor} from './canvas_utils';
 import {generateTiling, planarSymmetries, RosetteGroup, IdentitySet} from './symmetryGenerator';
 
 
@@ -65,25 +65,30 @@ export const gCONSTS = {
 //------------------------------------------------------------------------------
 export const gS = new Vue({
   data: {
-    // stupid hack, since Vue can't wrap atomics, have all simple atomic
-    // state parameters in here, mutating params then induces reactivity
-    // waaa... am I smoking crack? this shouldn't be necessary, or?
+    // random global UI state variables
     params: {
       curTool: 'pencil',         // Tool State
       showUI: true,
+      showColor: true,
+      showLine: true,
+      showSymm: true,
       showHelp: false,
-      showConfig: false
+      showConfig: false,
     },
     options: {
       dynamicGridSize: true      // recalculate grid Nx,Ny on grid delta change
+      //pngTileUpsample: 4,
+      //svgGriSize: [10,10],
+      //pngGridSize: [40,40]
+      //pngUpsample: 2,
     },
-    // grid Nx, Ny should NOT be too large, should clamp.
+    // Symmetry State
+    //-------------------------------
     symmState: {sym: gCONSTS.INITSYM,
                 x:800, y:400,
                 d:100, t:0,
-                Nx:18, Ny:14,
-                Nrot: 3, Nref: 2, rot: 0},
-
+                Nx:18, Ny:14,  // grid Nx, Ny should NOT be large (i.e. >50)
+                Nrot: 0, Nref: 3, rot: 0},
     // Style State
     //-------------------------------
     ctxStyle: {
@@ -135,6 +140,7 @@ gS.$on('undo', function(){ undo(); });
 gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){ reset(); });
 gS.$on('toggleUI', function() {  // HACK: until everything wrapped by vue
+  console.log("toggleUI");
   if(gS.params.showUI){
     gS.params.showUI = false;
     document.getElementById("controls").style.display="none";
@@ -142,7 +148,10 @@ gS.$on('toggleUI', function() {  // HACK: until everything wrapped by vue
     gS.params.showUI = true;
     document.getElementById("controls").style.display="block";
   }});
-gS.$on('help', function(){ gS.params.showHelp = ! gS.params.showHelp; });
+gS.$on('help', function(){
+  console.log("help");
+  gS.params.showHelp = ! gS.params.showHelp;
+});
 gS.$on('config', function(){ gS.params.showConfig = ! gS.params.showConfig; });
 
 // HACK: for debugging
@@ -512,23 +521,6 @@ var vueStyle = new Vue({
   components: {styleUi},
   data: gS.ctxStyle
 });
-
-const parseColor = function(clrstr){
-  if(/^#/.test(clrstr)){
-    clrstr = clrstr.slice(1);
-    var digit = clrstr.split("");
-    if(digit.length === 3){
-      digit = [ digit[0],digit[0],digit[1],digit[1],digit[2],digit[2] ]
-    }
-    var r = parseInt( [digit[0],digit[1] ].join(""), 16 );
-    var g = parseInt( [digit[2],digit[3] ].join(""), 16 );
-    var b = parseInt( [digit[4],digit[5] ].join(""), 16 );
-    return [r,g,b,1.0];
-  } else{
-    let tmp = clrstr.substring(5, clrstr.length-1).replace(/ /g, '').split(',');
-    return [parseInt(tmp[0]),parseInt(tmp[1]),parseInt(tmp[2]),parseFloat(tmp[3])];
-  }
-}
 
 // Color UI
 //------------------------------------------------------------------------------

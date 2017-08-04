@@ -1,5 +1,7 @@
 <template>
-<div>
+<div id="fileUI">
+  <span style="font-variant: small-caps;">export</span><br>
+
   <div id="saveSVG" class="button" @mousedown="saveSVG">
     <span class="icon-folder-download"></span> SVG
   </div>

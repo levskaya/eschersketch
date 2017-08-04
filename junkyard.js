@@ -486,3 +486,14 @@ style="border:1px;border-style:solid;border-color:#ddd;border-radius:5px;padding
     <option value="p3m1">p3m1</option>
     <option value="p6">p6</option>
   </select>
+
+  <select name="lineJoin" id="lineJoin" @change="changeItem($event)">
+  <!--<option selected disabled>line join</option>-->
+    <option value="round" :selected="lineJoin=='round'">round</option>
+    <option value="bevel" :selected="lineJoin=='bevel'">bevel</option>
+    <option value="miter" :selected="lineJoin=='miter'">miter</option>
+  </select>
+  changeItem: function(e) {
+    //console.log(e.target.name, e.target.value);
+    gS.$emit('styleUpdate', {[e.target.name]: e.target.value});
+  },

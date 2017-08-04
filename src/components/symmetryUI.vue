@@ -1,36 +1,39 @@
 <template>
-  <div>
+  <div id="symmetryUI">
+    <span style="font-variant: small-caps;">symmetries</span><br>
+
     <es-button name="none" :selected="cursym" @bclick="changeSym"></es-button>
-    <es-button name="rosette" :selected="cursym" @bclick="changeSym"></es-button><br>
+    <es-button name="rosette" :selected="cursym" @bclick="changeSym"></es-button>
+    <span :style="showPointParams">
+      <es-numfield param="Nrot" :val="symmState.Nrot" size="2" @numchange="update"></es-numfield>
+      <es-numfield param="Nref" :val="symmState.Nref" size="2" @numchange="update"></es-numfield>
+      <!--<es-numfield param="rot" label="&theta;" :val="rot" @numchange="update"></es-numfield>-->
+    </span>
+    <br>
     <!--Rotation Free<br>-->
     <es-button name="p1" :selected="cursym" @bclick="changeSym"></es-button>
-    <es-button name="diagonalgrid" :selected="cursym" @bclick="changeSym">diaggrid</es-button>
+    <es-button name="hexgrid" :selected="cursym" @bclick="changeSym">p1<i>hex</i></es-button>
+    <es-button name="diagonalgrid" :selected="cursym" @bclick="changeSym">p1<i>diag</i></es-button>
     <es-button name="pm" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="cm" :selected="cursym" @bclick="changeSym"></es-button>
-    <es-button name="pg" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="pg" :selected="cursym" @bclick="changeSym"></es-button><br>
     <!--<br>180&deg;</br>-->
     <es-button name="pmg" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="pgg" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="pmm" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="p2" :selected="cursym" @bclick="changeSym"></es-button>
-    <es-button name="cmm" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="cmm" :selected="cursym" @bclick="changeSym"></es-button><br>
     <!--<br>Square<br>-->
     <es-button name="p4" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="p4g" :selected="cursym" @bclick="changeSym"></es-button>
-    <es-button name="p4m" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="p4m" :selected="cursym" @bclick="changeSym"></es-button><br>
     <!--<br>Hexagonal<br>-->
-    <es-button name="hexgrid" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="p3" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="p6" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="p31m" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="p3m1" :selected="cursym" @bclick="changeSym"></es-button>
-    <es-button name="p6m" :selected="cursym" @bclick="changeSym"></es-button>
-    <br>
+    <es-button name="p6m" :selected="cursym" @bclick="changeSym"></es-button><br>
 
-    <es-button name="grid"   :selected="curtool" @bclick="changeTool">
-      grid adjust
-    </es-button>
-    <br>
     <es-numfield param="X" :val="symmState.x" size="4" @numchange="update"></es-numfield>
     <es-numfield param="Y" :val="symmState.y" size="4" @numchange="update"></es-numfield>
 
@@ -40,13 +43,11 @@
           <es-numfield param="Ny" :val="Ny" @numchange="update"></es-numfield>-->
       <div class="button" @click="halveD">&frac12;</div>
       <div class="button" @click="doubleD">2x</div>
-    </span>
+    </span><br>
 
-    <span :style="showPointParams">
-      <es-numfield param="Nrot" :val="symmState.Nrot" size="2" @numchange="update"></es-numfield>
-      <es-numfield param="Nref" :val="symmState.Nref" size="2" @numchange="update"></es-numfield>
-      <!--<es-numfield param="rot" label="&theta;" :val="rot" @numchange="update"></es-numfield>-->
-    </span>
+    <es-button name="grid"   :selected="curtool" @bclick="changeTool">
+      grid adjust
+    </es-button>
 
   </div>
 </template>
@@ -67,18 +68,12 @@ export default {
     cursym: function(){ return this.symmState.sym; },
     curtool: function(){ return this.params.curTool; },
     showPointParams: function(){
-      if(gS.symmState.sym == "rosette"){
-          return {display: "inline"}
-      } else {
-        return {display: "none"}
-      }
+      return {visibility: this.symmState.sym == "rosette" ? "visible" : "hidden"};
     },
     showGridParams: function(){
-      if(gCONSTS.TILINGSYMS.includes(this.symmState.sym)){
-        return {display: "inline"}
-      } else {
-        return {display: "none"}
-      }
+      return {visibility:
+               gCONSTS.TILINGSYMS.includes(this.symmState.sym) ? "visible" : "hidden"
+             };
     }
   },
   methods: {

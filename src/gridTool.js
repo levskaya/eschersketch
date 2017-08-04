@@ -55,6 +55,10 @@ export class GridTool {
     updateSymmetry(gS.symmState);
   }
 
+  cancel(){ //not used, just here for consistency
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+  }
+
   mouseDown(e) {
     e.preventDefault();
     let rect = livecanvas.getBoundingClientRect();

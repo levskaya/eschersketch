@@ -338,23 +338,26 @@ const switchTool = function(toolName, op){
 
 const undo = function(){
   console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
-  if(gS.cmdstack.length > undo_init_bound){
+  //if(gS.cmdstack.length > undo_init_bound){
     drawTools[gS.params.curTool].commit();  //commit live tool op
     let cmd = gS.cmdstack.pop(); //now remove it
-    gS.redostack.push(cmd);
-    if(gS.cmdstack.length>0){
-      let cmd2 = gS.cmdstack.pop(); //get last op
-      rerender(ctx); //rebuild history
-      switchTool(cmd2.tool, cmd2); //enter()s and exit()s
-    } else {
-      drawTools[gS.params.curTool].exit();
-      rerender(ctx); //rebuild history
-      lctx.clearRect(0, 0, canvas.width, canvas.height);
+    if(cmd){ // if at first step with INIT tool, may not have anything, abort!
+      gS.redostack.push(cmd);
+      if(gS.cmdstack.length>0){
+        let cmd2 = gS.cmdstack.pop(); //get last op
+        rerender(ctx); //rebuild history
+        switchTool(cmd2.tool, cmd2); //enter()s and exit()s
+      } else {
+        drawTools[gS.params.curTool].exit();
+        rerender(ctx); //rebuild history
+        lctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
     }
-  } else {
+  //}
+  /*else {
       drawTools[gS.params.curTool].exit();
       lctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+  }*/
   console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
 };
 

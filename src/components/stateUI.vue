@@ -20,10 +20,10 @@
       </div>
     </template>
     <template v-else>
-        <span><img src="static/svg/es_logo.svg" height="25px" style="margin-bottom:-8px; padding:0px"/></span>
+        <span class="eslogo"><img src="static/svg/es_logo.svg" height="25px" style="margin-bottom:-8px; padding:0px"/></span>
     </template>
 
-    <div class="button"  @click="help"   title="help" key="stateui-help-button"><b>¿?</b></div>
+    <div class="button" @click="help" title="help" key="stateui-help-button"><b>¿?</b></div>
 
     <template v-if="params.fullUI">
       <div class="button"  @click="config" title="settings"><span class="icon-cog"></span></div>

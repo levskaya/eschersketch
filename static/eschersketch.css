@@ -63,31 +63,24 @@ input {
     top: 0px;
     left: 0px;
     z-index: 2;
-    //width: 270px;
-    //height: 100%;
-    //margin: 10px;
+    /*width: 270px;
+    height: 100%;
+    margin: 10px;*/
     padding: 10px;
     background: rgba(245,245,245,0.9);
 }
-/*
-@media (max-width: 768px) and (min-width:425px) {
-  #sketch-UI {
-    width: 280px;
-  }
-}
-@media (max-width: 425px) {
-  #sketch-UI {
-    width: 100%
-  }
-}*/
 
 .max-UI {  width: 250px;  }
 @media (max-width: 768px) and (min-width:425px) { .max-UI {  width: 280px;  } }
 @media (max-width: 425px) {                       .max-UI {  width: 100%    } }
 .min-UI {  width: 320px;  }
-@media (max-width: 768px) and (min-width:425px) { .min-UI {  width: 280px;  } }
+@media (max-width: 768px) and (min-width:425px) { .min-UI {  width: 360px;  } }
 @media (max-width: 425px) {                       .min-UI {  width: 100%    } }
 
+@media (max-width: 358px) {
+  .eslogo {display: none;}
+  #sketch-UI .button {margin:0px;}
+} /* HACK for tiny screens...*/
 
 
 .button {

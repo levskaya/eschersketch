@@ -1,5 +1,5 @@
 <template>
-  <div id="toolUI">
+  <div id="toolUI" :style="panelStyle">
     <span style="font-variant: small-caps;">drawing tools</span><br>
 
     <es-button name="pencil" :selected="curtool" @bclick="changeTool">
@@ -33,7 +33,10 @@ export default {
   props: ['params'],
   components: {'es-button': es_button},
   computed:{
-    curtool: function(){ return this.params.curTool; }
+    curtool: function(){ return this.params.curTool; },
+    panelStyle: function() {
+      return {display: this.params.showTool ? "block" : "none"};
+    }
   },
   methods: {
     changeTool: function(toolName){

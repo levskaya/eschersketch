@@ -66,7 +66,9 @@ const _MOVE_ = 3;
 //      is selected
 
 // XXX: Below is a crazy mess... need to refactor storage format of path into
-// something more amenable for traversal and editing.
+// something more amenable for traversal and editing.  e.g.:
+// Not path descriptor segments, but a list of vertices, each with its two control points
+// associated
 export class PathTool {
   constructor() {
     this.ops = [];

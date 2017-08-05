@@ -13,29 +13,23 @@ body {
     padding: 0;
     height: 100%;
     width: 100%;
-    //overflow: hidden;
-    //font-family: Helvetica, Arial, sans-serif;
-    font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,
+                Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size: 14px;
 }
-
 input {
   font-size: 14px;
 }
 
 @media (max-width: 768px) {
   body {
-    font-size: 18px;
+    font-size: 20px;
   }
   input {
-    font-size: 18px;
+    font-size: 20px;
   }
 }
 
-//ul{ padding: 0 1em; margin: 1.1em 0; list-style: none; }
-//li { line-height: 15px; color: #444; }
-//li > span { font-size: 1.4em; color: #000; }
-//i { color: #000; }
 a { color: #a44; text-decoration: none; }
 a:hover, a.enabled { color: #f00; }
 
@@ -68,12 +62,33 @@ input {
     position: absolute;
     top: 0px;
     left: 0px;
-    width: 250px;
+    z-index: 2;
+    //width: 270px;
     //height: 100%;
     //margin: 10px;
     padding: 10px;
     background: rgba(245,245,245,0.9);
 }
+/*
+@media (max-width: 768px) and (min-width:425px) {
+  #sketch-UI {
+    width: 280px;
+  }
+}
+@media (max-width: 425px) {
+  #sketch-UI {
+    width: 100%
+  }
+}*/
+
+.max-UI {  width: 250px;  }
+@media (max-width: 768px) and (min-width:425px) { .max-UI {  width: 280px;  } }
+@media (max-width: 425px) {                       .max-UI {  width: 100%    } }
+.min-UI {  width: 320px;  }
+@media (max-width: 768px) and (min-width:425px) { .min-UI {  width: 280px;  } }
+@media (max-width: 425px) {                       .min-UI {  width: 100%    } }
+
+
 
 .button {
     border:1px solid #ddd;

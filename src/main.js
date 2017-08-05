@@ -68,15 +68,17 @@ export const gS = new Vue({
     // random global UI state variables
     params: {
       curTool: 'pencil',         // Tool State
-      showUI: true,
+      fullUI: true,
+      showTool: true,
       showColor: true,
       showLine: true,
       showSymm: true,
+      showFile: true,
       showHelp: false,
       showConfig: false,
     },
     options: {
-      dynamicGridSize: true      // recalculate grid Nx,Ny on grid delta change
+      //dynamicGridSize: true      // recalculate grid Nx,Ny on grid delta change
       //pngTileUpsample: 4,
       //svgGriSize: [10,10],
       //pngGridSize: [40,40]
@@ -139,23 +141,38 @@ gS.$on('toolUpdate',
 gS.$on('undo', function(){ undo(); });
 gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){ reset(); });
-gS.$on('toggleUI', function() {  // HACK: until everything wrapped by vue
+
+// Pure UI Events
+//------------------------------------------------------------------------------------------
+gS.$on('toggleUI', function() {
   console.log("toggleUI");
-  if(gS.params.showUI){
-    gS.params.showUI = false;
-    document.getElementById("controls").style.display="none";
+  if(gS.params.fullUI){
+    document.getElementById("sketch-UI").classList.remove("max-UI");
+    document.getElementById("sketch-UI").classList.add("min-UI");
+    gS.params.fullUI = false;
+    gS.params.showTool = false;
+    gS.params.showColor = false;
+    gS.params.showLine = false;
+    gS.params.showSymm = false;
+    gS.params.showFile = false;
   } else {
-    gS.params.showUI = true;
-    document.getElementById("controls").style.display="block";
+    document.getElementById("sketch-UI").classList.remove("min-UI");
+    document.getElementById("sketch-UI").classList.add("max-UI");
+    gS.params.fullUI = true;
+    gS.params.showTool = true;
+    gS.params.showColor = true;
+    gS.params.showLine = true;
+    gS.params.showSymm = true;
+    gS.params.showFile = true;
   }});
 gS.$on('help', function(){
   console.log("help");
   gS.params.showHelp = ! gS.params.showHelp;
 });
 gS.$on('config', function(){ gS.params.showConfig = ! gS.params.showConfig; });
+gS.$on('toggleParam', function(paramName) { gS.params[paramName] = ! gS.params[paramName] });
 
-// HACK: for debugging
-window.gS=gS;
+window.gS=gS;  // HACK: for debugging
 
 
 // Canvas / Context Globals
@@ -274,6 +291,16 @@ const dispatchKeyDown = function(e) {
   }
 };
 
+//document.getElementsByTagName("body").onresize = function() { console.log("resized!"); onResize();};
+//var throttledOnResize = _.throttle(onResize, 400, {trailing: false});
+window.addEventListener('orientationchange', function(){
+  console.log("orientation change");
+  onResize();
+});
+window.addEventListener('resize', function(){
+    console.log("resize");
+    onResize();
+  });
 
 // Command Stack
 //------------------------------------------------------------------------------
@@ -475,9 +502,9 @@ export const savePNGTile = function(){
 import stateUi from './components/stateUI';
 var vueSym = new Vue({
   el: '#stateUI',
-  template: '<state-ui :showUI="showUI"/>',
+  template: '<state-ui :params="params"/>',
   components: { stateUi },
-  data: gS.params//{params: gS.params}
+  data: {params: gS.params}
 });
 
 
@@ -517,9 +544,10 @@ var vueSym = new Vue({
 import styleUi from './components/styleUI';
 var vueStyle = new Vue({
   el: '#styleUI',
-  template: '<style-ui :lineWidth="lineWidth" :miterLimit="miterLimit" :lineJoin="lineJoin" :lineCap="lineCap"/>',
+  //  template: '<style-ui :lineWidth="lineWidth" :miterLimit="miterLimit" :lineJoin="lineJoin" :lineCap="lineCap"/>',
+    template: '<style-ui :ctxStyle="ctxStyle" :params="params"/>',
   components: {styleUi},
-  data: gS.ctxStyle
+  data: { ctxStyle: gS.ctxStyle, params: gS.params }
 });
 
 // Color UI
@@ -527,21 +555,17 @@ var vueStyle = new Vue({
 import colorUi from './components/colorUI';
 var vueColor = new Vue({
   el: '#colorUI',
-  template: `<color-ui :strokeColor="strokeColor" :fillColor="fillColor"/>`,
+  template: `<color-ui :params="params" :strokeColor="strokeColor" :fillColor="fillColor"/>`,
   components: {colorUi},
-  /*data: {strokeColor: gS.strokecolor,
-         fillColor: gS.fillcolor},
-         */
+  data: {params: gS.params},
   computed: { strokeColor:
       function(){
         let tmp = [].concat(parseColor(gS.ctxStyle.strokeStyle));
-        //console.log('ui-strokeColor', tmp);
         return {r:tmp[0], g:tmp[1], b:tmp[2], a:tmp[3]};
       },
       fillColor:
       function(){
         let tmp = [].concat(parseColor(gS.ctxStyle.fillStyle));
-        //console.log('ui-fillColor ',tmp);
         return {r:tmp[0], g:tmp[1], b:tmp[2], a:tmp[3]};
       }
   }
@@ -552,11 +576,46 @@ var vueColor = new Vue({
 import fileUi from './components/fileUI';
 var vueFile = new Vue({
   el: '#fileUI',
-  template: '<file-ui />',
+  data: {params: gS.params},
+  template: '<file-ui :params="params"/>',
   components: {fileUi},
 });
 
+var vueEnd = new Vue({
+  el: '#endcomments',
+  data: {params: gS.params},
+  computed: {displayMe: function(){ return {display: this.params.fullUI ? "block" : "none"}} },
+  template: `<div :style="displayMe"><br><br>
+              <div style="font-size:10px;text-align:center;">Anselm Levskaya &copy; 2017</div>
+            </div>`,
+});
 
+var onResize = function() { // also for onResize !
+  drawTools[gS.params.curTool].commit();  //commit live tool op first!
+  let w = window.innerWidth;
+  let h = window.innerHeight;
+  console.log("window innerDims ", w, h);
+  gCONSTS.CANVAS_WIDTH = w;
+  gCONSTS.CANVAS_HEIGHT = h;
+  canvas.width = w;
+  canvas.height = h;
+  livecanvas.width = w;
+  livecanvas.height = h;
+  pixelratio = pixelFix(canvas);
+  pixelFix(livecanvas);
+
+  // restore context state to live canvas
+  _.assign(lctx, gS.ctxStyle);
+  // recalculate grid replicates
+  gS.symmState.Nx = Math.round((w / gS.symmState.d)*2);
+  gS.symmState.Ny = Math.round((h / gS.symmState.d)*2);
+  console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
+
+  // now update global affineset and rerender ctx and live ctx
+  updateSymmetry(_.clone(gS.symmState));
+  rerender(ctx);
+  drawTools[gS.params.curTool].liverender();
+}
 
 // set up initial context and symmetry
 const initState = function() {

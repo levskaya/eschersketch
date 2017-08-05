@@ -1,5 +1,5 @@
 <template>
-<div id="fileUI">
+<div id="fileUI" :style="panelStyle">
   <span style="font-variant: small-caps;">export</span><br>
 
   <div id="saveSVG" class="button" @mousedown="saveSVG">
@@ -41,12 +41,15 @@ import {_} from 'underscore';
 //document.getElementById("saveSVGtile").onmousedown = function(e) { saveSVGTile(); };
 
 export default {
-  props: [],
+  props: ['params'],
   components: {
     'es-button': es_button,
     'es-numfield': es_numfield
   },
   computed: {
+    panelStyle: function() {
+      return {display: this.params.showFile ? "block" : "none"};
+    }
   },
   methods:{  //XXX: dirty, need to move all of these to top-level "$emit" calls
     savePNG: function() { savePNG(); },

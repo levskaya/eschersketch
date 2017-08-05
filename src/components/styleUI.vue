@@ -1,33 +1,33 @@
 <template>
-  <div id="styleUI">
+  <div id="styleUI" :style="panelStyle">
 
     <span style="font-variant: small-caps;">line</span><br>
-    width <input type="range" :value="lineWidth"
+    width <input type="range" :value="ctxStyle.lineWidth"
            :min="min" :max="max" :step="step" :name="name" @change="changethick">
     <span>{{roundedLineWidth}}</span> <br>
 
-    <es-button name="butt" :selected="lineCap" @bclick="changeCap">
+    <es-button name="butt" :selected="ctxStyle.lineCap" @bclick="changeCap">
       <span class="icon-linecap-butt"/>
     </es-button>
-    <es-button name="round" :selected="lineCap" @bclick="changeCap">
+    <es-button name="round" :selected="ctxStyle.lineCap" @bclick="changeCap">
       <span class="icon-linecap-round"/>
     </es-button>
-    <es-button name="square" :selected="lineCap" @bclick="changeCap">
+    <es-button name="square" :selected="ctxStyle.lineCap" @bclick="changeCap">
       <span class="icon-linecap-square"/>
     </es-button>
 
-    <es-button name="round" :selected="lineJoin" @bclick="changeJoin">
+    <es-button name="round" :selected="ctxStyle.lineJoin" @bclick="changeJoin">
       <span class="icon-linejoin-round"/>
     </es-button>
-    <es-button name="bevel" :selected="lineJoin" @bclick="changeJoin">
+    <es-button name="bevel" :selected="ctxStyle.lineJoin" @bclick="changeJoin">
       <span class="icon-linejoin-bevel"/>
     </es-button>
-    <es-button name="miter" :selected="lineJoin" @bclick="changeJoin">
+    <es-button name="miter" :selected="ctxStyle.lineJoin" @bclick="changeJoin">
       <span class="icon-linejoin-miter"/>
     </es-button>
 
-    <template v-if="lineJoin=='miter'">
-      <es-numfield param="miterLimit" label="limit" :val="miterLimit" size="3"
+    <template v-if="ctxStyle.lineJoin=='miter'">
+      <es-numfield param="miterLimit" label="limit" :val="ctxStyle.miterLimit" size="3"
                   @numchange="changeMiter"></es-numfield>
     </template>
 
@@ -40,7 +40,8 @@ import es_numfield from './es_numfield';
 import es_button from './es_button';
 
 export default {
-  props: ['lineWidth', 'miterLimit', 'lineCap', 'lineJoin'],
+  //props: ['lineWidth', 'miterLimit', 'lineCap', 'lineJoin'],
+  props: ['ctxStyle', 'params'],
   //data: function() {  return {linecap: "butt" }; },
   components: {
         'es-numfield': es_numfield,
@@ -55,26 +56,23 @@ export default {
   computed: {
     //deal with weird roundtrip floating point offset by rounding down
     roundedLineWidth: function(){
-      return Math.round(this.lineWidth*100)/100;
+      return Math.round(this.ctxStyle.lineWidth*100)/100;
+    },
+    panelStyle: function() {
+      return {display: this.params.showLine ? "block" : "none"};
     }
   },
   methods: {
     changethick: function({type, target}){
-      //console.log(target.value);
       gS.$emit('styleUpdate', {lineWidth: target.value});
     },
     changeCap:  function(capName){ gS.$emit('styleUpdate', {"lineCap": capName}); },
     changeJoin: function(joinName){ gS.$emit('styleUpdate', {"lineJoin": joinName}); },
-    //changeItem: function(e) {
-    //      gS.$emit('styleUpdate', {[e.target.name]: e.target.value});
-    //},
-    changeMiter: function(name, val){
-      //console.log(name, val);
-      gS.$emit('styleUpdate', {miterLimit: val});
-    }
+    changeMiter: function(name, val){ gS.$emit('styleUpdate', {miterLimit: val}); }
   }
-  }
+}
 </script>
+
 <style scoped>
 
 input {

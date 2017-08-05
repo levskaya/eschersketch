@@ -1,5 +1,5 @@
 <template>
-  <div id="symmetryUI">
+  <div id="symmetryUI" :style="panelStyle">
     <span style="font-variant: small-caps;">symmetries</span><br>
 
     <es-button name="none" :selected="cursym" @bclick="changeSym"></es-button>
@@ -74,6 +74,9 @@ export default {
       return {visibility:
                gCONSTS.TILINGSYMS.includes(this.symmState.sym) ? "visible" : "hidden"
              };
+    },
+    panelStyle: function() {
+      return {display: this.params.showSymm ? "block" : "none"};
     }
   },
   methods: {

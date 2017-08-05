@@ -1,6 +1,7 @@
 <template>
-  <div id="colorUI">
+  <div id="colorUI" :style="panelStyle">
     <span style="font-variant: small-caps;">color</span><br>
+
     <!-- buttons to select which color to pick -->
     <div class="button" :class="{selected: isStroke}" @mousedown="pickStroke">
       <span class="icon-stroke"></span>
@@ -40,15 +41,21 @@
 <script>
 import {gS} from '../main.js';
 import colorPicker from './colorPicker';
+
 export default {
-  props: ['strokeColor', 'fillColor'],
-  data: function() {return {isStroke: true}; },
   components: {colorPicker},
+  props: ['params', 'strokeColor', 'fillColor'],
+  data: function() {return {isStroke: true}; },
+  computed: {
+    panelStyle: function() {
+      return {display: this.params.showColor ? "block" : "none"};
+    }
+  },
   methods: {
     pickStroke: function({type, target}){ this.isStroke = true;  },
     pickFill:   function({type, target}){ this.isStroke = false; },
     nukeStroke: function(x){ gS.$emit('colorUpdate', {target: "stroke", r:0, g:0, b:0, a:0.0}); },
-    nukeFill: function(x){ gS.$emit('colorUpdate', {target: "fill", r:0, g:0, b:0, a:0.0}); }
+    nukeFill:   function(x){ gS.$emit('colorUpdate', {target: "fill",   r:0, g:0, b:0, a:0.0}); }
   },
 }
 </script>

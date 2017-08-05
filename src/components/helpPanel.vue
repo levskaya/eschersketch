@@ -1,79 +1,83 @@
 <template>
-<div id="helppanel" class="Absolute-Center" :style="helpDisplay">
-  <center><div class="button" @click="help" key="helpback1"><b>BACK TO ESCHERSKETCH</b></div></center>
-  <help-text/>
-  <center><div class="button" @click="help" key="helpback2"><b>BACK TO ESCHERSKETCH</b></div></center>
+<div id="helppanel" :style="helpDisplay">
+  <div class="button" @click="help" key="helpback1"><b>BACK TO ESCHERSKETCH</b></div>
+  <help-text>
+    <div slot="header" id="logocontainer">
+    <div class="spacer"></div>
+    <h2>escher</h2>
+    <div class="spacer"></div>
+    <img src="static/svg/es_logo.svg" class="helplogo" height="50px">
+    <div class="spacer"></div>
+    <h2>sketch <span style="font-size:50%">v0.3</span></h2>
+    <div class="spacer"></div>
+    </div>
+  </help-text>
+
+  <div class="button" @click="help" key="helpback2"><b>BACK TO ESCHERSKETCH</b></div>
 </div>
 </template>
 
 <script>
-//import es_numfield from './es_numfield';
-import es_button from './es_button';
-//import {gS, gCONSTS} from '../main.js';
-//import {_} from 'underscore';
-//import VueMarkdown from 'vue-markdown';
+import esButton from './es_button';
 import helpText from './help.md'
 
 export default {
   props: ['showHelp'],
-  //data: function(){ return {toggled: false, armed: false}; },
-  components: {
-    helpText,
-    //'vue-markdown': VueMarkdown,
-    'es-button': es_button,
-    //'es-numfield': es_numfield
-  },
-  computed:{
+  components: { helpText, esButton },
+  computed: {
     helpDisplay: function() {
-      if(this.showHelp){
-        return {display: "block"};
-      } else {
-        return {display: "none"};
-      }
+      return {display: this.showHelp ? "block" : "none"};
     }
   },
-  methods: { help: function(){ gS.$emit('help'); },
-}
+  methods: {
+    help: function(){ gS.$emit('help'); }
+  }
 }
 </script>
-<style scoped>
 
+<style>
 #helppanel {
   z-index:10;
-  padding:0 1% 0 1%;
-  //width:768px;
-  width: 60%;
-  background-color:rgba(245,245,245,1.0);
-}
-
-#helppanel > img.helplogo {
-  height:80px;
-  vertical-align:middle;
-  //margin-left:5%;
-  //margin-right:5%
-}
-
-.Absolute-Center {
+  padding:0 2% 0 2%;
   margin: auto;
   position: absolute;
   left: 0;
   right: 0;
+  width: 60%;
+  background-color:rgba(245,245,245,1.0);
+  display: flex;
+  align-content: start;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
 }
-
-
 @media (max-width: 768px) {
-#helppanel {
+  #helppanel {
+    width:100%;
+  }
+}
+
+#helppanel > .button {
+  display: block; /* wide button */
+  align-self: flex-start;
+  flex: 1 1 auto;
+}
+
+#logocontainer {
+  margin: auto;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
   width:100%;
-  //padding-left: 5%;
-  //padding-right: 5%;
 }
-#helppanel > img.helplogo {
-  height:40px;
-  //width: 40px;
-  vertical-align:middle;
-  //margin-left:1%;
-  //margin-right:1%
+#logocontainer  h2, #logocontainer img {
+  align-self: flex-start;
+  flex: 0 1 auto;
 }
+#logocontainer .spacer{
+  align-self: flex-start;
+  flex: 0 1 1rem;
 }
 
 </style>

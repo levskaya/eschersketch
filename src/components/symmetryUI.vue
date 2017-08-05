@@ -38,9 +38,11 @@
     <es-numfield param="Y" :val="symmState.y" size="4" @numchange="update"></es-numfield>
 
     <span :style="showGridParams">
+      <template v-if="!options.dynamicGridSize">
+        <es-numfield param="Nx" :val="symmState.Nx" @numchange="update" size="2"></es-numfield>
+        <es-numfield param="Ny" :val="symmState.Ny" @numchange="update" size="2"></es-numfield><br>
+      </template>
       <es-numfield param="d" label="&Delta;" :val="symmState.d" size="3" @numchange="update"></es-numfield>
-      <!--<es-numfield param="Nx" :val="Nx" @numchange="update"></es-numfield>
-          <es-numfield param="Ny" :val="Ny" @numchange="update"></es-numfield>-->
       <div class="button" @click="halveD">&frac12;</div>
       <div class="button" @click="doubleD">2x</div>
     </span><br>
@@ -59,7 +61,7 @@ import {gS, gCONSTS} from '../main.js';
 import {_} from 'underscore';
 
 export default {
-  props: ['symmState','params'],
+  props: ['symmState','params', 'options'],
   components: {
     'es-button': es_button,
     'es-numfield': es_numfield

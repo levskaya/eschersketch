@@ -3,7 +3,7 @@
 
     <span style="font-variant: small-caps;">line</span><br>
     width <input type="range" :value="ctxStyle.lineWidth"
-           :min="min" :max="max" :step="step" :name="name" @change="changethick">
+           :min="min" :max="options.maxLineWidth" :step="step" :name="name" @input="changethick">
     <span>{{roundedLineWidth}}</span> <br>
 
     <es-button name="butt" :selected="ctxStyle.lineCap" @bclick="changeCap">
@@ -41,14 +41,14 @@ import es_button from './es_button';
 
 export default {
   //props: ['lineWidth', 'miterLimit', 'lineCap', 'lineJoin'],
-  props: ['ctxStyle', 'params'],
+  props: ['ctxStyle', 'params', 'options'],
   //data: function() {  return {linecap: "butt" }; },
   components: {
         'es-numfield': es_numfield,
         'es-button': es_button,
   },
   created: function(){
-    this.max = gCONSTS.MAX_LINEWIDTH;
+    //this.max = gS.options.maxLineWidth //gCONSTS.MAX_LINEWIDTH;
     this.min = gCONSTS.MIN_LINEWIDTH;
     this.step = gCONSTS.DELTA_LINEWIDTH;
     this.name = "styleUI";

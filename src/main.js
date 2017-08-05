@@ -19,6 +19,7 @@ import Pressure from 'pressure';
 import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
 
+import {deepClone} from './utils';
 import {pixelFix, setCanvasPixelDensity, parseColor} from './canvas_utils';
 import {generateTiling, planarSymmetries, RosetteGroup, IdentitySet} from './symmetryGenerator';
 
@@ -78,11 +79,16 @@ export const gS = new Vue({
       showConfig: false,
     },
     options: {
-      //dynamicGridSize: true      // recalculate grid Nx,Ny on grid delta change
-      //pngTileUpsample: 4,
-      //svgGriSize: [10,10],
-      //pngGridSize: [40,40]
-      //pngUpsample: 2,
+      maxLineWidth: 10,
+      dynamicGridSize: true,      // recalculate grid Nx,Ny on grid delta change
+      maxGridNx: 50,
+      maxGridNy: 50,
+      pngTileUpsample: 4,
+      //pngUpsample: 2,    //TODO: implement complete redraw for whole frame PNG export
+      //pngGridNx: 20,
+      //pngGridNy: 20,
+      svgGridNx: 10,
+      svgGridNy: 10,
     },
     // Symmetry State
     //-------------------------------
@@ -138,6 +144,7 @@ gS.$on('toolUpdate',
        function(tool){
          changeTool(tool);
        });
+gS.$on('optionsUpdate', function(name, val){ gS.options[name] = val; });
 gS.$on('undo', function(){ undo(); });
 gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){ reset(); });
@@ -200,8 +207,8 @@ export const updateSymmetry = function(symmState) {
     let newNx = Math.round((gCONSTS.CANVAS_WIDTH  / gS.symmState.d)*2);
     let newNy = Math.round((gCONSTS.CANVAS_HEIGHT / gS.symmState.d)*2);
     // basic safety so as not to grind CPU to a halt...
-    gS.symmState.Nx = newNx < 50 ? newNx : 50;
-    gS.symmState.Ny = newNy < 50 ? newNy : 50;
+    gS.symmState.Nx = newNx < gS.options.maxGridNx ? newNx : gS.options.maxGridNx;
+    gS.symmState.Ny = newNy < gS.options.maxGridNy ? newNy : gS.options.maxGridNy;
     console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
   }
 
@@ -311,12 +318,27 @@ window.addEventListener('resize', function(){
 */
 var undo_init_bound = 0;
 
-export const rerender = function(ctx, clear=true) {
+export const rerender = function(ctx, {clear=true, modifier=null}={}) {
   if(clear){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
-  for(var cmd of gS.cmdstack){
-    cmd.render(ctx);
+  // Allow passing in modifier of op state
+  // modifier can return a single op or a new array of ops
+  if(modifier){
+    for(let cmd of gS.cmdstack){
+      let modcmd = modifier(cmd);
+      if(_.isArray(modcmd)){
+          for(let subcmd of modcmd){
+            subcmd.render(ctx);
+          }
+      } else {
+        modcmd.render(ctx);
+      }
+    }
+  } else {
+    for(let cmd of gS.cmdstack){
+      cmd.render(ctx);
+    }
   }
 };
 
@@ -338,26 +360,20 @@ const switchTool = function(toolName, op){
 
 const undo = function(){
   console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
-  //if(gS.cmdstack.length > undo_init_bound){
-    drawTools[gS.params.curTool].commit();  //commit live tool op
-    let cmd = gS.cmdstack.pop(); //now remove it
-    if(cmd){ // if at first step with INIT tool, may not have anything, abort!
-      gS.redostack.push(cmd);
-      if(gS.cmdstack.length>0){
-        let cmd2 = gS.cmdstack.pop(); //get last op
-        rerender(ctx); //rebuild history
-        switchTool(cmd2.tool, cmd2); //enter()s and exit()s
-      } else {
-        drawTools[gS.params.curTool].exit();
-        rerender(ctx); //rebuild history
-        lctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-    }
-  //}
-  /*else {
+  drawTools[gS.params.curTool].commit();  //commit live tool op
+  let cmd = gS.cmdstack.pop(); //now remove it
+  if(cmd){ // if at first step with INIT tool, may not have anything, abort!
+    gS.redostack.push(cmd);
+    if(gS.cmdstack.length>0){
+      let cmd2 = gS.cmdstack.pop(); //get last op
+      rerender(ctx); //rebuild history
+      switchTool(cmd2.tool, cmd2); //enter()s and exit()s
+    } else {
       drawTools[gS.params.curTool].exit();
+      rerender(ctx); //rebuild history
       lctx.clearRect(0, 0, canvas.width, canvas.height);
-  }*/
+    }
+  }
   console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
 };
 
@@ -435,7 +451,14 @@ export const renderImage = function(file) {
 export const saveSVG = function() {
   // canvas2svg fake context:
   var C2Sctx = new C2S(canvas.width, canvas.height);
-  rerender(C2Sctx);
+  // prevent recursion stack limit by constraining number of repeats exported
+  let gridLimiter = function(op) {
+    let newop = ressurectOp(deepClone(op));
+    newop.symmState.Nx = gS.options.svgGridNx;
+    newop.symmState.Ny = gS.options.svgGridNy;
+    return newop;
+  }
+  rerender(C2Sctx, {modifier: gridLimiter});
   //serialize the SVG
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
   //save text blob as SVG
@@ -461,7 +484,15 @@ export const saveSVGTile = function() {
   C2Sctx.lineTo(gS.symmState.x, gS.symmState.y+dY);
   C2Sctx.closePath();
   C2Sctx.clip();*/
-  rerender(C2Sctx);
+
+  // prevent recursion stack limit by constraining number of repeats exported
+  let gridLimiter = function(op) {
+    let newop = ressurectOp(deepClone(op));
+    newop.symmState.Nx = gS.options.svgGridNx;
+    newop.symmState.Ny = gS.options.svgGridNy;
+    return newop;
+  }
+  rerender(C2Sctx, modifier=gridLimiter);
   //serialize the SVG
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
   //save text blob as SVG
@@ -475,9 +506,19 @@ export const savePNG = function() {
   canvas.toBlobHD(blob => saveAs(blob, "eschersketch.png"));
 };
 
+
+// Makes transparent fill objects look cleaner by rendering fills first then strokes
+const cleanLinesModifier = function(op){
+    let strokeOp = ressurectOp(deepClone(op));
+    let fillOp = ressurectOp(deepClone(op));
+    fillOp.ctxStyle.strokeStyle = "rgba(0,0,0,0.0)"
+    strokeOp.ctxStyle.fillStyle = "rgba(0,0,0,0.0)"
+    return [fillOp, strokeOp];
+}
+
 // Export small, hi-res, square-tileable PNG
 export const savePNGTile = function(){
-  const pixelScale = 4; // pixel density scaling factor
+  const pixelScale = gS.options.pngTileUpsample; // pixel density scaling factor
 
   // get square tile dimensions
   let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
@@ -493,6 +534,7 @@ export const savePNGTile = function(){
   tctx.scale(pixelScale, pixelScale);
   tctx.translate(-1*gS.symmState.x, -1*gS.symmState.x);
   //rerender scene and export bitmap
+  //rerender(tctx, {modifier: cleanLinesModifier}); //XXX: very clean effect!
   rerender(tctx);
   tileCanvas.toBlobHD(blob => saveAs(blob, "eschersketch_tile.png"));
   tileCanvas.remove();
@@ -510,8 +552,17 @@ var vueSym = new Vue({
   data: {params: gS.params}
 });
 
+// Config UI
+//------------------------------------------------------------------------------
+import configUi from './components/configUI';
+var vueSym = new Vue({
+  el: '#configUI',
+  template: '<config-ui :options="options" :params="params"/>',
+  components: { configUi },
+  data: {options: gS.options, params: gS.params}
+});
 
-// Top State Control UI
+// Floating Overlay Help Panel
 //------------------------------------------------------------------------------
 import helpPanel from './components/helpPanel';
 var vueHelpPanel = new Vue({
@@ -537,9 +588,9 @@ var vueSym = new Vue({
 import symmetryUi from './components/symmetryUI';
 var vueSym = new Vue({
   el: '#symUI',
-  template: '<symmetry-ui :symmState="symmState" :params="params"/>',
+  template: '<symmetry-ui :symmState="symmState" :params="params" :options="options"/>',
   components: { symmetryUi },
-  data: {symmState: gS.symmState, params: gS.params}
+  data: {symmState: gS.symmState, params: gS.params, options: gS.options}
 });
 
 // Line Styling UI
@@ -548,9 +599,9 @@ import styleUi from './components/styleUI';
 var vueStyle = new Vue({
   el: '#styleUI',
   //  template: '<style-ui :lineWidth="lineWidth" :miterLimit="miterLimit" :lineJoin="lineJoin" :lineCap="lineCap"/>',
-    template: '<style-ui :ctxStyle="ctxStyle" :params="params"/>',
+    template: '<style-ui :ctxStyle="ctxStyle" :params="params" :options="options"/>',
   components: {styleUi},
-  data: { ctxStyle: gS.ctxStyle, params: gS.params }
+  data: { ctxStyle: gS.ctxStyle, params: gS.params, options: gS.options }
 });
 
 // Color UI
@@ -584,7 +635,7 @@ var vueFile = new Vue({
   components: {fileUi},
 });
 
-var vueEnd = new Vue({
+var vueEnd = new Vue({ //XXX: a bit crufty this...
   el: '#endcomments',
   data: {params: gS.params},
   computed: {displayMe: function(){ return {display: this.params.fullUI ? "block" : "none"}} },
@@ -593,7 +644,7 @@ var vueEnd = new Vue({
             </div>`,
 });
 
-var onResize = function() { // also for onResize !
+var onResize = function() { // also for onOrientationChange !
   drawTools[gS.params.curTool].commit();  //commit live tool op first!
   let w = window.innerWidth;
   let h = window.innerHeight;
@@ -610,9 +661,9 @@ var onResize = function() { // also for onResize !
   // restore context state to live canvas
   _.assign(lctx, gS.ctxStyle);
   // recalculate grid replicates
-  gS.symmState.Nx = Math.round((w / gS.symmState.d)*2);
-  gS.symmState.Ny = Math.round((h / gS.symmState.d)*2);
-  console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
+  gS.symmState.Nx = Math.round((w / gS.symmState.d)*2); //redundant I think
+  gS.symmState.Ny = Math.round((h / gS.symmState.d)*2); //redundant I think
+  console.log("grid Nx,Ny ", gS.symmState.Nx, gS.symmState.Ny); //redundant I think
 
   // now update global affineset and rerender ctx and live ctx
   updateSymmetry(_.clone(gS.symmState));

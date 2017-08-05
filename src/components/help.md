@@ -1,11 +1,9 @@
-<h2 style="text-align:center;font-variant:small-caps;">
-escher
-<img src="static/svg/es_logo.svg" class="helplogo" height="50px">
-sketch <span style="font-size:50%">v0.3</span></h2>
+<slot name="header"></slot>
 
-## what is this?
+## What is this?
 
-A drawing program that forces what you draw to obey certain __Symmmetries__, or regular patterns.  It allows for export
+
+A drawing program that forces what you draw to obey certain __symmetries__, or regular patterns.  It allows for export
 into a bitmap PNG Tile for use with fabric design and wallpaper as well as SVG for graphic design.
 
 ## Undo / Redo
@@ -115,6 +113,8 @@ The __grid adjustment__ tool allows to you move the "center" of the point-symmet
 * __LOAD JSON__ This loads a file saved by the above and reconstructs the exact image produced previously.
 
 Because these serialize straight from Eschersketch's internal representation, these formats are __not__ stable, and could change dramatically while as Eschersketch is developed in the online version.  Save in SVG for a more durable format, unless you want to download and run the Eschersketch codebase itself.
+
+<slot name="footer"></slot>
 
 [1]: https://en.wikipedia.org/wiki/Point_group
 [2]: https://en.wikipedia.org/wiki/Wallpaper_group

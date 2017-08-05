@@ -1,19 +1,21 @@
 <template>
   <div id="configUI" :style="panelStyle">
-    <span style="font-variant: small-caps;">Options</span><br>
+    <br><span style="font-variant: small-caps;">Options</span><br><br>
 
+    <b>draw options</b><br>
     <es-numfield param="maxLineWidth" :val="options.maxLineWidth" size="2" @numchange="update">Max line width</es-numfield><br>
 
+    <b>grid options</b><br>
     <es-checkbox param="dynamicGridSize" :val="options.dynamicGridSize" @checked="update">Dynamically Resize Grid?</es-checkbox><br>
     <es-numfield param="maxGridNx" :val="options.maxGridNx" size="2" @numchange="update">Max Dynamic Grid Nx</es-numfield> <i>careful</i> <br>
     <es-numfield param="maxGridNy" :val="options.maxGridNy" size="2" @numchange="update">Max Dynamic Grid Ny</es-numfield> <i>careful</i> <br>
 
-    <h5>export options</h5>
+    <b>export options</b><br>
     <es-numfield param="pngTileUpsample" :val="options.pngTileUpsample" size="1" @numchange="update">PNG Tile Upsample Factor</es-numfield><br>
     <!--<es-numfield param="pngUpSample" :val="options.pngUpsample" size="1" @numchange="update">PNG Upsample Factor</es-numfield><br>-->
     <es-numfield param="svgGridNx" :val="options.svgGridNx" size="2" @numchange="update">SVG Export Grid Nx</es-numfield> <i>careful</i> <br>
     <es-numfield param="svgGridNy" :val="options.svgGridNy" size="2" @numchange="update">SVG Export Grid Ny</es-numfield> <i>careful</i> <br>
-
+    <br>
   </div>
 </template>
 
@@ -46,7 +48,7 @@ export default {
   display: flex;
   align-content: start;
   flex-flow: row wrap;
-  align-items: center;
+  align-items: baseline; /*center;*/
   justify-content: flex-start;
 }
 </style>

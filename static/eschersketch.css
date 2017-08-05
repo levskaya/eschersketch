@@ -33,10 +33,6 @@ input {
 a { color: #a44; text-decoration: none; }
 a:hover, a.enabled { color: #f00; }
 
-input {
-    vertical-align:text-top;
-}
-
 #sketch-container {
     margin: 0;
     padding: 0;
@@ -47,11 +43,7 @@ input {
     height: 100%;
     overflow: hidden;
 }
-#sketchrender {
-    position: absolute;
-    cursor: crosshair;
-}
-#sketchlive {
+#sketchrender, #sketchlive  {
     position: absolute;
     cursor: crosshair;
 }
@@ -63,9 +55,6 @@ input {
     top: 0px;
     left: 0px;
     z-index: 2;
-    /*width: 270px;
-    height: 100%;
-    margin: 10px;*/
     padding: 10px;
     background: rgba(245,245,245,0.9);
 }
@@ -101,30 +90,11 @@ input {
     -ms-user-select: none;
     user-select: none;
 }
-
-.unselectable {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.tool-selected {
-    background: rgba(250,150,150,0.6);
-}
 .selected {
     background: rgba(250,150,150,0.6);
 }
 .armed {
     background: rgba(255,0,0,0.6);
-}
-
-.clearfix:after {
-    clear: both;
-    content: "";
-    display: block;
 }
 
 
@@ -142,14 +112,4 @@ input {
 }
 .Aligner-item--bottom {
   align-self: flex-end;
-}
-
-
-/* ------------------------------------- temporary hacky CSS - use a framework ------------------------------- */
-
-/* ----------------------------------- input select ---------------------------- */
-select{
-    display:inline-block;
-    vertical-align:middle;
-    background: transparent;
 }

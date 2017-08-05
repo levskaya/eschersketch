@@ -77,6 +77,7 @@ export const gS = new Vue({
       showFile: true,
       showHelp: false,
       showConfig: false,
+      versionString: "v0.3",      //Eschersketch version
     },
     options: {
       maxLineWidth: 10,
@@ -567,9 +568,9 @@ var vueSym = new Vue({
 import helpPanel from './components/helpPanel';
 var vueHelpPanel = new Vue({
   el: '#helpPanel',
-  template: '<help-panel :showHelp="showHelp"/>',
+  template: '<help-panel :params="params"/>',
   components: { helpPanel },
-  data: gS.params
+  data: {params: gS.params}
 });
 window.helpP = vueHelpPanel;
 
@@ -675,6 +676,9 @@ var onResize = function() { // also for onOrientationChange !
 const initState = function() {
   _.assign(lctx, gS.ctxStyle);
 
+  //update version
+  gS.params.versionString = getESVersion();
+
   let w = window.innerWidth;
   let h = window.innerHeight;
   gS.symmState.x = Math.round(w/2);
@@ -688,8 +692,13 @@ const initState = function() {
   rerender(ctx);
 };
 
+// get version string
+export const getESVersion = function() {
+  if(window.ES_VERSION){ return ES_VERSION; } else { return "v0.3"; }
+}
 
 const initGUI = function() {
+  console.log("Eschersketch", getESVersion());
 
   // set up symmetry grid based on screen size
   let w = window.innerWidth;

@@ -2,15 +2,19 @@
 <div id="helppanel" :style="helpDisplay">
   <div class="button" @click="help" key="helpback1"><b>BACK TO ESCHERSKETCH</b></div>
   <help-text>
-    <div slot="header" id="logocontainer">
-    <div class="spacer"></div>
-    <h2>escher</h2>
-    <div class="spacer"></div>
-    <img src="static/svg/es_logo.svg" class="helplogo" height="50px">
-    <div class="spacer"></div>
-    <h2>sketch <span style="font-size:50%">v0.3</span></h2>
-    <div class="spacer"></div>
-    </div>
+    <div slot="header">
+      <div id="logocontainer">
+        <div class="spacer"/>
+        <h2>escher</h2><div class="spacer"/>
+        <img src="static/svg/es_logo.svg" height="50px">
+        <div class="spacer"/>
+        <h2>sketch</h2>
+        <div class="spacer"/>
+     </div>
+     <div id="logocontainer">
+       <span style="font-size:50%">{{params.versionString}}</span>
+     </div>
+  </div>
   </help-text>
 
   <div class="button" @click="help" key="helpback2"><b>BACK TO ESCHERSKETCH</b></div>
@@ -22,11 +26,11 @@ import esButton from './es_button';
 import helpText from './help.md'
 
 export default {
-  props: ['showHelp'],
+  props: ['params'],
   components: { helpText, esButton },
   computed: {
     helpDisplay: function() {
-      return {display: this.showHelp ? "block" : "none"};
+      return {display: this.params.showHelp ? "block" : "none"};
     }
   },
   methods: {
@@ -48,7 +52,7 @@ export default {
   display: flex;
   align-content: start;
   flex-flow: row wrap;
-  align-items: center;
+  align-items: baseline;
   justify-content: center;
 }
 @media (max-width: 768px) {
@@ -72,12 +76,12 @@ export default {
   width:100%;
 }
 #logocontainer  h2, #logocontainer img {
-  align-self: flex-start;
   flex: 0 1 auto;
+  font-variant: small-caps;
 }
 #logocontainer .spacer{
   align-self: flex-start;
-  flex: 0 1 1rem;
+  flex: 1 1 1rem;
 }
 
 </style>

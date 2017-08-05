@@ -2,6 +2,7 @@ var path = require('path')
 var utils = require('./utils')
 var config = require('../config')
 var vueLoaderConfig = require('./vue-loader.conf')
+const WebpackShellPlugin = require('webpack-shell-plugin');
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
@@ -25,6 +26,12 @@ module.exports = {
       '@': resolve('src')
     }
   },
+  plugins: [
+    new WebpackShellPlugin({
+      onBuildStart:['./mark_version.sh'],
+      /*onBuildEnd:['echo "Webpack End"']*/
+    })
+  ],
   module: {
     rules: [
       // {

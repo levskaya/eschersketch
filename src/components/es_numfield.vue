@@ -1,7 +1,7 @@
 <template>
   <span>
     <label v-if="label" v-html="label" :for="param"></label>
-    <template v-if="this.$slots.default">
+    <template v-else-if="this.$slots.default">
       <slot></slot>
     </template>
     <label v-else :for="param">{{param}}</label>
@@ -21,10 +21,6 @@
   }
 </script>
 <style scoped>
-/*input {
-    vertical-align:text-top;
-}*/
-
 .ghost-input {
   display: inline;
   font-weight:300;

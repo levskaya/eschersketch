@@ -2,6 +2,9 @@
 <div id="fileUI" :style="panelStyle">
   <span style="font-variant: small-caps;">export</span><br>
 
+  <es-numfield param="filename" label="filename"
+  :val="fname" size="20" @numchange="changeFilename" key="fileui-fname"/><br>
+
   <div id="saveSVG" class="button" @mousedown="saveSVG">
     <span class="icon-folder-download"></span> SVG
   </div>
@@ -35,7 +38,7 @@
 <script>
 import es_numfield from './es_numfield';
 import es_button from './es_button';
-import {gS, saveSVG, saveSVGTile, savePNG, savePNGTile, saveJSON, renderImage} from '../main.js';
+import {gS, saveSVG, saveSVGTile, savePNG, savePNGTile, saveJSON, loadJSON} from '../main.js';
 import {_} from 'underscore';
 
 //document.getElementById("saveSVGtile").onmousedown = function(e) { saveSVGTile(); };
@@ -49,7 +52,8 @@ export default {
   computed: {
     panelStyle: function() {
       return {display: this.params.showFile ? "block" : "none"};
-    }
+    },
+    fname: function() {return this.params.filename;}
   },
   methods:{  //XXX: dirty, need to move all of these to top-level "$emit" calls
     savePNG: function() { savePNG(); },
@@ -57,7 +61,15 @@ export default {
     saveSVG: function() { saveSVG(); },
     saveJSON: function() { saveJSON(); },
     loadJSON: function({type, target}){
-      renderImage(target.files[0]);
+      loadJSON(target.files[0]);
+    },
+
+    changeFilename: function(name, val) {
+      if(val.trim()===""){
+        gS.$emit('paramsUpdate', name, "eschersketch"); //XXX: doesn't update its own ui all the time...
+      } else {
+        gS.$emit('paramsUpdate', name, val.trim());
+      }
     }
   }
 }

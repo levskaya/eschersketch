@@ -42,8 +42,10 @@ export const gS = new Vue({
   data: {
     // random global UI state variables
     params: {
-      curTool: 'pencil',         // Tool State
+      //curTool: 'pencil',         // Tool State
+      curTool: 'poly',         // XXX: revert to pencil default
       fullUI: true,
+      showNav: true,
       showTool: true,
       showColor: true,
       showLine: true,
@@ -51,8 +53,11 @@ export const gS = new Vue({
       showFile: true,
       showHelp: false,
       showConfig: false,
+      showHints: false,           //contextual help, still janky...
+      hintText: "",
       canvasHeight: 1200,
       canvasWidth:  1600,
+      filename: "eschersketch",
       versionString: "v0.3",      //Eschersketch version
     },
     options: {
@@ -71,6 +76,7 @@ export const gS = new Vue({
     },
     // Symmetry State - captured
     //-------------------------------
+    // -- each drawing op caches the current value of these params when committed
     symmState: {sym: 'p6m',    // symmetry name/key
                 x:800, y:400,  // center of constructed grid symmetry
                 d:100, t:0,    // grid-spacing and rotation (not implemented yet)
@@ -79,7 +85,7 @@ export const gS = new Vue({
               },
     // Style State
     //-------------------------------
-    //['fillStyle', 'strokeStyle', 'lineCap', 'lineJoin', 'miterLimit', 'lineWidth'],
+    // -- the keys of this object also determine which canvas ctx properties are cached inside drawing ops
     ctxStyle: {
       lineCap:     "butt",  // butt, round, square
       lineJoin:    "round", // round, bevel, miter
@@ -88,12 +94,53 @@ export const gS = new Vue({
       fillStyle:   "rgba(200, 100, 100, 0.5)",
       strokeStyle: "rgba(100, 100, 100, 1.0)"
     },
-    // Global Command and Redo Stacks
-    //-------------------------------
-    cmdstack: [], //<-- needed in here?
-    redostack: [],
+    //....
+    //cmdstack: [],
+    //redostack: [],
   }
 });
+
+// Global Command and Redo Stacks
+//-------------------------------
+var cmdStack = [];
+var redoStack = [];
+window.cmdStack=cmdStack; //HACK
+
+// Canvas / Context Globals
+//------------------------------------------------------------------------------
+export var livecanvas = {};
+export var lctx = {};
+export var canvas = {};
+export var ctx = {};
+
+// rescaling ratio used by pixelFix, needed for pixel-level manipulation
+export var pixelratio = 1;
+
+// Contains Symmetries used by all other operations
+//------------------------------------------------------------------------------
+export var affineset = {};
+window.currentAffine = () => affineset; //HACK: debugging
+
+
+// Global indices into Instantiated Tools and their Ops
+//------------------------------------------------------------------------------
+export const drawTools = {
+  line: new LineTool(),
+  circle: new CircleTool(),
+  pencil: new PencilTool(),
+  grid: new GridTool(),
+  poly: new PolyTool(),
+  bezier: new PathTool()
+};
+//window.drawTools = drawTools; //HACK: debugging
+
+const opsTable = {
+  line: LineOp,
+  pencil: PencilOp,
+  circle: CircleOp,
+  bezier: PathOp,
+  poly: PolyOp
+};
 
 
 // Global Events
@@ -126,6 +173,13 @@ gS.$on('toolUpdate',
          changeTool(tool);
        });
 gS.$on('optionsUpdate', function(name, val){ gS.options[name] = val; });
+gS.$on('paramsUpdate', function(name, val){ gS.params[name] = val;});
+gS.$on('setHint', function(val){
+  if(gS.params.showHints) {
+    gS.params.hintText = val;
+  }
+});
+
 gS.$on('undo', function(){ undo(); });
 gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){ reset(); });
@@ -163,20 +217,8 @@ gS.$on('toggleParam', function(paramName) { gS.params[paramName] = ! gS.params[p
 window.gS=gS;  // HACK: for debugging
 
 
-// Canvas / Context Globals
-//------------------------------------------------------------------------------
-export var livecanvas = {};
-export var lctx = {};
-export var canvas = {};
-export var ctx = {};
-
-// rescaling ratio used by pixelFix, needed for pixel-level manipulation
-export var pixelratio = 1;
-
-// Contains Symmetries used by all other operations
-//------------------------------------------------------------------------------
-export var affineset = {};
-window.currentAffine = () => affineset; //HACK: debugging
+// Symmetry Functions
+//-------------------------------------------------------------------------------------------------
 
 const memo_generateTiling = _.memoize(generateTiling,
                                 function(){return JSON.stringify(arguments);});
@@ -190,7 +232,7 @@ export const updateSymmetry = function(symmState) {
     // basic safety so as not to grind CPU to a halt...
     gS.symmState.Nx = newNx < gS.options.maxGridNx ? newNx : gS.options.maxGridNx;
     gS.symmState.Ny = newNy < gS.options.maxGridNy ? newNy : gS.options.maxGridNy;
-    console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
+    console.log("grid Nx", gS.symmState.Nx, "Ny", gS.symmState.Ny);
   }
 
   if(symmState.sym == "none"){
@@ -214,16 +256,6 @@ export const updateSymmetry = function(symmState) {
 
 // Set up Globals and UI for calling into Drawing Tools
 //------------------------------------------------------------------------------
-export const drawTools = {
-  line: new LineTool(),
-  circle: new CircleTool(),
-  pencil: new PencilTool(),
-  grid: new GridTool(),
-  poly: new PolyTool(),
-  bezier: new PathTool()
-};
-//window.drawTools = drawTools; //HACK: debugging
-
 const changeTool = function(toolName){
   let oldTool = drawTools[gS.params.curTool];
   oldTool.commit();
@@ -279,6 +311,12 @@ const dispatchKeyDown = function(e) {
   }
 };
 
+const dispatchKeyUp = function(e) {
+  if("keyUp" in drawTools[gS.params.curTool]) {
+    drawTools[gS.params.curTool].keyUp(e);
+  }
+};
+
 //document.getElementsByTagName("body").onresize = function() { console.log("resized!"); onResize();};
 //var throttledOnResize = _.throttle(onResize, 400, {trailing: false});
 window.addEventListener('orientationchange', function(){
@@ -297,7 +335,6 @@ window.addEventListener('resize', function(){
      times during redos of complicated scenes
    - when to clear out redo stack?
 */
-var undo_init_bound = 0;
 
 export const rerender = function(ctx, {clear=true, modifier=null}={}) {
   if(clear){
@@ -306,7 +343,7 @@ export const rerender = function(ctx, {clear=true, modifier=null}={}) {
   // Allow passing in modifier of op state
   // modifier can return a single op or a new array of ops
   if(modifier){
-    for(let cmd of gS.cmdstack){
+    for(let cmd of cmdStack){
       let modcmd = modifier(cmd);
       if(_.isArray(modcmd)){
           for(let subcmd of modcmd){
@@ -316,15 +353,16 @@ export const rerender = function(ctx, {clear=true, modifier=null}={}) {
         modcmd.render(ctx);
       }
     }
+  // no modifier, just step through ops and render each
   } else {
-    for(let cmd of gS.cmdstack){
+    for(let cmd of cmdStack){
       cmd.render(ctx);
     }
   }
 };
 
 export const commitOp = function(op){
-  gS.cmdstack.push(op);
+  cmdStack.push(op);
   op.render(ctx);
 };
 //window.commitOp=commitOp; //HACK
@@ -340,13 +378,13 @@ const switchTool = function(toolName, op){
 };
 
 const undo = function(){
-  console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
+  console.log("undo cmdstack", cmdStack.length, "redostack", redoStack.length);
   drawTools[gS.params.curTool].commit();  //commit live tool op
-  let cmd = gS.cmdstack.pop(); //now remove it
+  let cmd = cmdStack.pop(); //now remove it
   if(cmd){ // if at first step with INIT tool, may not have anything, abort!
-    gS.redostack.push(cmd);
-    if(gS.cmdstack.length>0){
-      let cmd2 = gS.cmdstack.pop(); //get last op
+    redoStack.push(cmd);
+    if(cmdStack.length>0){
+      let cmd2 = cmdStack.pop(); //get last op
       rerender(ctx); //rebuild history
       switchTool(cmd2.tool, cmd2); //enter()s and exit()s
     } else {
@@ -355,14 +393,14 @@ const undo = function(){
       lctx.clearRect(0, 0, canvas.width, canvas.height);
     }
   }
-  console.log("undo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
+  console.log("undo cmdstack len=", cmdStack.length, "redostack len=", redoStack.length);
 };
 
 const redo = function(){
-  console.log("redo cmdstack", gS.cmdstack.length, "redostack", gS.redostack.length);
-  if(gS.redostack.length>0){
+  console.log("redo cmdstack", cmdStack.length, "redostack", redoStack.length);
+  if(redoStack.length>0){
     drawTools[gS.params.curTool].commit();  //commit live tool op
-    let cmd = gS.redostack.pop();
+    let cmd = redoStack.pop();
     rerender(ctx);
     switchTool(cmd.tool, cmd); //enter()s and exit()s
   }
@@ -371,22 +409,22 @@ const redo = function(){
 const reset = function(){
   //make sure stateful drawing tool isn't left in a weird spot
   if('exit' in drawTools[gS.params.curTool]) {drawTools[gS.params.curTool].exit();}
-  gS.redostack = [];
-  gS.cmdstack = [];
+  redoStack = [];
+  cmdStack = [];
   lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   initState();
 };
 
 const serialize = function(){
-  let jsonStr = JSON.stringify(gS.cmdstack);
+  let saveObj = {
+    name: gS.params.filename,
+    version: getESVersion(),
+    data: cmdStack
+  }
+  //let jsonStr = JSON.stringify(cmdStack);
+  let jsonStr = JSON.stringify(saveObj);
   return jsonStr;
 }
-
-const opsTable = {line: LineOp,
-                  pencil: PencilOp,
-                  circle: CircleOp,
-                  bezier: PathOp,
-                  poly: PolyOp};
 
 const ressurectOp = function(deadOp){
     let op = new opsTable[deadOp.tool];
@@ -395,12 +433,14 @@ const ressurectOp = function(deadOp){
 
 const deserialize = function(jsonStr){
   reset();
-  let deadArr = JSON.parse(jsonStr);
+  let loadObj = JSON.parse(jsonStr);
+  gS.params.filename = loadObj.name;
+  console.log("loading ES file from version", loadObj.version);
   let newstack = [];
-  for(let obj of deadArr){
+  for(let obj of loadObj.data){
     newstack.push(ressurectOp(obj));
   }
-  gS.cmdstack = newstack;
+  cmdStack = newstack;
   rerender(ctx);
 }
 //window.serialize=serialize; //HACK
@@ -412,11 +452,11 @@ const deserialize = function(jsonStr){
 export const saveJSON = function() {
   let sketchdata = serialize();
   var blob = new Blob([sketchdata], {type: "application/json"});
-  saveAs(blob, "eschersketch.json");
+  saveAs(blob, gS.params.filename + ".json");
 }
 //window.saveJSON=saveJSON;
 
-export const renderImage = function(file) {
+export const loadJSON = function(file) {
   var reader = new FileReader();
   reader.onload = function(event) {
     deserialize(event.target.result);
@@ -426,9 +466,7 @@ export const renderImage = function(file) {
 
 // Set up Save SVG / Save PNG
 //------------------------------------------------------------------------------
-// XXX: this can take a long damn time with a complicated scene! At minimum should
-// do redraws with smaller grid Nx,Ny by default or just restrict SVG export to
-// tile?
+// XXX: this can take a long damn time with a complicated scene!
 export const saveSVG = function() {
   // canvas2svg fake context:
   var C2Sctx = new C2S(canvas.width, canvas.height);
@@ -444,7 +482,7 @@ export const saveSVG = function() {
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
   //save text blob as SVG
   var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
-  saveAs(blob, "eschersketch.svg");
+  saveAs(blob, gS.params.filename + ".svg");
 };
 
 export const saveSVGTile = function() {
@@ -478,13 +516,13 @@ export const saveSVGTile = function() {
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
   //save text blob as SVG
   var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
-  saveAs(blob, "eschersketch.svg");
+  saveAs(blob, gS.params.filename + ".svg");
 };
 
 // TODO : allow arbitrary upscaling of canvas pixel backing density using
 //        setCanvasPixelDensity
 export const savePNG = function() {
-  canvas.toBlobHD(blob => saveAs(blob, "eschersketch.png"));
+  canvas.toBlobHD(blob => saveAs(blob, gS.params.filename + ".png"));
 };
 
 
@@ -517,7 +555,7 @@ export const savePNGTile = function(){
   //rerender scene and export bitmap
   //rerender(tctx, {modifier: cleanLinesModifier}); //XXX: very clean effect!
   rerender(tctx);
-  tileCanvas.toBlobHD(blob => saveAs(blob, "eschersketch_tile.png"));
+  tileCanvas.toBlobHD(blob => saveAs(blob, gS.params.filename + "_tile.png"));
   tileCanvas.remove();
 };
 
@@ -532,6 +570,24 @@ var vueSym = new Vue({
   components: { stateUi },
   data: {params: gS.params}
 });
+
+
+import navPanel from './components/navPanel';
+var vueSym = new Vue({
+  el: '#navPanel',
+  template: '<nav-panel :params="params"/>',
+  components: { navPanel },
+  data: {params: gS.params}
+});
+
+import hintPanel from './components/hintPanel';
+var vueSym = new Vue({
+  el: '#hintPanel',
+  template: '<hint-panel :params="params"/>',
+  components: { hintPanel },
+  data: {params: gS.params}
+});
+
 
 // Config UI
 //------------------------------------------------------------------------------
@@ -625,6 +681,8 @@ var vueEnd = new Vue({ //XXX: a bit crufty this...
             </div>`,
 });
 
+// Major Canvas Handling Functions
+//--------------------------------------------------------------------------------------------------------
 var onResize = function() { // also for onOrientationChange !
   drawTools[gS.params.curTool].commit();  //commit live tool op first!
   let w = window.innerWidth;
@@ -668,7 +726,6 @@ const initState = function() {
   //console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
 
   updateSymmetry(_.clone(gS.symmState));
-  undo_init_bound = gS.cmdstack.length;
   rerender(ctx);
 };
 
@@ -704,10 +761,11 @@ const initGUI = function() {
   livecanvas.onmouseup    = dispatchMouseUp;   //disable for touch
   livecanvas.onmousemove  = dispatchMouseMove; //disable for touch
   livecanvas.onmouseleave = dispatchMouseLeave;//disable for touch
+
   document.getElementsByTagName("body")[0].onkeydown = dispatchKeyDown;
+  document.getElementsByTagName("body")[0].onkeyup = dispatchKeyUp;
 
   initState();
-
 };
 
 // This "works" for both mouse and touch events, but

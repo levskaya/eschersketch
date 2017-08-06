@@ -1,6 +1,6 @@
 <template>
   <div id="toolUI" :style="panelStyle">
-    <span style="font-variant: small-caps;">drawing tools</span><br>
+    <span style="font-variant: small-caps;">drawing</span><br>
 
     <es-button name="pencil" :selected="curtool" @bclick="changeTool">
       <span class="icon-pencil"></span>

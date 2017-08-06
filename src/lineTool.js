@@ -57,6 +57,10 @@ export class LineTool {
     this.end = {};
     this.state = _INIT_;
     this.hitRadius = 4;
+    this.actions = [
+      {name: "cancel", desc: "cancel",    icon: "icon-cross",     key: "Escape"},
+      {name: "commit", desc: "start new (automatic on new click)", icon: "icon-checkmark", key: "Enter"},
+    ];
   }
 
   liverender() {
@@ -89,6 +93,9 @@ export class LineTool {
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
     commitOp(new LineOp(ctxStyle, this.start, this.end));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.start = {};
+    this.end = {};
+    this.state = _INIT_;
   }
 
   cancel() {
@@ -135,21 +142,31 @@ export class LineTool {
     this.state = _OFF_;
   }
 
-  //mouseLeave(e) {
-  //  this.exit();
-  //}
-
   keyDown(e) {
     if(e.target.type){return;} // don't interfere with input UI key-events
-    if(e.code == "Enter"){
-      this.state = _OFF_;
-      this.commit();
-      this.start = {};
-      this.end = {};
-    } else if(e.code=="Escape"){
-      this.cancel();
+
+    for(let action of this.actions){
+      if(_.isArray(action.key)){
+        for(let keyOption of action.key){
+          if(keyOption == e.code) {
+            this[action.name]();
+          }
+        }
+      }
+      else {
+        if(action.key == e.code){
+          this[action.name]();
+        }
+      }
     }
   }
+  /*
+  keyDown(e) {
+    if(e.target.type){return;} // don't interfere with input UI key-events
+    if(e.code == "Enter"){ this.commit(); }
+    else if(e.code=="Escape"){ this.cancel(); }
+  }
+  */
 
   enter(op){
     if(op){
@@ -170,11 +187,8 @@ export class LineTool {
   }
 
   exit(){
-    if(this.state==_OFF_) {
-      //this.commit();
       this.start = {};
       this.end = {};
       this.state = _INIT_;
-    }
   }
 }

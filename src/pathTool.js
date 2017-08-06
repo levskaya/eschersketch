@@ -76,6 +76,11 @@ export class PathTool {
     this.cpoint = [];
     this.opselected = [];
     this.hitRadius = 4;
+    this.actions = [
+      {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
+      {name: "commit", desc: "start new", icon: "icon-checkmark", key: "Enter"},
+      {name: "back",   desc: "undo last point", icon: "icon-minus", key: "Backspace"}
+    ];
   }
 
   liverender() {
@@ -413,23 +418,25 @@ export class PathTool {
 
   keyDown(e) {
     if(e.target.type){return;} // don't interfere with input UI key-events
-    if(e.code == "Enter"){
-      this.state = _OFF_;
-      this.commit();
-      this.exit();
-    } else if(e.code=="Escape"){
-      this.cancel();
-    } else if(e.code=="KeyD"){
-      if(this.ops.length > 1 &&
-         this.state == _OFF_) {
-        var op = this.ops.pop();
-        if(op[0]=='C'){
-          this.cpoint=[op[1],op[2]];
-        } else {
-          this.cpoint=[];
-        }
-        this.liverender();
+    if     (e.code == "Enter")   { this.commit(); }
+    else if(e.code == "Escape")  { this.cancel(); }
+    else if(e.code == "KeyD")    { this.back();   }
+  }
+
+  back() {
+    if(this.ops.length > 1 &&
+       this.state == _OFF_) {
+      var op = this.ops.pop();
+      if(op[0]=='C'){
+        this.cpoint=[op[1],op[2]];
+      } else {
+        this.cpoint=[];
       }
+      this.liverender();
+    } else if (this.state == _OFF_) {
+      this.ops.pop();
+      this.state = _INIT_;
+      this.liverender();
     }
   }
 
@@ -438,6 +445,10 @@ export class PathTool {
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
     commitOp(new PathOp(ctxStyle, this.ops));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.ops = [];
+    this.opselected = [];
+    this.cpoint = [];
+    this.state = _INIT_;
   }
 
   cancel() {
@@ -465,13 +476,11 @@ export class PathTool {
       this.state = _INIT_;
     }
   }
-  exit(){
-    //if(this.state==_OFF_) { // remove conditional?
-      //this.commit();
-      this.ops = [];
-      this.opselected = [];
-      this.cpoint = [];
-      this.state = _INIT_;
-    //}
+
+  exit() {
+    this.ops = [];
+    this.opselected = [];
+    this.cpoint = [];
+    this.state = _INIT_;
   }
 }

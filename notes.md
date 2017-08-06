@@ -1,14 +1,11 @@
 # Eschersketch Notes
 
 ## MVP
-- gridsize nx,ny limit to some max so as not to crash browser...
 - save/load command-set, not just output - (versioned, no stability guarantee)
+- dev Notes?
 
 later...
-- real mobile ui / responsive ui
 - tile svg export (clipping)
-- do a real scenegraph -
-  bind style state to drawing ops and allow reording of ops, alteration of color, symm...
 - pressure sensitive pen tool
 - arc tool?
 - frieze groups
@@ -24,47 +21,6 @@ later...
 ## Mobile Detection
 http://detectmobilebrowsers.com/about
 https://modernizr.com/
-
-## Vue
-
-vue.js updating canvas via _directives_:
-https://jsfiddle.net/mani04/r4mbh6nu/1/
-
-simpler color picker, not quite as nice:
-https://codepen.io/getflourish/pen/NbxByK
-
-CAVEATS!!!
-ARRAY CAVEATS:
-    vm.items[indexOfItem] = newValue  won't update reactive array!
-must use Vue.set:
-    Vue.set(example1.items, indexOfItem, newValue)
-No:
-    vm.items.length = newLength
-Yes:
-    example1.items.splice(newLength)
-
-OBJECT CAVEATS:
-var vm = new Vue({
-  data: {
-    a: 1
-  }
-})
-// `vm.a` is now reactive
-vm.b = 2
-// `vm.b` is NOT reactive
-
-instead use
-Vue.set(vm.someObject, 'b', 2)
-or
-this.$set(this.someObject, 'b', 2)
-
-careful with objects
-// instead of `Object.assign(this.someObject, { a: 1, b: 2 })`
-this.someObject = Object.assign({}, this.someObject, { a: 1, b: 2 })
-
-nice keyboard event modifiers, etc.:
-https://vuejs.org/v2/guide/events.html
-
 
 ## Design
 
@@ -146,22 +102,8 @@ undo/redo force redraws for now
 
 additional optimization for lots of symmetry redraws: draw a smaller set of nearby tiled symms for live redraw, and draw the whole set only upon commit
 
-## Export
 
-Export the lattice tile (not smallest repeating unit, lattice
-tiles are easy to tile in a cartesian manner for designers)
-Have a way of redrawing at higher res?
-
-SVG
-- current canvas2svg can take a while and makes huge, repetitive files... should strongly limit
-  Nx,Ny repeats of grid, or create custom serializer that creates a "def" object around a single
-  untransformed set of graphical objects and then renders symmetries with <use> elements with
-  matrix SVG trafos
-
-
-## Canvas/ctx
-
+## Interesting Canvas/ctx Functions:
 - isPointInPath()
 - createPattern()
 - globalCompositeOperation
--

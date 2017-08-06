@@ -75,8 +75,6 @@ export class CircleTool {
         _.assign(lctx, op.ctxStyle);
         _.assign(gS.symmState, op.symmState);
         updateSymmetry(op.symmState);
-        //console.log("loading ", op.ctxStyle.fillStyle);
-        //console.log("loading comp gS", gS.ctxStyle.fillStyle);
         this.center = op.center;
         this.radius = op.radius;
         this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
@@ -91,9 +89,6 @@ export class CircleTool {
   }
 
   exit(){
-    if(this.state == _OFF_){
-      //this.commit(stack);
-    }
     this.state = _INIT_;
     this.center = [];
     this.radius = 0;
@@ -103,7 +98,6 @@ export class CircleTool {
     if(this.state==_INIT_){return;}
     //let ctxStyle = _.assign({}, _.pick(gS.ctxStyle, ...Object.keys(gS.ctxStyle)));
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    //console.log("saving ", ctxStyle.fillStyle);
     commitOp( new CircleOp(ctxStyle, this.center, this.radius) );
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
@@ -130,8 +124,5 @@ export class CircleTool {
 
   mouseUp(e) {
     this.state = _OFF_;
-    //this.commit();
-    //this.center = {};
-    //this.radius = 0;
   }
 }

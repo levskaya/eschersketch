@@ -1,5 +1,5 @@
 <template>
-  <div class="button" :class="isSelected" @click="bclick">
+  <div class="button" :class="isSelected" @click="bclick" @mouseenter="setHint" @mouseleave="clearHint">
     <template v-if="this.$slots.default">
       <slot></slot>
     </template>
@@ -12,12 +12,26 @@
 <script>
 export default {
   name: 'es-button',
-  props: ['name', 'selected'],
+  props: ['name', 'selected', 'hint'],
   methods: {
     bclick: function(){
       //console.log('blick');
       this.$emit("bclick", this.name);
-    }
+    },
+    logme: function(e) {
+      console.log(e.type, this.name);
+    },
+    setHint: function(e) {
+      if(this.hint){
+        gS.$emit('setHint', this.hint);
+        setTimeout(() => gS.$emit('setHint', ''), 1000);
+      }
+    },
+    clearHint: function(e) {
+      if(this.hint){
+        gS.$emit('setHint', '');
+      }
+    },
   },
   computed: {
     isSelected: function() {

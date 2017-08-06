@@ -61,6 +61,11 @@ export class PolyTool {
     this.state = _INIT_;
     this.selected = -1;
     this.hitRadius = 4;
+    this.actions = [
+      {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
+      {name: "commit", desc: "start new", icon: "icon-checkmark", key: "Enter"},
+      {name: "back",   desc: "undo last point", icon: "icon-minus", key: "Backspace"}
+    ];
   }
 
   liverender() {
@@ -101,12 +106,14 @@ export class PolyTool {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.state = _INIT_;
     this.points = [];
+    this.selected = 0;
   }
 
   cancel() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.state = _INIT_;
     this.points = [];
+    this.selected = 0;
   }
 
   mouseDown(e) {
@@ -168,21 +175,39 @@ export class PolyTool {
 
   keyDown(e) {
     if(e.target.type){return;} // don't interfere with input UI key-events
-    if(e.code == "Enter"){
-      this.state = _OFF_;
-      this.commit();
-      this.points = [];
-      this.selected = 0;
-      this.state = _INIT_;
-    } else if(e.code=="Escape"){
-      this.cancel();
-    } else if(e.code=="KeyD"){
-      if(this.points.length > 1 &&
-         this.state == _OFF_) {
-        this.points.pop();
-        this.selected -= 1;
-        this.liverender();
+
+    for(let action of this.actions){
+      if(_.isArray(action.key)){
+        for(let keyOption of action.key){
+          if(keyOption == e.code) {
+            this[action.name]();
+          }
+        }
       }
+      else {
+        if(action.key == e.code){
+          this[action.name]();
+        }
+      }
+    }
+    /*
+    if(e.code == "Enter"){ this.commit(); }
+    else if(e.code=="Escape"){ this.cancel(); }
+    else if(e.code=="KeyD"){ this.back(); }
+    */
+  }
+
+  back() {
+    if(this.points.length > 1 &&
+       this.state == _OFF_) {
+      this.points.pop();
+      this.selected -= 1;
+      this.liverender();
+    } else if (this.state == _OFF_) {
+      this.points.pop();
+      this.selected -= 1;
+      this.state = _INIT_;
+      this.liverender();
     }
   }
 
@@ -202,6 +227,7 @@ export class PolyTool {
       this.state = _INIT_;
       this.selected = 0;
     }
+
   }
 
   exit(){

@@ -1,7 +1,7 @@
 <template>
   <div id="styleUI" :style="panelStyle">
-
-    <span style="font-variant: small-caps;">line</span><br>
+    <span class="UIheader">line</span><br>
+    
     width <input type="range" :value="ctxStyle.lineWidth"
            :min="options.minLineWidth"
            :max="options.maxLineWidth"

@@ -1,6 +1,6 @@
 <template>
 <div id="fileUI" :style="panelStyle">
-  <span style="font-variant: small-caps;">export</span><br>
+  <span class="UIheader">export</span><br>
 
   <es-numfield param="filename" label="filename"
   :val="fname" size="20" @numchange="changeFilename" key="fileui-fname"/><br>

@@ -21,10 +21,18 @@ Icon   | Tool | Description
  Icon   | Tool | Description
  -------|------|-------------------
  <span class="icon-pencil"/>  | __pencil__ tool | freehand drawing tool, stroke-only
- <span class="icon-line"/> | __line__ tool | draws single line segments between two points - _adjustable_
- <span class="icon-radio-unchecked"/> | __circle__ tool | draws a single circle, 1st point at center, 2nd at edge
- <span class="icon-hexagon"/> | __polygon__ tool | draws a straight-sided polygon, _adjustable_ points
+ <span class="icon-line"/> | __line__ tool | draws single line segments between two _adjustable_ points
+ <span class="icon-radio-unchecked"/> | __circle__ tool | draws a single centered circle, from two _adjustable_ points
+ <span class="icon-hexagon"/> | __polyline__ tool | draws a straight-sided polygon, _adjustable_ points
  <span class="icon-pen"/>| __path__ tool | draws bezier curves and straight lines, both vertices and control points are _adjustable_
+
+For the adjustable tools, a few more buttons/commands are present for saving, cancelling, and undoing points:
+Icon   | Tool | Description
+-------|------|-------------------
+<span class="icon-cross"/>  | __cancel__ | undoes the current drawn object and resets
+<span class="icon-checkmark"/> | __save__ | saves what's drawn with the current tool
+<span class="icon-minus"/> | __undo point__ | removes the last point when using the path or polyline tool
+
 
  ## Color
 

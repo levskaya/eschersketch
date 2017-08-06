@@ -24,7 +24,7 @@ export class PathOp {
     this.ctxStyle = ctxStyle;
     // array of ["M",x,y] or ["L",x,y] or ["C",xc1,yc1,xc2,yc2,x,y] drawing ops
     this.ops = ops;
-    this.tool = "bezier";
+    this.tool = "path";
     this.symmState = _.clone(gS.symmState);
   }
 

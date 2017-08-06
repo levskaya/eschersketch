@@ -46,10 +46,9 @@ export default {
   },
   filters: {
     printableKeyCode: function(keycode) {
-      console.log("pKC",keycode);
       // KeyD --> D
-      if(keycode.substring(0,3)=="Key") { return keycode.substring(3); }
-      else if(keycode==="Backspace")     { console.log("back!");return "&#9003;"; }
+      if(keycode.substring(0,3)=="Key")  { return keycode.substring(3); }
+      else if(keycode==="Backspace")     { return "&#9003;"; }
       else if(keycode==="Enter")         { return "&#9166;"; }
       else if(keycode==="Escape")        { return "Esc"; }
       else if(keycode==="ArrowUp")       { return "&#8593"; }
@@ -65,6 +64,7 @@ export default {
 <style>
 
 #navPanel {
+  /* Originally I was thinking of using a floating panel, may still do that... */
   /*
   position: absolute;
   left: 0;

@@ -1,6 +1,6 @@
 <template>
   <div id="toolUI" :style="panelStyle">
-    <span style="font-variant: small-caps;">drawing</span><br>
+    <span class="UIheader">drawing</span><br>
 
     <es-button name="pencil" :selected="curtool" @bclick="changeTool">
       <span class="icon-pencil"></span>
@@ -14,7 +14,7 @@
     <es-button name="poly"   :selected="curtool" @bclick="changeTool">
       <span class="icon-hexagon"></span>
     </es-button>
-    <es-button name="bezier" :selected="curtool" @bclick="changeTool">
+    <es-button name="path" :selected="curtool" @bclick="changeTool">
       <span class="icon-pen"></span>
     </es-button>
     <!--

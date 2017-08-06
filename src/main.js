@@ -31,7 +31,7 @@ import {LineTool, LineOp}     from './lineTool';
 import {PencilTool, PencilOp}   from './pencilTool';
 import {PolyTool, PolyOp}     from './polyTool';
 import {PathTool, PathOp}     from './pathTool';
-import {CircleTool, CircleOp}   from './circleTool';
+import {CircleTool, CircleOp}   from './newcircleTool';
 
 
 // gS = global State
@@ -128,9 +128,9 @@ export const drawTools = {
   line: new LineTool(),
   circle: new CircleTool(),
   pencil: new PencilTool(),
-  grid: new GridTool(),
+  grid: new GridTool(), //not a drawing tool
   poly: new PolyTool(),
-  bezier: new PathTool()
+  path: new PathTool()
 };
 //window.drawTools = drawTools; //HACK: debugging
 
@@ -138,7 +138,7 @@ const opsTable = {
   line: LineOp,
   pencil: PencilOp,
   circle: CircleOp,
-  bezier: PathOp,
+  path: PathOp,
   poly: PolyOp
 };
 
@@ -187,7 +187,7 @@ gS.$on('reset', function(){ reset(); });
 // Pure UI Events
 //------------------------------------------------------------------------------------------
 gS.$on('toggleUI', function() {
-  console.log("toggleUI");
+  //console.log("toggleUI");
   if(gS.params.fullUI){
     document.getElementById("sketch-UI").classList.remove("max-UI");
     document.getElementById("sketch-UI").classList.add("min-UI");
@@ -208,7 +208,7 @@ gS.$on('toggleUI', function() {
     gS.params.showFile = true;
   }});
 gS.$on('help', function(){
-  console.log("help");
+  //console.log("help");
   gS.params.showHelp = ! gS.params.showHelp;
 });
 gS.$on('config', function(){ gS.params.showConfig = ! gS.params.showConfig; });
@@ -378,7 +378,7 @@ const switchTool = function(toolName, op){
 };
 
 const undo = function(){
-  console.log("undo cmdstack", cmdStack.length, "redostack", redoStack.length);
+  //console.log("undo cmdstack", cmdStack.length, "redostack", redoStack.length);
   drawTools[gS.params.curTool].commit();  //commit live tool op
   let cmd = cmdStack.pop(); //now remove it
   if(cmd){ // if at first step with INIT tool, may not have anything, abort!
@@ -393,11 +393,11 @@ const undo = function(){
       lctx.clearRect(0, 0, canvas.width, canvas.height);
     }
   }
-  console.log("undo cmdstack len=", cmdStack.length, "redostack len=", redoStack.length);
+  //console.log("undo cmdstack len=", cmdStack.length, "redostack len=", redoStack.length);
 };
 
 const redo = function(){
-  console.log("redo cmdstack", cmdStack.length, "redostack", redoStack.length);
+  //console.log("redo cmdstack", cmdStack.length, "redostack", redoStack.length);
   if(redoStack.length>0){
     drawTools[gS.params.curTool].commit();  //commit live tool op
     let cmd = redoStack.pop();

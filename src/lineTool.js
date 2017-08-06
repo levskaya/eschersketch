@@ -27,6 +27,7 @@ export class LineOp {
     this.tool = "line";
     this.start = start;
     this.end = end;
+    this.ctxStyle = _.clone(ctxStyle);
     this.symmState = _.clone(gS.symmState);
   }
 

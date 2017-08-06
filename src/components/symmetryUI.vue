@@ -1,6 +1,6 @@
 <template>
   <div id="symmetryUI" :style="panelStyle">
-    <span style="font-variant: small-caps;">symmetries</span><br>
+    <span class="UIheader">symmetries</span><br>
 
     <es-button name="none" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="rosette" :selected="cursym" @bclick="changeSym"></es-button>

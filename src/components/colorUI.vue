@@ -1,6 +1,6 @@
 <template>
   <div id="colorUI" :style="panelStyle">
-    <span style="font-variant: small-caps;">color</span><br>
+    <span class="UIheader">color</span><br>
 
     <!-- buttons to select which color to pick -->
     <div class="button" :class="{selected: isStroke}" @mousedown="pickStroke">

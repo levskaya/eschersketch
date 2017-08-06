@@ -1,6 +1,6 @@
 <template>
   <div id="configUI" :style="panelStyle">
-    <br><span style="font-variant: small-caps;">Options</span><br><br>
+    <br><span class="UIheader">Options</span><br><br>
 
     <b>draw options</b><br>
     <es-numfield param="maxLineWidth" :val="options.maxLineWidth" size="2" @numchange="update">Max line width</es-numfield><br>

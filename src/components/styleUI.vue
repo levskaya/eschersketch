@@ -3,7 +3,9 @@
 
     <span style="font-variant: small-caps;">line</span><br>
     width <input type="range" :value="ctxStyle.lineWidth"
-           :min="min" :max="options.maxLineWidth" :step="step" :name="name" @input="changethick">
+           :min="options.minLineWidth"
+           :max="options.maxLineWidth"
+           :step="options.deltaLineWidth" :name="name" @input="changethick">
     <span>{{roundedLineWidth}}</span> <br>
 
     <es-button name="butt" :selected="ctxStyle.lineCap" @bclick="changeCap">
@@ -35,7 +37,7 @@
 </template>
 
 <script>
-import {gS, gCONSTS} from '../main.js';
+import {gS} from '../main.js';
 import es_numfield from './es_numfield';
 import es_button from './es_button';
 
@@ -48,9 +50,6 @@ export default {
         'es-button': es_button,
   },
   created: function(){
-    //this.max = gS.options.maxLineWidth //gCONSTS.MAX_LINEWIDTH;
-    this.min = gCONSTS.MIN_LINEWIDTH;
-    this.step = gCONSTS.DELTA_LINEWIDTH;
     this.name = "styleUI";
   },
   computed: {

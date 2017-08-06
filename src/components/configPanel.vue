@@ -8,7 +8,7 @@
 <script>
 import es_numfield from './es_numfield';
 import es_button from './es_button';
-import {gS, gCONSTS} from '../main.js';
+import {gS} from '../main.js';
 import {_} from 'underscore';
 
 export default {

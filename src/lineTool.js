@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gCONSTS,
+import {gS,
         livecanvas, lctx, canvas, ctx,
         affineset, updateSymmetry,
         commitOp
@@ -86,7 +86,7 @@ export class LineTool {
 
   commit() {
     if(this.state == _INIT_){return;}
-    let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
     commitOp(new LineOp(ctxStyle, this.start, this.end));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }

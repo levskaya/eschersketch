@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gCONSTS,
+import {gS,
         livecanvas, lctx, canvas, ctx,
         affineset, updateSymmetry,
         commitOp,
@@ -66,7 +66,7 @@ export class GridTool {
     if(l2dist(pt,this.p0)<this.hitRadius){
       this.state = _MOVE_;
     }
-    if(l2dist(pt,this.p1)<this.hitRadius && gCONSTS.TILINGSYMS.includes(gS.symmState.sym)){
+    if(l2dist(pt,this.p1)<this.hitRadius && Object.keys(planarSymmetries).includes(gS.symmState.sym)){
       this.state = _SCALE_;
     }
   }
@@ -113,7 +113,7 @@ export class GridTool {
     let p0 = [this.x, this.y];
     this.p0 = p0; //save for canvas hit-detection
 
-    if(gCONSTS.TILINGSYMS.includes(gS.symmState.sym)){
+    if(Object.keys(planarSymmetries).includes(gS.symmState.sym)){
       //const v0 = RotationTransform(this.t).onVec(planarSymmetries[gS.symmState.sym].vec0);
       //const v1 = RotationTransform(this.t).onVec(planarSymmetries[gS.symmState.sym].vec1);
       const v0 = planarSymmetries[gS.symmState.sym].vec0;
@@ -157,7 +157,7 @@ export class GridTool {
     lctx.stroke();
     lctx.fill();
 
-    if(gCONSTS.TILINGSYMS.includes(gS.symmState.sym)){
+    if(Object.keys(planarSymmetries).includes(gS.symmState.sym)){
       if(this.state == _SCALE_){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
       else {lctx.strokeStyle = "rgba(0,0,0,0.5)";}
       lctx.beginPath();

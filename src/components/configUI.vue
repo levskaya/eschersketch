@@ -23,7 +23,7 @@
 import esNumfield from './es_numfield';
 import esCheckbox from './es_checkbox';
 import esButton from './es_button';
-import {gS, gCONSTS} from '../main.js';
+import {gS} from '../main.js';
 import {_} from 'underscore';
 
 export default {

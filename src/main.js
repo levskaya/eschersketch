@@ -34,32 +34,6 @@ import {PathTool, PathOp}     from './pathTool';
 import {CircleTool, CircleOp}   from './circleTool';
 
 
-// Global "Constants"
-//------------------------------------------------------------------------------
-export const gCONSTS = {
-  CANVAS_WIDTH:     1600, //XXX: not necessarily constant!
-  CANVAS_HEIGHT:    1200, //XXX: not necessarily constant!
-  MIN_LINEWIDTH:    0.1,
-  MAX_LINEWIDTH:    10,
-  DELTA_LINEWIDTH:  0.1,
-  GRIDNX:           18,   //XXX: not necessarily constant!
-  GRIDNY:           14,   //XXX: not necessarily constant!
-  INITSYM:          'p6m',
-  // All Symmetries made available
-  ALLSYMS:          ['p1','diagonalgrid','pm','cm','pg',       //rot-free
-                     'pmg','pgg','pmm','p2','cmm',             //180deg containing
-                     'p4', 'p4g', 'p4m',                       //square
-                     'hexgrid','p3','p6','p31m','p3m1','p6m', //hex
-                     'rosette'],
-  //ctx state to store inside draw ops
-  CTXPROPS:          ['fillStyle', 'strokeStyle', 'lineCap', 'lineJoin', 'miterLimit', 'lineWidth'],
-  TILINGSYMS:       ['p1','diagonalgrid','pm','cm','pg',      //rot-free
-                     'pmg','pgg','pmm','p2','cmm',             //180deg containing
-                     'p4', 'p4g', 'p4m',                       //square
-                     'hexgrid','p3','p6','p31m','p3m1','p6m']
-};
-
-
 // gS = global State
 // holds the UI state as well as acting as top-level event bus
 // should eventually port to vuex
@@ -77,9 +51,13 @@ export const gS = new Vue({
       showFile: true,
       showHelp: false,
       showConfig: false,
+      canvasHeight: 1200,
+      canvasWidth:  1600,
       versionString: "v0.3",      //Eschersketch version
     },
     options: {
+      minLineWidth: 0.1,
+      deltaLineWidth: 0.1,
       maxLineWidth: 10,
       dynamicGridSize: true,      // recalculate grid Nx,Ny on grid delta change
       maxGridNx: 50,
@@ -91,19 +69,21 @@ export const gS = new Vue({
       svgGridNx: 10,
       svgGridNy: 10,
     },
-    // Symmetry State
+    // Symmetry State - captured
     //-------------------------------
-    symmState: {sym: gCONSTS.INITSYM,
-                x:800, y:400,
-                d:100, t:0,
-                Nx:18, Ny:14,  // grid Nx, Ny should NOT be large (i.e. >50)
-                Nrot: 0, Nref: 3, rot: 0},
+    symmState: {sym: 'p6m',    // symmetry name/key
+                x:800, y:400,  // center of constructed grid symmetry
+                d:100, t:0,    // grid-spacing and rotation (not implemented yet)
+                Nx:18, Ny:14,  // grid Nx, Ny should NOT be too large - too large --> too many draw calls!
+                Nrot: 0, Nref: 3, rot: 0 // Rosette parameters
+              },
     // Style State
     //-------------------------------
+    //['fillStyle', 'strokeStyle', 'lineCap', 'lineJoin', 'miterLimit', 'lineWidth'],
     ctxStyle: {
-      lineCap:     "butt", // butt, round, square
+      lineCap:     "butt",  // butt, round, square
       lineJoin:    "round", // round, bevel, miter
-      miterLimit:  10.0, // applies to miter setting above
+      miterLimit:  10.0,    // applies to miter setting above
       lineWidth:   1.0,
       fillStyle:   "rgba(200, 100, 100, 0.5)",
       strokeStyle: "rgba(100, 100, 100, 1.0)"
@@ -205,8 +185,8 @@ const memo_generateTiling = _.memoize(generateTiling,
 export const updateSymmetry = function(symmState) {
 
   if(gS.options.dynamicGridSize) {
-    let newNx = Math.round((gCONSTS.CANVAS_WIDTH  / gS.symmState.d)*2);
-    let newNy = Math.round((gCONSTS.CANVAS_HEIGHT / gS.symmState.d)*2);
+    let newNx = Math.round((gS.params.canvasWidth  / gS.symmState.d)*2);
+    let newNy = Math.round((gS.params.canvasHeight / gS.symmState.d)*2);
     // basic safety so as not to grind CPU to a halt...
     gS.symmState.Nx = newNx < gS.options.maxGridNx ? newNx : gS.options.maxGridNx;
     gS.symmState.Ny = newNy < gS.options.maxGridNy ? newNy : gS.options.maxGridNy;
@@ -216,7 +196,7 @@ export const updateSymmetry = function(symmState) {
   if(symmState.sym == "none"){
     affineset = IdentitySet();
   }
-  else if(gCONSTS.TILINGSYMS.includes(symmState.sym)) {
+  else if(Object.keys(planarSymmetries).includes(symmState.sym)) {
     affineset = memo_generateTiling(planarSymmetries[symmState.sym],
                                     symmState.Nx,symmState.Ny,
                                     symmState.d, symmState.t,
@@ -650,8 +630,8 @@ var onResize = function() { // also for onOrientationChange !
   let w = window.innerWidth;
   let h = window.innerHeight;
   console.log("window innerDims ", w, h);
-  gCONSTS.CANVAS_WIDTH = w;
-  gCONSTS.CANVAS_HEIGHT = h;
+  gS.params.canvasWidth = w;
+  gS.params.canvasHeight = h;
   canvas.width = w;
   canvas.height = h;
   livecanvas.width = w;
@@ -664,7 +644,7 @@ var onResize = function() { // also for onOrientationChange !
   // recalculate grid replicates
   gS.symmState.Nx = Math.round((w / gS.symmState.d)*2); //redundant I think
   gS.symmState.Ny = Math.round((h / gS.symmState.d)*2); //redundant I think
-  console.log("grid Nx,Ny ", gS.symmState.Nx, gS.symmState.Ny); //redundant I think
+  //console.log("grid Nx,Ny ", gS.symmState.Nx, gS.symmState.Ny); //redundant I think
 
   // now update global affineset and rerender ctx and live ctx
   updateSymmetry(_.clone(gS.symmState));
@@ -685,7 +665,7 @@ const initState = function() {
   gS.symmState.y = Math.round(h/2);
   gS.symmState.Nx = Math.round((w / gS.symmState.d)*2);
   gS.symmState.Ny = Math.round((h / gS.symmState.d)*2);
-  console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
+  //console.log("grid Nx,Ny ",gS.symmState.Nx, gS.symmState.Ny);
 
   updateSymmetry(_.clone(gS.symmState));
   undo_init_bound = gS.cmdstack.length;
@@ -704,18 +684,18 @@ const initGUI = function() {
   let w = window.innerWidth;
   let h = window.innerHeight;
   console.log("window innerDims ", w, h);
-  gCONSTS.CANVAS_WIDTH = w;
-  gCONSTS.CANVAS_HEIGHT = h;
+  gS.params.canvasWidth = w;
+  gS.params.canvasHeight = h;
 
   canvas = document.getElementById("sketchrender");
-  canvas.width = gCONSTS.CANVAS_WIDTH;
-  canvas.height = gCONSTS.CANVAS_HEIGHT;
+  canvas.width = gS.params.canvasWidth;
+  canvas.height = gS.params.canvasHeight;
   pixelratio = pixelFix(canvas);
   ctx = canvas.getContext("2d");
 
   livecanvas = document.getElementById("sketchlive");
-  livecanvas.width = gCONSTS.CANVAS_WIDTH;
-  livecanvas.height = gCONSTS.CANVAS_HEIGHT;
+  livecanvas.width = gS.params.canvasWidth;
+  livecanvas.height = gS.params.canvasHeight;
   pixelFix(livecanvas);
   lctx = livecanvas.getContext("2d");
   window.lctx = lctx;//HACK
@@ -770,9 +750,8 @@ const initTouchEvents = function() {
   //XXX: should scale w. screen size, too big on tablets I suspect
   changeHitRadius(15);
 };
-//window.initTouchEvents = initTouchEvents;
 
-/* // This Works! -------------------------------------------------------------
+/* Crude, but this works! -------------------------------------------------------------
 export var pressure;
 // Pressure.js
 Pressure.set('#sketchlive', {

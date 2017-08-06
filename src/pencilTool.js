@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gCONSTS,
+import {gS,
         livecanvas, lctx, canvas, ctx, lattice,
         affineset, updateSymmetry, pressure,
         commitOp
@@ -134,7 +134,7 @@ export class PencilTool {
 
   commit() {
     if(this.state===_INIT_){return;} //empty data case
-    let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
     commitOp(new PencilOp(ctxStyle, _.clone(this.points)));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }

@@ -35,7 +35,7 @@
 <script>
 import es_numfield from './es_numfield';
 import es_button from './es_button';
-import {gS, gCONSTS, saveSVG, saveSVGTile, savePNG, savePNGTile, saveJSON, renderImage} from '../main.js';
+import {gS, saveSVG, saveSVGTile, savePNG, savePNGTile, saveJSON, renderImage} from '../main.js';
 import {_} from 'underscore';
 
 //document.getElementById("saveSVGtile").onmousedown = function(e) { saveSVGTile(); };

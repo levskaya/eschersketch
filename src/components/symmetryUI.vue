@@ -57,7 +57,9 @@
 <script>
 import es_numfield from './es_numfield';
 import es_button from './es_button';
-import {gS, gCONSTS} from '../main.js';
+import {gS} from '../main.js';
+import {planarSymmetries} from '../symmetryGenerator';
+
 import {_} from 'underscore';
 
 export default {
@@ -74,7 +76,7 @@ export default {
     },
     showGridParams: function(){
       return {visibility:
-               gCONSTS.TILINGSYMS.includes(this.symmState.sym) ? "visible" : "hidden"
+               Object.keys(planarSymmetries).includes(this.symmState.sym) ? "visible" : "hidden"
              };
     },
     panelStyle: function() {

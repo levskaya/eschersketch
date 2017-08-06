@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gCONSTS,
+import {gS,
         livecanvas, lctx, canvas, ctx,
         affineset, updateSymmetry,
         commitOp
@@ -96,7 +96,7 @@ export class PolyTool {
   commit() {
     //console.log("poly state at commit ", this.state);
     if(this.state==_INIT_){return;} //empty data case
-    let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
     commitOp( new PolyOp(ctxStyle, this.points) );
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.state = _INIT_;

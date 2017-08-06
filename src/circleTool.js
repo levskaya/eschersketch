@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 // DRAWING GLOBALS
-import {gS, gCONSTS,
+import {gS,
         livecanvas, lctx, canvas, ctx,
         affineset, updateSymmetry,
         commitOp
@@ -101,8 +101,8 @@ export class CircleTool {
 
   commit() {
     if(this.state==_INIT_){return;}
-    //let ctxStyle = _.assign({}, _.pick(gS.ctxStyle, ...gCONSTS.CTXPROPS));
-    let ctxStyle = _.assign({}, _.pick(lctx, ...gCONSTS.CTXPROPS));
+    //let ctxStyle = _.assign({}, _.pick(gS.ctxStyle, ...Object.keys(gS.ctxStyle)));
+    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
     //console.log("saving ", ctxStyle.fillStyle);
     commitOp( new CircleOp(ctxStyle, this.center, this.radius) );
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);

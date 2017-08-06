@@ -71,6 +71,15 @@ a:hover, a.enabled { color: #f00; }
   #sketch-UI .button {margin:0px;}
 } /* HACK for tiny screens...*/
 
+.UIheader {
+  display:inline-block;
+  font-variant: small-caps;
+  margin:5px 0 5px 0;
+  padding-right:100%;
+  _width: 100%;
+  border-bottom: 1px solid;
+  border-color: #ddd;
+}
 
 .button {
     border:1px solid #ddd;

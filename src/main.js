@@ -31,7 +31,7 @@ import {LineTool, LineOp}     from './lineTool';
 import {PencilTool, PencilOp}   from './pencilTool';
 import {PolyTool, PolyOp}     from './polyTool';
 import {PathTool, PathOp}     from './pathTool';
-import {CircleTool, CircleOp}   from './newcircleTool';
+import {CircleTool, CircleOp}   from './circleTool';
 
 
 // gS = global State

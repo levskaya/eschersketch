@@ -43,7 +43,7 @@
         <es-numfield param="Ny" :val="symmState.Ny" @numchange="update" size="2"></es-numfield><br>
       </template>
       <es-numfield param="d" label="&Delta;" :val="symmState.d" size="3" @numchange="update"></es-numfield>
-      <div class="button" @click="halveD">&frac12;</div>
+      <div class="button" @click="halveD">&#189;</div>
       <div class="button" @click="doubleD">2x</div>
     </span><br>
 

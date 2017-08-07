@@ -15,7 +15,6 @@
 import { _ } from 'underscore';
 import Vue from 'vue';
 import Hammer from 'hammerjs';
-import Pressure from 'pressure';
 import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
 
@@ -42,8 +41,7 @@ export const gS = new Vue({
   data: {
     // random global UI state variables
     params: {
-      //curTool: 'pencil',         // Tool State
-      curTool: 'poly',         // XXX: revert to pencil default
+      curTool: 'pencil',         // Tool State
       fullUI: true,
       showNav: true,
       showTool: true,
@@ -119,7 +117,7 @@ export var pixelratio = 1;
 // Contains Symmetries used by all other operations
 //------------------------------------------------------------------------------
 export var affineset = {};
-window.currentAffine = () => affineset; //HACK: debugging
+//window.currentAffine = () => affineset; //HACK: debugging
 
 
 // Global indices into Instantiated Tools and their Ops
@@ -175,9 +173,7 @@ gS.$on('toolUpdate',
 gS.$on('optionsUpdate', function(name, val){ gS.options[name] = val; });
 gS.$on('paramsUpdate', function(name, val){ gS.params[name] = val;});
 gS.$on('setHint', function(val){
-  if(gS.params.showHints) {
-    gS.params.hintText = val;
-  }
+  if(gS.params.showHints) { gS.params.hintText = val; }
 });
 
 gS.$on('undo', function(){ undo(); });
@@ -207,10 +203,7 @@ gS.$on('toggleUI', function() {
     gS.params.showSymm = true;
     gS.params.showFile = true;
   }});
-gS.$on('help', function(){
-  //console.log("help");
-  gS.params.showHelp = ! gS.params.showHelp;
-});
+gS.$on('help', function(){ gS.params.showHelp = ! gS.params.showHelp;});
 gS.$on('config', function(){ gS.params.showConfig = ! gS.params.showConfig; });
 gS.$on('toggleParam', function(paramName) { gS.params[paramName] = ! gS.params[paramName] });
 
@@ -317,8 +310,6 @@ const dispatchKeyUp = function(e) {
   }
 };
 
-//document.getElementsByTagName("body").onresize = function() { console.log("resized!"); onResize();};
-//var throttledOnResize = _.throttle(onResize, 400, {trailing: false});
 window.addEventListener('orientationchange', function(){
   console.log("orientation change");
   onResize();
@@ -327,6 +318,7 @@ window.addEventListener('resize', function(){
     console.log("resize");
     onResize();
   });
+
 
 // Command Stack
 //------------------------------------------------------------------------------
@@ -443,8 +435,6 @@ const deserialize = function(jsonStr){
   cmdStack = newstack;
   rerender(ctx);
 }
-//window.serialize=serialize; //HACK
-//window.deserialize=deserialize; //HACK
 
 
 // Set up Save of Scene to JSON and Restore
@@ -454,7 +444,6 @@ export const saveJSON = function() {
   var blob = new Blob([sketchdata], {type: "application/json"});
   saveAs(blob, gS.params.filename + ".json");
 }
-//window.saveJSON=saveJSON;
 
 export const loadJSON = function(file) {
   var reader = new FileReader();
@@ -608,7 +597,7 @@ var vueHelpPanel = new Vue({
   components: { helpPanel },
   data: {params: gS.params}
 });
-window.helpP = vueHelpPanel;
+//window.helpP = vueHelpPanel;
 
 // Tool Selection UI
 //------------------------------------------------------------------------------
@@ -810,6 +799,7 @@ const initTouchEvents = function() {
 };
 
 /* Crude, but this works! -------------------------------------------------------------
+import Pressure from 'pressure';
 export var pressure;
 // Pressure.js
 Pressure.set('#sketchlive', {

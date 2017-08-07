@@ -65,7 +65,7 @@ const _MOVE_ = 3;
 //TODO: hide control points for most vertices unless they're "parent" vertex
 //      is selected
 
-// XXX: Below is a crazy mess... need to refactor storage format of path into
+// XXX: Below is a crazy mess... need to refactor live storage format of path into
 // something more amenable for traversal and editing.  e.g.:
 // Not path descriptor segments, but a list of vertices, each with its two control points
 // associated
@@ -412,15 +412,13 @@ export class PathTool {
     this.liverender();
   }
 
-  //mouseLeave(e) {
-  //  this.exit();
-  //}
-
   keyDown(e) {
     if(e.target.type){return;} // don't interfere with input UI key-events
-    if     (e.code == "Enter")   { this.commit(); }
-    else if(e.code == "Escape")  { this.cancel(); }
-    else if(e.code == "KeyD")    { this.back();   }
+    for(let action of this.actions){
+      if(action.key == e.code){
+        this[action.name]();
+      }
+    }
   }
 
   back() {

@@ -24,9 +24,9 @@ import { _ } from 'underscore';
 //------------------------------------------------------------------------------
 export class PolyOp {
   constructor(ctxStyle, points) {
-    this.ctxStyle = _.clone(ctxStyle);
     this.points = points;
     this.tool = "poly";
+    this.ctxStyle = ctxStyle;
     this.symmState = _.clone(gS.symmState);
   }
 
@@ -169,32 +169,13 @@ export class PolyTool {
     this.state = _OFF_;
   }
 
-  //mouseLeave(e) {
-    //this.exit();
-  //}
-
   keyDown(e) {
     if(e.target.type){return;} // don't interfere with input UI key-events
-
     for(let action of this.actions){
-      if(_.isArray(action.key)){
-        for(let keyOption of action.key){
-          if(keyOption == e.code) {
-            this[action.name]();
-          }
-        }
-      }
-      else {
-        if(action.key == e.code){
-          this[action.name]();
-        }
+      if(action.key == e.code){
+        this[action.name]();
       }
     }
-    /*
-    if(e.code == "Enter"){ this.commit(); }
-    else if(e.code=="Escape"){ this.cancel(); }
-    else if(e.code=="KeyD"){ this.back(); }
-    */
   }
 
   back() {

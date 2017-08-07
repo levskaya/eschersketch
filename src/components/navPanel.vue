@@ -55,7 +55,7 @@ export default {
       else if(keycode==="ArrowDown")     { return "&#8595"; }
       else if(keycode==="ArrowLeft")     { return "&#8592"; }
       else if(keycode==="ArrowRight")    { return "&#8594"; }
-      else { return keycode;}
+      else { return keycode; }
     }
   }
 }
@@ -64,7 +64,7 @@ export default {
 <style>
 
 #navPanel {
-  /* Originally I was thinking of using a floating panel, may still do that... */
+  /* This styling is for making this a floating panel at the top of the drawing canvas */
   /*
   position: absolute;
   left: 0;

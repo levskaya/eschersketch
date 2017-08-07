@@ -47,11 +47,10 @@ const drawEllipse = function(ctx, x, y, w, h) {
 //------------------------------------------------------------------------------
 export class CircleOp {
   constructor(ctxStyle, start, end) {
-    this.ctxStyle = ctxStyle;
     this.tool = "circle";
     this.start = start;
     this.end = end;
-    this.ctxStyle = _.clone(ctxStyle);
+    this.ctxStyle = ctxStyle;
     this.symmState = _.clone(gS.symmState);
   }
 

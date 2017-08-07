@@ -23,11 +23,10 @@ import {l2dist} from './math_utils';
 //------------------------------------------------------------------------------
 export class LineOp {
   constructor(ctxStyle, start, end) {
-    this.ctxStyle = ctxStyle;
     this.tool = "line";
     this.start = start;
     this.end = end;
-    this.ctxStyle = _.clone(ctxStyle);
+    this.ctxStyle = ctxStyle;
     this.symmState = _.clone(gS.symmState);
   }
 

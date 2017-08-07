@@ -116,11 +116,11 @@ The __grid adjustment__ tool allows to you move the "center" of the point-symmet
 
 <span style="color:#f00"><b>Experimental / Unstable</b></span>
 
-* __SAVE JSON__  This exports eschersketch's raw scene description to a JSON file.
+* __SAVE JSON__ This exports eschersketch's raw scene description to a JSON file.
 
 * __LOAD JSON__ This loads a file saved by the above and reconstructs the exact image produced previously.
 
-Because these serialize straight from Eschersketch's internal representation, these formats are __not__ stable, and could change dramatically while as Eschersketch is developed in the online version.  Save in SVG for a more durable format, unless you want to download and run the Eschersketch codebase itself.
+Because these serialize straight from Eschersketch's internal representation, these formats are __not__ stable, and could change dramatically as Eschersketch is developed in the online version.  Save in SVG for a more durable format, unless you want to download and run the Eschersketch codebase itself - in that case each save file contains the git short-ref of the codebase for those wishing to run eschersketch locally.
 
 <slot name="footer"></slot>
 

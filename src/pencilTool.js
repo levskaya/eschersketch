@@ -25,9 +25,9 @@ import {parseColor} from './canvas_utils';
 //TODO: add smoothing factor
 export class PencilOp {
   constructor(ctxStyle, points) {
-    this.ctxStyle = ctxStyle;
     this.points = points;
     this.tool = "pencil";
+    this.ctxStyle = ctxStyle;
     this.symmState = _.clone(gS.symmState);
   }
 

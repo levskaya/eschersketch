@@ -5,7 +5,7 @@
 </template>
 <script>
 //import { Chrome } from 'vue-color';
-import { Chrome } from '../../static/vue-color-es.min.js';
+import { Chrome } from '../../static/vue-color-es.min.js';  //has touch-events fix
 import { _ } from 'underscore';
 import {gS} from '../main.js';
 

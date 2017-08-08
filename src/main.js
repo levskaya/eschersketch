@@ -15,7 +15,6 @@
 import { _ } from 'underscore';
 import Vue from 'vue';
 import Hammer from 'hammerjs';
-import {Chrome} from 'vue-color';
 import {saveAs} from 'file-saver';
 
 import {deepClone} from './utils';
@@ -28,6 +27,8 @@ import {generateTiling, planarSymmetries, RosetteGroup, IdentitySet} from './sym
 import {GridTool}     from './gridTool';
 import {LineTool, LineOp}     from './lineTool';
 import {PencilTool, PencilOp}   from './pencilTool';
+import {PolygonTool, PolygonOp}     from './polygonTool';
+
 import {PolyTool, PolyOp}     from './polyTool';
 import {PathTool, PathOp}     from './pathTool';
 import {CircleTool, CircleOp}   from './circleTool';
@@ -128,7 +129,8 @@ export const drawTools = {
   pencil: new PencilTool(),
   grid: new GridTool(), //not a drawing tool
   poly: new PolyTool(),
-  path: new PathTool()
+  path: new PathTool(),
+  polygon: new PolygonTool()
 };
 //window.drawTools = drawTools; //HACK: debugging
 
@@ -136,6 +138,7 @@ const opsTable = {
   line: LineOp,
   pencil: PencilOp,
   circle: CircleOp,
+  polygon: PolygonOp,
   path: PathOp,
   poly: PolyOp
 };
@@ -320,6 +323,8 @@ window.addEventListener('resize', function(){
   });
 
 
+
+
 // Command Stack
 //------------------------------------------------------------------------------
 /* - objectify this
@@ -327,6 +332,26 @@ window.addEventListener('resize', function(){
      times during redos of complicated scenes
    - when to clear out redo stack?
 */
+// Command Stack
+//------------------------------------------------------------------------------
+
+// Makes transparent fill objects look cleaner by rendering fills first then strokes
+const cleanLinesModifier = function(op){
+    let strokeOp = ressurectOp(deepClone(op));
+    let fillOp = ressurectOp(deepClone(op));
+    fillOp.ctxStyle.strokeStyle = "rgba(0,0,0,0.0)"
+    strokeOp.ctxStyle.fillStyle = "rgba(0,0,0,0.0)"
+    return [fillOp, strokeOp];
+}
+
+// Makes solid fill objects look cleaner by rendering all strokes then making clean interiors w. fills
+const cleanFillsModifier = function(op){
+    let strokeOp = ressurectOp(deepClone(op));
+    let fillOp = ressurectOp(deepClone(op));
+    fillOp.ctxStyle.strokeStyle = "rgba(0,0,0,0.0)"
+    strokeOp.ctxStyle.fillStyle = "rgba(0,0,0,0.0)"
+    return [strokeOp, fillOp];
+}
 
 export const rerender = function(ctx, {clear=true, modifier=null}={}) {
   if(clear){
@@ -459,7 +484,7 @@ export const loadJSON = function(file) {
 export const saveSVG = function() {
   // canvas2svg fake context:
   var C2Sctx = new C2S(canvas.width, canvas.height);
-  // prevent recursion stack limit by constraining number of repeats exported
+  // prevent problems with huge SVG size by constraining number of repeats exported
   let gridLimiter = function(op) {
     let newop = ressurectOp(deepClone(op));
     newop.symmState.Nx = gS.options.svgGridNx;
@@ -515,15 +540,6 @@ export const savePNG = function() {
 };
 
 
-// Makes transparent fill objects look cleaner by rendering fills first then strokes
-const cleanLinesModifier = function(op){
-    let strokeOp = ressurectOp(deepClone(op));
-    let fillOp = ressurectOp(deepClone(op));
-    fillOp.ctxStyle.strokeStyle = "rgba(0,0,0,0.0)"
-    strokeOp.ctxStyle.fillStyle = "rgba(0,0,0,0.0)"
-    return [fillOp, strokeOp];
-}
-
 // Export small, hi-res, square-tileable PNG
 export const savePNGTile = function(){
   const pixelScale = gS.options.pngTileUpsample; // pixel density scaling factor
@@ -543,6 +559,7 @@ export const savePNGTile = function(){
   tctx.translate(-1*gS.symmState.x, -1*gS.symmState.x);
   //rerender scene and export bitmap
   //rerender(tctx, {modifier: cleanLinesModifier}); //XXX: very clean effect!
+  //rerender(tctx, {modifier: cleanFillsModifier}); //XXX: very clean effect!
   rerender(tctx);
   tileCanvas.toBlobHD(blob => saveAs(blob, gS.params.filename + "_tile.png"));
   tileCanvas.remove();

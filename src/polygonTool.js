@@ -20,6 +20,7 @@ import {deepClone} from './utils';
 import {sign, add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint, angleBetween} from './math_utils';
 
 import {RotationAbout, RotationTransform, ScalingTransform} from './symmetryGenerator';
+//draws regular Ngon with center at pt0, a vertex at pt1
 const drawPolygon = function(ctx, pt0, pt1, Nedges){
   ctx.beginPath();
   ctx.moveTo(pt1[0], pt1[1]);
@@ -33,9 +34,11 @@ const drawPolygon = function(ctx, pt0, pt1, Nedges){
   ctx.stroke();
   ctx.fill();
 }
+//draws 2N-vertex star figure with center at pt0, first "outer" vertex at pt1, first "inner" vertex at pt2
 const drawStar = function(ctx, pt0, pt1, pt2, Nrots){
   ctx.beginPath();
   ctx.moveTo(pt1[0], pt1[1]);
+  // must preserve proper draw order orientation on reflections!
   let anglesign = sign(angleBetween(pt0,pt1,pt2));
   let rotTr = RotationAbout(anglesign*2*Math.PI/Nrots, pt0[0], pt0[1]);
   let Tpt1 = pt1;
@@ -87,12 +90,11 @@ const _MOVECENTER_ = 3;
 const _MOVEVERTEX_ = 4;
 const _MOVESTAR_ = 5;
 
-const simplifyOptions = function(options){
+const bakeOptions = function(options){
   let simpleOptions = {};
   for(let key of Object.keys(options)){
     simpleOptions[key] = options[key].val;
   }
-  console.log(simpleOptions);
   return simpleOptions;
 }
 
@@ -149,7 +151,7 @@ export class PolygonTool {
   commit() {
     if(this.state == _INIT_){return;}
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new PolygonOp(ctxStyle, deepClone(this.points), simplifyOptions(this.options)));
+    commitOp(new PolygonOp(ctxStyle, deepClone(this.points), bakeOptions(this.options)));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.points = [[-100,-100],[-100,-100],[-100,-100]];
     this.state = _INIT_;

@@ -23,6 +23,8 @@ later...
   xmnls uses a regex that hits recursion depth on our huge SVG files...
   so commented out that to fix
 
+# AWS
+https://aws.amazon.com/sdk-for-browser/
 
 ## Vue draggable list
 https://jsfiddle.net/dede89/sqssmhtz/
@@ -44,6 +46,9 @@ sliders (input range) styling:
     http://brennaobrien.com/blog/2014/05/style-input-type-range-in-every-browser.html
 
 ## Tools
+- bezier brush
+  https://gitlab.com/erehm/PiecewiseG1BezierFit
+  http://jimherold.com/2012/04/20/least-squares-bezier-fit/
 - freehand lines, pressure-sensitive (width or color intensity)
 - ellipse
 - free polygon

@@ -19,28 +19,28 @@ import { _ } from 'underscore';
 //import {l2dist} from './math_utils';
 import {parseColor} from './canvas_utils';
 
+import {simplifyPoints} from './simplifyPoints'; // Douglas-Peucker
 
 // Draw Raw Mousepath (Pencil)
 //------------------------------------------------------------------------------
 //TODO: add smoothing factor
 export class PencilOp {
   constructor(ctxStyle, points) {
-    this.points = points;
     this.tool = "pencil";
+    this.points = points;
     this.ctxStyle = ctxStyle;
     this.symmState = _.clone(gS.symmState);
   }
 
   render(ctx){
-    //if(this.points.length==0){return;} //empty data case
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
     for (let af of affineset) {
       ctx.beginPath();
-      const Tpt0 = af.on(this.points[0].x, this.points[0].y);
+      const Tpt0 = af.onVec(this.points[0]);
       ctx.moveTo(Tpt0[0], Tpt0[1]);
       for (let pt of this.points.slice(1)) {
-        const Tpt = af.on(pt.x, pt.y);
+        const Tpt = af.onVec(pt);
         ctx.lineTo(Tpt[0], Tpt[1]);
       }
       ctx.stroke();
@@ -48,6 +48,13 @@ export class PencilOp {
   }
 }
 
+const bakeOptions = function(options){
+  let simpleOptions = {};
+  for(let key of Object.keys(options)){
+    simpleOptions[key] = options[key].val;
+  }
+  return simpleOptions;
+}
 
 //State Labels
 const _INIT_ = 0;
@@ -60,16 +67,19 @@ export class PencilTool {
     this.points = [];
     this.state = _INIT_;
     this.liverender = this.liverender_fast;
+    this.options = {
+        simplification: {val:0.7, type: "number", min:0.2},
+    };
   }
 
   liverender_precise() {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let af of affineset) {
       lctx.beginPath();
-      const Tpt0 = af.on(this.points[0].x, this.points[0].y);
+      const Tpt0 = af.onVec(this.points[0]);
       lctx.moveTo(Tpt0[0], Tpt0[1]);
       for (let pt of this.points.slice(1)) {
-        const Tpt = af.on(pt.x, pt.y);
+        const Tpt = af.onVec(pt);
         lctx.lineTo(Tpt[0], Tpt[1]);
       }
       lctx.stroke();
@@ -84,9 +94,10 @@ export class PencilTool {
 
     if(this.points.length >= 3) {
       for (let af of affineset) {
-        const Tpt0 = af.on(this.points[this.points.length-3].x, this.points[this.points.length-3].y);
-        const Tpt1 = af.on(this.points[this.points.length-2].x, this.points[this.points.length-2].y);
-        const Tpt2 = af.on(this.points[this.points.length-1].x, this.points[this.points.length-1].y);
+        const Tpt0 = af.onVec(this.points[this.points.length-3]);
+        const Tpt1 = af.onVec(this.points[this.points.length-2]);
+        const Tpt2 = af.onVec(this.points[this.points.length-1]);
+
         // A global pressure var from pressure.js actually works... hmm!
         //lctx.save();
         //lctx.lineWidth = pressure*30;
@@ -100,8 +111,8 @@ export class PencilTool {
       }
     } else if(this.points.length >= 2){
       for (let af of affineset) {
-        const Tpt0 = af.on(this.points[this.points.length-2].x, this.points[this.points.length-2].y);
-        const Tpt1 = af.on(this.points[this.points.length-1].x, this.points[this.points.length-1].y);
+        const Tpt0 = af.onVec(this.points[this.points.length-2]);
+        const Tpt1 = af.onVec(this.points[this.points.length-1]);
         lctx.beginPath();
         lctx.moveTo(Tpt0[0], Tpt0[1]);
         lctx.lineTo(Tpt1[0], Tpt1[1]);
@@ -135,7 +146,10 @@ export class PencilTool {
   commit() {
     if(this.state===_INIT_){return;} //empty data case
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new PencilOp(ctxStyle, _.clone(this.points)));
+    let simplifiedPoints = simplifyPoints(this.points,this.options.simplification.val, true);
+    commitOp(new PencilOp(ctxStyle, simplifiedPoints));
+    console.log(this.points.length, simplifiedPoints.length);
+
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }
 
@@ -146,26 +160,24 @@ export class PencilTool {
 
   mouseDown(e) {
     if(this.state==_OFF_) {
-      this.commit();
+      this.commit(); //XXX: autocommit
     }
     this.state = _ON_;
-    var rect = livecanvas.getBoundingClientRect();
-    this.points = [{x: e.clientX - rect.left,
-                    y: e.clientY - rect.top}];
+    let {left, top} = livecanvas.getBoundingClientRect();
+    this.points = [[e.clientX - left, e.clientY - top]];
   }
 
   mouseMove(e) {
     if (this.state == _ON_) {
-        var rect = livecanvas.getBoundingClientRect();
-        this.points.push({ x: e.clientX - rect.left,
-                           y: e.clientY - rect.top});
-        this.liverender();
+      let {left, top} = livecanvas.getBoundingClientRect();
+      this.points.push([e.clientX - left, e.clientY - top]);
+      this.liverender();
     }
   }
 
   mouseUp(e) {
     if(this.state != _INIT_){
-      this.commit();
+      this.commit(); //XXX: autocommit
       this.points = [];
       this.state = _INIT_;
     }

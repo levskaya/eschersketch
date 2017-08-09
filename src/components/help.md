@@ -3,7 +3,8 @@
 ## What is this?
 
 A drawing program that forces what you draw to obey certain __symmetries__, or regular patterns.  It allows for export
-into a bitmap PNG Tile for use with fabric design and wallpaper as well as SVG for graphic design.
+into a bitmap PNG Tile for use with fabric design and wallpaper as well as SVG for use in a proper vector editing
+tool for refining a symmetric design.
 
 ## Undo / Redo
 
@@ -19,10 +20,11 @@ Icon   | Tool | Description
 
  Icon   | Tool | Description
  -------|------|-------------------
- <span class="icon-pencil"/>  | __pencil__ tool | freehand drawing tool, stroke-only
+ <span class="icon-pencil"/>  | __pencil__ tool | freehand drawing tool, stroke-only, variable smoothing factor
  <span class="icon-line"/> | __line__ tool | draws single line segments between two _adjustable_ points
+ <span class="icon-hexagon"/>| __polygon__ tool | draws a straight-sided __regular__ polygon _or_ star, _adjustable_ points
  <span class="icon-radio-unchecked"/> | __circle__ tool | draws a single centered circle, from two _adjustable_ points
- <span class="icon-hexagon"/> | __polyline__ tool | draws a straight-sided polygon, _adjustable_ points
+ <span class="icon-polyline"/> | __polyline__ tool | draws a straight-sided freehand polygon, _adjustable_ points
  <span class="icon-pen"/>| __path__ tool | draws bezier curves and straight lines, both vertices and control points are _adjustable_
 
 For the adjustable tools, a few more buttons/commands are present for saving, cancelling, and undoing points:
@@ -32,6 +34,7 @@ Icon   | Tool | Description
 <span class="icon-checkmark"/> | __save__ | saves what's drawn with the current tool
 <span class="icon-minus"/> | __undo point__ | removes the last point when using the path or polyline tool
 
+Additional options controlling the tool are displayed upon selection.
 
  ## Color
 

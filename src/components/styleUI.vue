@@ -1,7 +1,7 @@
 <template>
   <div id="styleUI" :style="panelStyle">
     <span class="UIheader">line</span><br>
-    
+
     width <input type="range" :value="ctxStyle.lineWidth"
            :min="options.minLineWidth"
            :max="options.maxLineWidth"
@@ -63,6 +63,7 @@ export default {
   },
   methods: {
     changethick: function({type, target}){
+      target.blur();
       gS.$emit('styleUpdate', {lineWidth: target.value});
     },
     changeCap:  function(capName){ gS.$emit('styleUpdate', {"lineCap": capName}); },

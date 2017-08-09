@@ -22,7 +22,7 @@ export const map =  // linear map of i-range onto o-range
     ostart + (((ostop - ostart) * (value - istart)) / (istop - istart));
 
 export const l2norm =
-  (pt) => sqrt(pt[0]*p[0] + pt[1]*pt[1]);
+  (pt) => sqrt(pt[0]*pt[0] + pt[1]*pt[1]);
 
 export const l2dist =
   function(pt0, pt1) {

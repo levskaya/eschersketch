@@ -2,7 +2,6 @@
 
 ## What is this?
 
-
 A drawing program that forces what you draw to obey certain __symmetries__, or regular patterns.  It allows for export
 into a bitmap PNG Tile for use with fabric design and wallpaper as well as SVG for graphic design.
 
@@ -97,8 +96,8 @@ __Hexagonally Symmetric Patterns__
 __p3__  | beautiful 120&deg; symmetry
 __p6__  | really beautiful 60&deg; symmetry
 __p31m__ | even more astounding, seriously go check out [wikipedia][2] to see pictures, or play with it yourself here.
-__p3m1__ | dammmnnn, son!
-__p6m__  | woah... ultimate, mystical pinnacle of perfect 2d symmetry, commonly seen in persian art, this is the default one set at the beginning
+__p3m1__ | speechless
+__p6m__  | ...ultimate, mystical pinnacle of perfect 2d symmetry, commonly seen in persian art, this is the default one set at the beginning
 
 There are other ways of "almost" symmetrically tiling the plane in ["aperiodic" tilings][3], these were first discovered by pattern-makers in the islamic world centuries ago, but were re-discovered in the west by mathematicians only this century.  They're very cool, but eschersketch can't yet automatically make these patterns -- yet -- maybe one day!
 
@@ -120,12 +119,16 @@ The __grid adjustment__ tool allows to you move the "center" of the point-symmet
 
 * __LOAD JSON__ This loads a file saved by the above and reconstructs the exact image produced previously.
 
-Because these serialize straight from Eschersketch's internal representation, these formats are __not__ stable, and could change dramatically as Eschersketch is developed in the online version.  Save in SVG for a more durable format, unless you want to download and run the Eschersketch codebase itself - in that case each save file contains the git short-ref of the codebase for those wishing to run eschersketch locally.
+Because these serialize straight from Eschersketch's internal representation, these formats are __not__ stable, and could change dramatically as Eschersketch is developed in the online version.  Save in SVG for a more durable format, unless you want to download and run the Eschersketch codebase itself - in that case each save file contains the git short-ref of the codebase version for those wishing to run eschersketch locally.
+
+## Further Reading
+
+I highly recommend the compilation [Designa][designa] from Wooden Books, especially it's chapter by Daud Sutton on Islamic Design.
 
 <slot name="footer"></slot>
 
 [1]: https://en.wikipedia.org/wiki/Point_group
 [2]: https://en.wikipedia.org/wiki/Wallpaper_group
 [3]: https://en.wikipedia.org/wiki/Aperiodic_tiling
-[spoonup]: https://www.spoonflower.com/designs/new
+[spoon]: https://www.spoonflower.com/designs/new
 [designa]: https://www.amazon.com/Designa-Wooden-Books/dp/1620406594

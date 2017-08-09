@@ -1,7 +1,12 @@
 # Eschersketch Notes
 
+islamic art:
+http://www.issam-el-said.co.uk/16253.html
+Geometric Concepts in Islamic Arts by Issam El-Said
+https://qunud.wordpress.com/tag/daud-sutton/
+
 ## MVP
-- save/load command-set, not just output - (versioned, no stability guarantee)
+- decently stable save format...
 - dev Notes?
 
 later...
@@ -17,6 +22,12 @@ later...
 - modified lines around 437 of canvas2svg.js - the IE fix section that fixes
   xmnls uses a regex that hits recursion depth on our huge SVG files...
   so commented out that to fix
+
+
+## Vue draggable list
+https://jsfiddle.net/dede89/sqssmhtz/
+https://github.com/SortableJS/Vue.Draggable
+
 
 ## Mobile Detection
 http://detectmobilebrowsers.com/about

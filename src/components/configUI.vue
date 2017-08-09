@@ -1,6 +1,6 @@
 <template>
   <div id="configUI" :style="panelStyle">
-    <br><span class="UIheader">Options</span><br><br>
+    <br><span class="UIheader">Options</span><br>
 
     <b>draw options</b><br>
     <es-numfield param="maxLineWidth" :val="options.maxLineWidth" size="2" @numchange="update">Max line width</es-numfield><br>
@@ -15,7 +15,7 @@
     <!--<es-numfield param="pngUpSample" :val="options.pngUpsample" size="1" @numchange="update">PNG Upsample Factor</es-numfield><br>-->
     <es-numfield param="svgGridNx" :val="options.svgGridNx" size="2" @numchange="update">SVG Export Grid Nx</es-numfield> <i>careful</i> <br>
     <es-numfield param="svgGridNy" :val="options.svgGridNy" size="2" @numchange="update">SVG Export Grid Ny</es-numfield> <i>careful</i> <br>
-    <br>
+
   </div>
 </template>
 

@@ -12,6 +12,7 @@
     props: ['param', 'val', 'label'],
     methods: {
       checked: function({type, target}) {
+        target.blur();
         this.$emit("checked", this.param, !this.val);
       }
     }

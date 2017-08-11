@@ -58,6 +58,7 @@ export const gS = new Vue({
       canvasWidth:  1600,
       filename: "eschersketch",
       versionString: "v0.3",      //Eschersketch version
+      copyText:""
     },
     options: {
       minLineWidth: 0.1,
@@ -448,7 +449,7 @@ const ressurectOp = function(deadOp){
     return _.assign(op, deadOp)
 }
 
-const deserialize = function(jsonStr){
+export const deserialize = function(jsonStr){
   reset();
   let loadObj = JSON.parse(jsonStr);
   gS.params.filename = loadObj.name;
@@ -740,6 +741,42 @@ export const getESVersion = function() {
   if(window.ES_VERSION){ return ES_VERSION; } else { return "v0.3"; }
 }
 
+// experimental cloud storage -----------------------------------------------------------------
+export const prepForUpload = function() {
+  let jsonstr = JSON.stringify({
+              name: gS.params.filename,
+              version: getESVersion(),
+              data: cmdStack
+             });
+  console.log("JSON size is ", jsonstr.length);
+  return jsonstr;
+}
+export const fetchFromCloud = function(jsonStr){
+  reset();
+  let shellObj = JSON.parse(jsonStr);
+  let loadObj = shellObj.content;
+  gS.params.filename = loadObj.name;
+  console.log("loading ES SketchID", shellObj.sketchID, "from version", loadObj.version);
+  let newstack = [];
+  for(let obj of loadObj.data){
+    newstack.push(ressurectOp(obj));
+  }
+  cmdStack = newstack;
+  rerender(ctx);
+}
+
+import {loadSketch} from './network.js';
+const loadGivenSketch = function(){
+  let urlObj = new URL(window.location.href);
+  let sketchID = urlObj.searchParams.get("s");
+  if(sketchID){
+    console.log("sketchID", sketchID, "requested");
+    loadSketch(sketchID);
+  }
+}
+// end experimental cloud storage -------------------------------------------------------------
+
+
 const initGUI = function() {
   console.log("Eschersketch", getESVersion());
 
@@ -772,6 +809,10 @@ const initGUI = function() {
   document.getElementsByTagName("body")[0].onkeyup = dispatchKeyUp;
 
   initState();
+
+  //parse URL for get params and load from backend
+  //loadGivenSketch();
+
 };
 
 // This "works" for both mouse and touch events, but

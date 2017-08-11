@@ -32,6 +32,18 @@
     <input id="the-file-input" type="file" @change="loadJSON">
   </label>
 
+  <br>
+
+  <template v-if="false">
+    <div id="save-online" class="button" @mousedown="uploadSketch">
+      <span class="icon-cloud-upload"></span> to cloud
+    </div>
+
+    <div id="copy-button" class="button" v-if="params.copyText.length>0">
+      Copy the Link to Your Sketch!
+    </div>
+  </template>
+
 </div>
 </template>
 
@@ -40,8 +52,14 @@ import es_numfield from './es_numfield';
 import es_button from './es_button';
 import {gS, saveSVG, saveSVGTile, savePNG, savePNGTile, saveJSON, loadJSON} from '../main.js';
 import {_} from 'underscore';
-
-//document.getElementById("saveSVGtile").onmousedown = function(e) { saveSVGTile(); };
+import {saveSketch} from '../network.js';
+import Clipboard from 'clipboard';
+var clipboard = new Clipboard('#copy-button', {
+    text: function() {
+        //console.log("copytext", gS.params.copyText);
+        return gS.params.copyText;
+    }
+});
 
 export default {
   props: ['params'],
@@ -63,13 +81,17 @@ export default {
     loadJSON: function({type, target}){
       loadJSON(target.files[0]);
     },
-
     changeFilename: function(name, val) {
       if(val.trim()===""){
         gS.$emit('paramsUpdate', name, "eschersketch"); //XXX: doesn't update its own ui all the time...
       } else {
         gS.$emit('paramsUpdate', name, val.trim());
       }
+    },
+    uploadSketch: function(){
+      //console.log("trying to upload");
+      saveSketch();
+
     }
   }
 }

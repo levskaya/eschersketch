@@ -23,3 +23,13 @@ export const deepClone = function(object) {
 
     return clone;
   };
+
+export const lsGetJSON = function (keyname){
+  let jsonstr = localStorage.getItem(keyname);
+  return JSON.parse(jsonstr);
+}
+export const lsSaveJSON = function (keyname, obj){
+  let jsonstr = JSON.stringify(obj);
+  localStorage.setItem(keyname, jsonstr);
+}
+window.lsGetJSON=lsGetJSON; //HACK

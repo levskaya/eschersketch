@@ -70,9 +70,7 @@ export default {
       gS.$emit('toolUpdate', toolName);
     },
     toolOptionUpdate: function(name, value){
-      //console.log(drawTools[gS.params.curTool].constructor.name, name, "=", val);
-      drawTools[gS.params.curTool].options[name].val = value;
-      drawTools[gS.params.curTool].liverender();
+      gS.$emit('toolOptionUpdate', name, value);
     }
   },
 }

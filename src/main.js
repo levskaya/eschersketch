@@ -174,6 +174,11 @@ gS.$on('toolUpdate',
        function(tool){
          changeTool(tool);
        });
+gS.$on('toolOptionUpdate',
+      function(name, value){
+        drawTools[gS.params.curTool].options[name].val = value;
+        drawTools[gS.params.curTool].liverender();
+      });
 gS.$on('optionsUpdate', function(name, val){ gS.options[name] = val; });
 gS.$on('paramsUpdate', function(name, val){ gS.params[name] = val;});
 gS.$on('setHint', function(val){

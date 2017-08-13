@@ -52,6 +52,8 @@ export const gS = new Vue({
       showFile: true,
       showHelp: false,
       showConfig: false,
+      showNetwork: false,
+      showShareLinks: false,
       showHints: false,           //contextual help, still janky...
       hintText: "",
       canvasHeight: 1200,
@@ -148,8 +150,8 @@ const opsTable = {
 // Global Events
 //------------------------------------------------------------------------------
 gS.$on('symmUpdate',
-       function(gridSetting) {
-         _.assign(gS.symmState, gridSetting);
+       function(symmState) {
+         _.assign(gS.symmState, symmState);
          updateSymmetry(gS.symmState);
          //HACK: if the gridtool is active, update canvas if the grid ui is altered
          if(gS.params.curTool=="grid"){ drawTools["grid"].enter(); }
@@ -234,7 +236,7 @@ export const updateSymmetry = function(symmState) {
     // basic safety so as not to grind CPU to a halt...
     gS.symmState.Nx = newNx < gS.options.maxGridNx ? newNx : gS.options.maxGridNx;
     gS.symmState.Ny = newNy < gS.options.maxGridNy ? newNy : gS.options.maxGridNy;
-    console.log("grid Nx", gS.symmState.Nx, "Ny", gS.symmState.Ny);
+    // console.log("grid Nx", gS.symmState.Nx, "Ny", gS.symmState.Ny);
   }
 
   if(symmState.sym == "none"){
@@ -545,6 +547,37 @@ export const savePNG = function() {
   canvas.toBlobHD(blob => saveAs(blob, gS.params.filename + ".png"));
 };
 
+// Get base64 encoded JPG of current scene (for snapshot upload)
+export const getJPGdata = function(){
+  const pixelScale = 1;//gS.options.pngTileUpsample; // pixel density scaling factor
+  const jpegQuality = 0.9;
+  // get square tile dimensions
+  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
+  dX *= gS.symmState.d * pixelScale;
+  dY *= gS.symmState.d * pixelScale;
+
+  // Render into tile-sized canvas for blob conversion and export
+  let tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = 1200;
+  tmpCanvas.height = 600;
+  let tctx = tmpCanvas.getContext("2d");
+  //correct for center off-set and pixel-scaling
+  //tctx.scale(pixelScale, pixelScale);
+  //tctx.translate(-1*gS.symmState.x, -1*gS.symmState.x);
+  //rerender scene and export bitmap
+  //rerender(tctx, {modifier: cleanLinesModifier}); //XXX: very clean effect!
+  //rerender(tctx, {modifier: cleanFillsModifier}); //XXX: very clean effect!
+  tctx.save();
+  tctx.fillStyle="rgba(255,255,255,1.0)";
+  tctx.fillRect(0, 0, canvas.width, canvas.height);
+  tctx.restore();
+  rerender(tctx, {clear: false});
+  let jpegData = tmpCanvas.toDataURL("image/jpeg", jpegQuality);
+  //saveAs(jpegData, gS.params.filename + "_tmp.jpeg");
+  //tmpCanvas.toBlobHD(blob => saveAs(blob, gS.params.filename + "_tmp.jpg"));
+  tmpCanvas.remove();
+  return jpegData;
+};
 
 // Export small, hi-res, square-tileable PNG
 export const savePNGTile = function(){
@@ -773,10 +806,14 @@ export const fetchFromCloud = function(jsonStr){
 import {loadSketch} from './network.js';
 const loadGivenSketch = function(){
   let urlObj = new URL(window.location.href);
-  let sketchID = urlObj.searchParams.get("s");
-  if(sketchID){
-    console.log("sketchID", sketchID, "requested");
-    loadSketch(sketchID);
+  let querySketchID = urlObj.searchParams.get("s");
+  let urlSketchID = window.location.href.split('s/')[1];
+  if(querySketchID){
+    console.log("Query sketchID", querySketchID, "requested");
+    loadSketch(querySketchID);
+  } else if(urlSketchID){
+    console.log("URL sketchID", urlSketchID, "requested");
+    loadSketch(urlSketchID);
   }
 }
 // end experimental cloud storage -------------------------------------------------------------
@@ -816,7 +853,7 @@ const initGUI = function() {
   initState();
 
   //parse URL for get params and load from backend
-  //loadGivenSketch();
+  loadGivenSketch();
 
 };
 

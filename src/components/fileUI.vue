@@ -34,14 +34,23 @@
 
   <br>
 
-  <template v-if="false">
+  <template v-if="params.showNetwork">
     <div id="save-online" class="button" @mousedown="uploadSketch">
-      <span class="icon-cloud-upload"></span> to cloud
+      <span class="icon-cloud-upload"></span> Make Shareable Links!
     </div>
 
+  <template v-if="params.showShareLinks">
     <div id="copy-button" class="button" v-if="params.copyText.length>0">
-      Copy the Link to Your Sketch!
+      Copy the Link to Your Sketch
     </div>
+    <div id="fb-button" class="button">
+      <a :href="fbLink">Share your Sketch on Facebook</a>
+    </div>
+    <div id="twitter-button" class="button">
+      <a :href="twitterLink">Share your Sketch on Twitter</a>
+    </div>
+  </template>
+
   </template>
 
 </div>
@@ -71,7 +80,17 @@ export default {
     panelStyle: function() {
       return {display: this.params.showFile ? "block" : "none"};
     },
-    fname: function() {return this.params.filename;}
+    fname: function() {return this.params.filename;},
+    fbLink: function() {
+      let myurl = encodeURI(gS.params.copyText);
+      let fbHref = `https://www.facebook.com/dialog/share?app_id=1435026029878806&display=page&href=${myurl}&redirect_uri=${myurl}`
+      return fbHref;
+    },
+    twitterLink: function() {
+      let myurl = encodeURI(gS.params.copyText);
+      let twitterHref = `https://twitter.com/intent/tweet?url=${myurl}&text=Eschersketch`
+      return twitterHref;
+    }
   },
   methods:{  //XXX: dirty, need to move all of these to top-level "$emit" calls
     savePNG: function() { savePNG(); },

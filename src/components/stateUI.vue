@@ -6,7 +6,7 @@
           <span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">escher</span><br>
         </div>
         <div class="Aligner-item">
-          <img src="static/svg/es_logo.svg" height="30px" style="margin-top:6px;"/>
+          <img src="/static/svg/es_logo.svg" height="30px" style="margin-top:6px;"/>
         </div>
         <div class="Aligner-item">
           <span class="eslogotext" style="font-variant:small-caps;margin-left:10px;">sketch</span>
@@ -20,7 +20,7 @@
       </div>
     </template>
     <template v-else>
-        <span class="eslogo"><img src="static/svg/es_logo.svg" height="25px" style="margin-bottom:-8px; padding:0px"/></span>
+        <span class="eslogo"><img src="/static/svg/es_logo.svg" height="25px" style="margin-bottom:-8px; padding:0px"/></span>
     </template>
 
     <div class="button" @click="help" title="help" key="stateui-help-button">

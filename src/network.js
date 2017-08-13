@@ -9,7 +9,7 @@
 //
 //------------------------------------------------------------------------------
 
-import {gS, prepForUpload, fetchFromCloud} from './main.js'
+import {gS, prepForUpload, fetchFromCloud, getJPGdata} from './main.js'
 
 const HttpClient = function() {
     this.get = function(url, callback) {
@@ -49,8 +49,20 @@ export const saveSketch = function(){
     let jsonObj = JSON.parse(str);
     console.log("new sketchID", jsonObj.sketchID);
     rememberSketch(jsonObj.sketchID);
-    gS.params.copyText = "https://eschersket.ch/?s="+jsonObj.sketchID;
-  } );
+    //gS.params.copyText = "https://eschersket.ch/?s="+jsonObj.sketchID;
+    gS.params.copyText = "https://eschersket.ch/s/"+jsonObj.sketchID;
+    gS.params.showShareLinks = true;
+    console.log("trying an image post");
+    let imgclient = new HttpClient();
+    let imgdata = JSON.stringify({
+                    hash:   jsonObj.sketchID,
+                    b64img: getJPGdata().replace("data:image/jpeg;base64,","")
+                  });
+    imgclient.post("https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/dev/postimage", imgdata, function(str){
+      console.log("imgpost response", str);
+    });
+
+  });
 }
 
 export const loadSketch = function(sketchID){

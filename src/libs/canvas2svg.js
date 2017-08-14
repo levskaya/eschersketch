@@ -11,9 +11,9 @@
  *  Copyright (c) 2014 Gliffy Inc.
  */
 
-;(function () {
+ export const canvas2SVGLoad = function () {//XXX: added
+;(function(){
     "use strict";
-
     var STYLES, ctx, CanvasGradient, CanvasPattern, namedEntities;
 
     //helper function to format a string
@@ -1211,5 +1211,5 @@
     if (typeof module === "object" && typeof module.exports === "object") {
         module.exports = ctx;
     }
-
 }());
+};//XXX: added

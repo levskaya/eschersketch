@@ -10,13 +10,30 @@
 //
 //------------------------------------------------------------------------------
 
-// Imports
+// Library Imports
 //------------------------------------------------------------------------------
 import { _ } from 'underscore';
 import Vue from 'vue';
-import Hammer from 'hammerjs';
-import {saveAs} from 'file-saver';
+import Hammer from 'hammerjs'; // touch-event support
 
+// polyfills
+import {saveAs} from './libs/FileSaver.js';
+import {blobPolyfillLoader} from './libs/Blob.js';
+blobPolyfillLoader();
+// modifies global canvas object
+import {canvastoBlobLoader} from './libs/canvas-toBlob.js';
+canvastoBlobLoader();
+
+// need to use my tweaked version of canvas2svg to avoid regex recursion limit
+import {canvas2SVGLoad} from './libs/canvas2svg.js';
+canvas2SVGLoad();
+// touch detection
+import {modernizrLoader} from './libs/modernizr-custom.js';
+modernizrLoader();
+
+
+// Local Imports
+//------------------------------------------------------------------------------
 import {deepClone} from './utils';
 import {pixelFix, setCanvasPixelDensity, parseColor} from './canvas_utils';
 import {generateTiling, planarSymmetries, RosetteGroup, IdentitySet} from './symmetryGenerator';

@@ -1,7 +1,7 @@
 /* canvas-toBlob.js
  * A canvas.toBlob() implementation.
  * 2016-05-26
- * 
+ *
  * By Eli Grey, http://eligrey.com and Devin Samarin, https://github.com/eboyjr
  * License: MIT
  *   See https://github.com/eligrey/canvas-toBlob.js/blob/master/LICENSE.md
@@ -13,6 +13,7 @@
 
 /*! @source http://purl.eligrey.com/github/canvas-toBlob.js/blob/master/canvas-toBlob.js */
 
+export const canvastoBlobLoader = function () {//XXX: added
 (function(view) {
 "use strict";
 var
@@ -123,3 +124,4 @@ if (HTMLCanvasElement && (!canvas_proto.toBlob || !canvas_proto.toBlobHD)) {
 	}
 }
 }(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content || this));
+};//XXX: added

@@ -10,6 +10,11 @@
 //
 //------------------------------------------------------------------------------
 
+// Global Assets
+//------------------------------------------------------------------------------
+require('./assets/eschersketch.css'); //global css
+require('./assets/icomoon.css');      //icon fonts
+
 // Library Imports
 //------------------------------------------------------------------------------
 import { _ } from 'underscore';
@@ -30,9 +35,6 @@ canvas2SVGLoad();
 // touch detection
 import {modernizrLoader} from './libs/modernizr-custom.js';
 modernizrLoader();
-
-require('./assets/eschersketch.css');
-require('./assets/icomoon.css');
 
 // Local Imports
 //------------------------------------------------------------------------------

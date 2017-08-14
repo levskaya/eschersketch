@@ -31,6 +31,8 @@ canvas2SVGLoad();
 import {modernizrLoader} from './libs/modernizr-custom.js';
 modernizrLoader();
 
+require('./assets/eschersketch.css');
+require('./assets/icomoon.css');
 
 // Local Imports
 //------------------------------------------------------------------------------

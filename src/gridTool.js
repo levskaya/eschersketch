@@ -49,10 +49,7 @@ export class GridTool {
   }
 
   commit(){
-    //console.log("symmState ",gS.symmState.sym, {x: this.x, y: this.y, d: this.d, t: this.t})
-    _.assign(gS.symmState, {x: this.x, y: this.y, d: this.d, t: this.t});
-    //updateSymmetry({x: this.x, y: this.y, d: this.d, t: this.t});
-    updateSymmetry(gS.symmState);
+    updateSymmetry({x: this.x, y: this.y, d: this.d, t: this.t});
   }
 
   cancel(){ //not used, just here for consistency

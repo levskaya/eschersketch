@@ -167,9 +167,10 @@ export class PolygonTool {
     if(op){
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
-        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
-        _.assign(gS.symmState, op.symmState);
         updateSymmetry(op.symmState);
+        for(let key of Object.keys(op.options)){
+          this.options[key].val = op.options[key];
+        }
         this.points = op.points;
         this.state = _OFF_;
         this.liverender();

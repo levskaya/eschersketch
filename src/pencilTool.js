@@ -35,6 +35,7 @@ export class PencilOp {
   render(ctx){
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
+    //gS.$emit('symmUpdate', this.symmState);
     for (let af of affineset) {
       ctx.beginPath();
       const Tpt0 = af.onVec(this.points[0]);
@@ -126,9 +127,10 @@ export class PencilTool {
     if(op){
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
-        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
-        _.assign(gS.symmState, op.symmState)
         updateSymmetry(op.symmState);
+        for(let key of Object.keys(op.options)){
+          this.options[key].val = op.options[key];
+        }
         this.points = op.points;
         this.state = _OFF_;
         this.liverender_precise();
@@ -148,7 +150,7 @@ export class PencilTool {
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
     let simplifiedPoints = simplifyPoints(this.points,this.options.simplification.val, true);
     commitOp(new PencilOp(ctxStyle, simplifiedPoints));
-    console.log(this.points.length, simplifiedPoints.length);
+    //console.log("pencil: point reduction", this.points.length, simplifiedPoints.length);
 
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }

@@ -32,6 +32,7 @@ export class PathOp {
     //if(this.ops.length==0){return;} //empty data case
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
+    //gS.$emit('symmUpdate', this.symmState);
     for (let af of affineset) {
       ctx.beginPath();
       for(let op of this.ops){
@@ -459,8 +460,6 @@ export class PathTool {
     if(op){
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
-        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
-        _.assign(gS.symmState, op.symmState);
         updateSymmetry(op.symmState);
         this.ops = op.ops;
         this.opselected = [];

@@ -57,6 +57,7 @@ export class CircleOp {
   render(ctx){
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
+    //gS.$emit('symmUpdate', this.symmState);
     for (let af of affineset) {
       const Tp1 = af.on(this.start.x, this.start.y);
       const Tp2 = af.on(this.end.x, this.end.y);
@@ -131,6 +132,28 @@ export class CircleTool {
     this.end = {};
   }
 
+  enter(op){
+    if(op){
+        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
+        _.assign(lctx, op.ctxStyle);
+        updateSymmetry(op.symmState);
+        this.start = op.start;
+        this.end = op.end;
+        this.state = _OFF_;
+        this.liverender();
+    } else{
+      this.start = {};
+      this.end = {};
+      this.state = _INIT_;
+    }
+  }
+
+  exit(){
+      this.start = {};
+      this.end = {};
+      this.state = _INIT_;
+  }
+
   mouseDown(e) {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
@@ -189,35 +212,5 @@ export class CircleTool {
       }
     }
   }
-  /*
-  keyDown(e) {
-    if(e.target.type){return;} // don't interfere with input UI key-events
-    if(e.code == "Enter"){ this.commit(); }
-    else if(e.code=="Escape"){ this.cancel(); }
-  }
-  */
 
-  enter(op){
-    if(op){
-        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
-        _.assign(lctx, op.ctxStyle);
-        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
-        _.assign(gS.symmState, op.symmState);
-        updateSymmetry(op.symmState);
-        this.start = op.start;
-        this.end = op.end;
-        this.state = _OFF_;
-        this.liverender();
-    } else{
-      this.start = {};
-      this.end = {};
-      this.state = _INIT_;
-    }
-  }
-
-  exit(){
-      this.start = {};
-      this.end = {};
-      this.state = _INIT_;
-  }
 }

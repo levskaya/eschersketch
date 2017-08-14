@@ -31,7 +31,6 @@ export class PolyOp {
   }
 
   render(ctx) {
-    //if(this.points.length==0){return;} //empty data case
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
     for (let af of affineset) {
@@ -140,11 +139,11 @@ export class PolyTool {
     else if(this.state == _INIT_) {
       this.state = _ON_;
       this.points = [ [pt[0], pt[1]] ];
-      this.selected = 0; //?
+      this.selected = 0;
       this.liverender();
     }
     else if(this.state == _ON_) {
-      this.selected += 1;//this.state + 1;
+      this.selected += 1;
       this.points.push( [pt[0], pt[1]] );
       this.liverender();
     }
@@ -197,7 +196,6 @@ export class PolyTool {
         _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
         _.assign(lctx, op.ctxStyle);
         this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
-        _.assign(gS.symmState, op.symmState)
         updateSymmetry(op.symmState);
         this.points = op.points;
         this.state = _OFF_;
@@ -212,13 +210,8 @@ export class PolyTool {
   }
 
   exit(){
-    //if(this.state==_OFF_) {
-    //  if(this.points.length >2){
-        //this.commit();
-    //  }
       this.points = [];
       this.selected = 0;
       this.state = _INIT_;
-    //}
   }
 }

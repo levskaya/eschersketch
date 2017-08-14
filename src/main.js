@@ -106,7 +106,7 @@ export const gS = new Vue({
 //-------------------------------
 var cmdStack = [];
 var redoStack = [];
-window.cmdStack=cmdStack; //HACK
+window.getCmdStack = ()=>cmdStack; //HACK
 
 // Canvas / Context Globals
 //------------------------------------------------------------------------------
@@ -151,8 +151,8 @@ const opsTable = {
 //------------------------------------------------------------------------------
 gS.$on('symmUpdate',
        function(symmState) {
-         _.assign(gS.symmState, symmState);
-         updateSymmetry(gS.symmState);
+         //_.assign(gS.symmState, symmState);
+         updateSymmetry(symmState);
          //HACK: if the gridtool is active, update canvas if the grid ui is altered
          if(gS.params.curTool=="grid"){ drawTools["grid"].enter(); }
          drawTools[gS.params.curTool].liverender();
@@ -230,6 +230,8 @@ const memo_generateTiling = _.memoize(generateTiling,
 //HACK: quick and dirty, fix the call structure to be clean interface
 export const updateSymmetry = function(symmState) {
 
+  _.assign(gS.symmState, symmState);
+
   if(gS.options.dynamicGridSize) {
     let newNx = Math.round((gS.params.canvasWidth  / gS.symmState.d)*2);
     let newNy = Math.round((gS.params.canvasHeight / gS.symmState.d)*2);
@@ -239,21 +241,21 @@ export const updateSymmetry = function(symmState) {
     // console.log("grid Nx", gS.symmState.Nx, "Ny", gS.symmState.Ny);
   }
 
-  if(symmState.sym == "none"){
+  if(gS.symmState.sym == "none"){
     affineset = IdentitySet();
   }
-  else if(Object.keys(planarSymmetries).includes(symmState.sym)) {
-    affineset = memo_generateTiling(planarSymmetries[symmState.sym],
-                                    symmState.Nx,symmState.Ny,
-                                    symmState.d, symmState.t,
-                                    symmState.x, symmState.y);
+  else if(Object.keys(planarSymmetries).includes(gS.symmState.sym)) {
+    affineset = memo_generateTiling(planarSymmetries[gS.symmState.sym],
+                                    gS.symmState.Nx,gS.symmState.Ny,
+                                    gS.symmState.d, gS.symmState.t,
+                                    gS.symmState.x, gS.symmState.y);
   }
   else {
-    affineset = RosetteGroup(symmState.Nrot,
-                            symmState.Nref,
-                            symmState.x,
-                            symmState.y,
-                            symmState.rot/180.0*Math.PI);
+    affineset = RosetteGroup(gS.symmState.Nrot,
+                            gS.symmState.Nref,
+                            gS.symmState.x,
+                            gS.symmState.y,
+                            gS.symmState.rot/180.0*Math.PI);
   }
 };
 
@@ -390,7 +392,6 @@ export const commitOp = function(op){
   cmdStack.push(op);
   op.render(ctx);
 };
-//window.commitOp=commitOp; //HACK
 
 //only used for undo/redo
 const switchTool = function(toolName, op){

@@ -1,6 +1,6 @@
 <template>
   <div class="pickerwrap">
-    <chrome-picker :value="colors" @input="onUpdate"></chrome-picker>
+    <chrome-picker :value="colors" :show-fields="fullUI" @input="onUpdate"></chrome-picker>
   </div>
 </template>
 <script>
@@ -21,7 +21,7 @@ var rgb2hex = function(r,g,b) {
 };
 
 export default {
-  props: ['target','r','g','b','a'],
+  props: ['target','r','g','b','a','fullUI'],
   computed: {
     colors: function(){
       let newColor = {

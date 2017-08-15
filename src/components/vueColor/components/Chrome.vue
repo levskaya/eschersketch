@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <div class="fields-wrap">
+      <div class="fields-wrap" v-if="showFields">
         <div class="fields" v-show="fieldsIndex === 0">
           <!-- hex -->
           <div class="field">
@@ -84,7 +84,7 @@ import alpha from './common/Alpha.vue'
 export default {
   name: 'Chrome',
   mixins: [colorMixin],
-  props: {
+  props: { showFields: {type: Boolean, default: false }
   },
   components: {
     saturation,

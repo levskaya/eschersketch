@@ -4,6 +4,7 @@
 
     <b>draw options</b><br>
     <es-numfield param="maxLineWidth" :val="options.maxLineWidth" size="2" @numchange="update">Max line width</es-numfield><br>
+    <es-checkbox param="showColorInputs" :val="params.showColorInputs" @checked="updateParam">Show Manual Color Inputs?</es-checkbox><br>
 
     <b>grid options</b><br>
     <es-checkbox param="dynamicGridSize" :val="options.dynamicGridSize" @checked="update">Dynamically Resize Grid?</es-checkbox><br>
@@ -36,6 +37,9 @@ export default {
     }
   },
   methods: {
+    updateParam: function(name, val){
+      gS.$emit('paramsUpdate', name, val);
+    },
     update: function(name, val){
       gS.$emit('optionsUpdate', name, val);
     }

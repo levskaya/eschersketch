@@ -27,14 +27,16 @@
                     :r="strokeColor.r"
                     :g="strokeColor.g"
                     :b="strokeColor.b"
-                    :a="strokeColor.a"/>
+                    :a="strokeColor.a"
+                    :fullUI = "params.showColorInputs"/>
     </div>
     <div id="fillcolor" :style="{display: isStroke ? 'none' : 'block' }">
       <color-picker target="fill"
                     :r="fillColor.r"
                     :g="fillColor.g"
                     :b="fillColor.b"
-                    :a="fillColor.a"/>
+                    :a="fillColor.a"
+                    :fullUI = "params.showColorInputs"/>
     </div>
   </div>
 </template>

@@ -82,7 +82,8 @@ export const gS = new Vue({
       canvasWidth:  1600,
       filename: "eschersketch",
       versionString: "v0.3",      //Eschersketch version
-      copyText:""
+      copyText:"",
+      showColorInputs: false
     },
     options: {
       minLineWidth: 0.1,
@@ -303,7 +304,6 @@ const changeHitRadius = function(newR){
     }
   }
 };
-
 
 
 // Command Stack

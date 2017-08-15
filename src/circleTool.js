@@ -105,23 +105,6 @@ export class CircleTool {
     drawHitCircle(lctx, this.end.x, this.end.y, this.hitRadius);
   }
 
-  commit() {
-    if(this.state == _INIT_){return;}
-    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new CircleOp(ctxStyle, this.start, this.end));
-    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.start = {};
-    this.end = {};
-    this.state = _INIT_;
-  }
-
-  cancel() {
-    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.state = _INIT_;
-    this.start = {};
-    this.end = {};
-  }
-
   enter(op){
     if(op){
         updateStyle(op.ctxStyle);
@@ -141,6 +124,23 @@ export class CircleTool {
       this.start = {};
       this.end = {};
       this.state = _INIT_;
+  }
+
+  commit() {
+    if(this.state == _INIT_){return;}
+    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
+    commitOp(new CircleOp(ctxStyle, this.start, this.end));
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.start = {};
+    this.end = {};
+    this.state = _INIT_;
+  }
+
+  cancel() {
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.state = _INIT_;
+    this.start = {};
+    this.end = {};
   }
 
   mouseDown(e) {

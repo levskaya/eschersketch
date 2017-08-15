@@ -143,14 +143,13 @@ export class GridTool {
       lctx.restore();
     }
 
-    const circR = this.hitRadius;
     lctx.save();
     lctx.fillStyle = "rgba(0,0,0,0.1)";
     lctx.lineWidth = 4.0;
     if(this.state == _MOVE_){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
     else {lctx.strokeStyle = "rgba(0,0,0,0.5)";}
     lctx.beginPath();
-    lctx.arc(p0[0], p0[1], circR, 0, 2*Math.PI);
+    lctx.arc(p0[0], p0[1], this.hitRadius, 0, 2*Math.PI);
     lctx.stroke();
     lctx.fill();
 
@@ -158,7 +157,7 @@ export class GridTool {
       if(this.state == _SCALE_){ lctx.strokeStyle = "rgba(0,255,0,0.5)";}
       else {lctx.strokeStyle = "rgba(0,0,0,0.5)";}
       lctx.beginPath();
-      lctx.arc(p1[0], p1[1], circR, 0, 2*Math.PI);
+      lctx.arc(p1[0], p1[1], this.hitRadius, 0, 2*Math.PI);
       lctx.stroke();
       lctx.fill();
       lctx.restore();

@@ -140,6 +140,47 @@ export class PathTool {
     }
   }
 
+  enter(op) {
+    if(op){
+        updateStyle(op.ctxStyle);
+        updateSymmetry(op.symmState);
+        this.ops = op.ops;
+        this.opselected = [];
+        this.cpoint = [];
+        this.state = _OFF_;
+        this.liverender();
+    } else{
+      this.ops = [];
+      this.opselected = [];
+      this.cpoint = [];
+      this.state = _INIT_;
+    }
+  }
+
+  exit() {
+    this.ops = [];
+    this.opselected = [];
+    this.cpoint = [];
+    this.state = _INIT_;
+  }
+
+  commit() {
+    if(this.state==_INIT_){return;} //empty data case
+    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
+    commitOp(new PathOp(ctxStyle, this.ops));
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.ops = [];
+    this.opselected = [];
+    this.cpoint = [];
+    this.state = _INIT_;
+  }
+
+  cancel() {
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.state = _INIT_;
+    this.ops = [];
+  }
+
   mouseDown(e) {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
@@ -403,44 +444,4 @@ export class PathTool {
     }
   }
 
-  commit() {
-    if(this.state==_INIT_){return;} //empty data case
-    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new PathOp(ctxStyle, this.ops));
-    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.ops = [];
-    this.opselected = [];
-    this.cpoint = [];
-    this.state = _INIT_;
-  }
-
-  cancel() {
-    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.state = _INIT_;
-    this.ops = [];
-  }
-
-  enter(op) {
-    if(op){
-        updateStyle(op.ctxStyle);
-        updateSymmetry(op.symmState);
-        this.ops = op.ops;
-        this.opselected = [];
-        this.cpoint = [];
-        this.state = _OFF_;
-        this.liverender();
-    } else{
-      this.ops = [];
-      this.opselected = [];
-      this.cpoint = [];
-      this.state = _INIT_;
-    }
-  }
-
-  exit() {
-    this.ops = [];
-    this.opselected = [];
-    this.cpoint = [];
-    this.state = _INIT_;
-  }
 }

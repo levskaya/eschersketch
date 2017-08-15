@@ -90,6 +90,28 @@ export class PolyTool {
     }
   }
 
+  enter(op){
+    if(op){
+        updateStyle(op.ctxStyle);
+        updateSymmetry(op.symmState);
+        this.points = op.points;
+        this.state = _OFF_;
+        this.selected = 0;
+        this.liverender();
+    } else{
+      this.points = [];
+      this.state = _INIT_;
+      this.selected = 0;
+    }
+
+  }
+
+  exit(){
+      this.points = [];
+      this.selected = 0;
+      this.state = _INIT_;
+  }
+
   commit() {
     //console.log("poly state at commit ", this.state);
     if(this.state==_INIT_){return;} //empty data case
@@ -184,25 +206,4 @@ export class PolyTool {
     }
   }
 
-  enter(op){
-    if(op){
-        updateStyle(op.ctxStyle);
-        updateSymmetry(op.symmState);
-        this.points = op.points;
-        this.state = _OFF_;
-        this.selected = 0;
-        this.liverender();
-    } else{
-      this.points = [];
-      this.state = _INIT_;
-      this.selected = 0;
-    }
-
-  }
-
-  exit(){
-      this.points = [];
-      this.selected = 0;
-      this.state = _INIT_;
-  }
 }

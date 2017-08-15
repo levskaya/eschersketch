@@ -135,21 +135,6 @@ export class PolygonTool {
     }
   }
 
-  commit() {
-    if(this.state == _INIT_){return;}
-    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new PolygonOp(ctxStyle, deepClone(this.points), bakeOptions(this.options)));
-    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.points = [[-100,-100],[-100,-100],[-100,-100]];
-    this.state = _INIT_;
-  }
-
-  cancel() {
-    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.state = _INIT_;
-    this.points = [[-100,-100],[-100,-100],[-100,-100]];
-  }
-
   enter(op){
     if(op){
         updateStyle(op.ctxStyle);
@@ -169,6 +154,21 @@ export class PolygonTool {
   exit(){
       this.points = [[-100,-100],[-100,-100],[-100,-100]];
       this.state = _INIT_;
+  }
+
+  commit() {
+    if(this.state == _INIT_){return;}
+    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
+    commitOp(new PolygonOp(ctxStyle, deepClone(this.points), bakeOptions(this.options)));
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.points = [[-100,-100],[-100,-100],[-100,-100]];
+    this.state = _INIT_;
+  }
+
+  cancel() {
+    lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
+    this.state = _INIT_;
+    this.points = [[-100,-100],[-100,-100],[-100,-100]];
   }
 
   mouseDown(e) {

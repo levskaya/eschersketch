@@ -14,7 +14,7 @@ Icon   | Tool | Description
 <span class="icon-redo"/>| redo | reapplies a previously undone tool - note that the redo stack is not automatically emptied
 <span class="icon-bin"/>| reset | __erases everything__ - requires two clicks within 1sec to activate
 <span class="icon-cog"/>| settings | more esoteric configuration parameters for eschersketch
- __??__ | this help | leads you to the truth
+<span class="icon-question-circle"></span>| this help | leads you to the truth
 
  ## Drawing Tools
 

@@ -24,8 +24,8 @@
     </template>
 
     <div class="button" @click="help" title="help" key="stateui-help-button">
-      <!--<span class="icon-question-circle"></span>-->
-      <b>??</b>
+      <span class="icon-question-circle"></span>
+      <!--<b>?</b>-->
     </div>
 
     <template v-if="params.fullUI">

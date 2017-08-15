@@ -13,7 +13,7 @@
 // Global Assets
 //------------------------------------------------------------------------------
 require('./assets/eschersketch.css'); //global css
-require('./assets/icomoon.css');      //icon fonts
+//require('./assets/icomoon.css');      //icon fonts
 
 // Library Imports
 //------------------------------------------------------------------------------
@@ -217,8 +217,6 @@ gS.$on('reset', function(){ reset(); });
 gS.$on('toggleUI', function() {
   //console.log("toggleUI");
   if(gS.params.fullUI){
-    document.getElementById("sketch-UI").classList.remove("max-UI");
-    document.getElementById("sketch-UI").classList.add("min-UI");
     gS.params.fullUI = false;
     gS.params.showTool = false;
     gS.params.showColor = false;
@@ -226,8 +224,6 @@ gS.$on('toggleUI', function() {
     gS.params.showSymm = false;
     gS.params.showFile = false;
   } else {
-    document.getElementById("sketch-UI").classList.remove("min-UI");
-    document.getElementById("sketch-UI").classList.add("max-UI");
     gS.params.fullUI = true;
     gS.params.showTool = true;
     gS.params.showColor = true;
@@ -240,6 +236,17 @@ gS.$on('config', function(){ gS.params.showConfig = ! gS.params.showConfig; });
 gS.$on('toggleParam', function(paramName) { gS.params[paramName] = ! gS.params[paramName] });
 
 window.gS=gS;  // HACK: for debugging
+
+
+// Initialize Vue UI
+//------------------------------------------------------------------------------
+import topUi from './components/topUI';
+var vueUI = new Vue({
+  el: '#topUI',
+  template: '<top-ui :params="params" :options="options" :symmState="symmState" :ctxStyle="ctxStyle" />',
+  components: { topUi },
+  data: {params: gS.params, options: gS.options, symmState: gS.symmState, ctxStyle: gS.ctxStyle}
+});
 
 
 // Symmetry Functions
@@ -626,127 +633,6 @@ export const savePNGTile = function(){
   tileCanvas.remove();
 };
 
-
-
-// Top State Control UI
-//------------------------------------------------------------------------------
-import stateUi from './components/stateUI';
-var vueSym = new Vue({
-  el: '#stateUI',
-  template: '<state-ui :params="params"/>',
-  components: { stateUi },
-  data: {params: gS.params}
-});
-
-
-import navPanel from './components/navPanel';
-var vueSym = new Vue({
-  el: '#navPanel',
-  template: '<nav-panel :params="params"/>',
-  components: { navPanel },
-  data: {params: gS.params}
-});
-
-import hintPanel from './components/hintPanel';
-var vueSym = new Vue({
-  el: '#hintPanel',
-  template: '<hint-panel :params="params"/>',
-  components: { hintPanel },
-  data: {params: gS.params}
-});
-
-
-// Config UI
-//------------------------------------------------------------------------------
-import configUi from './components/configUI';
-var vueSym = new Vue({
-  el: '#configUI',
-  template: '<config-ui :options="options" :params="params"/>',
-  components: { configUi },
-  data: {options: gS.options, params: gS.params}
-});
-
-// Floating Overlay Help Panel
-//------------------------------------------------------------------------------
-import helpPanel from './components/helpPanel';
-var vueHelpPanel = new Vue({
-  el: '#helpPanel',
-  template: '<help-panel :params="params"/>',
-  components: { helpPanel },
-  data: {params: gS.params}
-});
-//window.helpP = vueHelpPanel;
-
-// Tool Selection UI
-//------------------------------------------------------------------------------
-import toolUi from './components/toolUI';
-var vueSym = new Vue({
-  el: '#toolUI',
-  template: '<tool-ui :params="params" />',
-  components: { toolUi },
-  data: { params: gS.params }
-});
-
-// Symmetry Selection UI
-//------------------------------------------------------------------------------
-import symmetryUi from './components/symmetryUI';
-var vueSym = new Vue({
-  el: '#symUI',
-  template: '<symmetry-ui :symmState="symmState" :params="params" :options="options"/>',
-  components: { symmetryUi },
-  data: {symmState: gS.symmState, params: gS.params, options: gS.options}
-});
-
-// Line Styling UI
-//------------------------------------------------------------------------------
-import styleUi from './components/styleUI';
-var vueStyle = new Vue({
-  el: '#styleUI',
-  //  template: '<style-ui :lineWidth="lineWidth" :miterLimit="miterLimit" :lineJoin="lineJoin" :lineCap="lineCap"/>',
-    template: '<style-ui :ctxStyle="ctxStyle" :params="params" :options="options"/>',
-  components: {styleUi},
-  data: { ctxStyle: gS.ctxStyle, params: gS.params, options: gS.options }
-});
-
-// Color UI
-//------------------------------------------------------------------------------
-import colorUi from './components/colorUI';
-var vueColor = new Vue({
-  el: '#colorUI',
-  template: `<color-ui :params="params" :strokeColor="strokeColor" :fillColor="fillColor"/>`,
-  components: {colorUi},
-  data: {params: gS.params},
-  computed: { strokeColor:
-      function(){
-        let tmp = [].concat(parseColor(gS.ctxStyle.strokeStyle));
-        return {r:tmp[0], g:tmp[1], b:tmp[2], a:tmp[3]};
-      },
-      fillColor:
-      function(){
-        let tmp = [].concat(parseColor(gS.ctxStyle.fillStyle));
-        return {r:tmp[0], g:tmp[1], b:tmp[2], a:tmp[3]};
-      }
-  }
-});
-
-// File UI
-//------------------------------------------------------------------------------
-import fileUi from './components/fileUI';
-var vueFile = new Vue({
-  el: '#fileUI',
-  data: {params: gS.params},
-  template: '<file-ui :params="params"/>',
-  components: {fileUi},
-});
-
-var vueEnd = new Vue({ //XXX: a bit crufty this...
-  el: '#endcomments',
-  data: {params: gS.params},
-  computed: {displayMe: function(){ return {display: this.params.fullUI ? "block" : "none"}} },
-  template: `<div :style="displayMe"><br><br>
-              <div style="font-size:10px;text-align:center;">Anselm Levskaya &copy; 2017</div>
-            </div>`,
-});
 
 // Major Canvas Handling Functions
 //--------------------------------------------------------------------------------------------------------

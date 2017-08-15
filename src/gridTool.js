@@ -160,7 +160,8 @@ export class GridTool {
       lctx.arc(p1[0], p1[1], this.hitRadius, 0, 2*Math.PI);
       lctx.stroke();
       lctx.fill();
-      lctx.restore();
     }
+
+    lctx.restore();
   }
 }

@@ -19,6 +19,8 @@ import { _ } from 'underscore';
 import {deepClone} from './utils';
 import {sign, add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint, angleBetween} from './math_utils';
 
+import {drawHitCircle} from './canvas_utils';
+
 import {RotationAbout, RotationTransform, ScalingTransform} from './symmetryGenerator';
 //draws regular Ngon with center at pt0, a vertex at pt1
 const drawPolygon = function(ctx, pt0, pt1, Nedges){
@@ -126,25 +128,10 @@ export class PolygonTool {
         drawPolygon(lctx, Tp0, Tp1, this.options.edges.val);
       }
     }
-    lctx.save();
-    lctx.lineWidth   = 1.0;
-    lctx.strokeStyle = "rgba(255,0,0,1.0)";
-    lctx.fillStyle   = "rgba(255,0,0,0.2)";
-    lctx.beginPath();
-    lctx.arc(this.points[0][0], this.points[0][1], this.hitRadius, 0, 2*Math.PI);
-    lctx.stroke();
-    lctx.fill();
-    lctx.beginPath();
-    lctx.arc(this.points[1][0], this.points[1][1], this.hitRadius, 0, 2*Math.PI);
-    lctx.stroke();
-    lctx.fill();
-    lctx.restore();
+    drawHitCircle(lctx, this.points[0][0], this.points[0][1], this.hitRadius);
+    drawHitCircle(lctx, this.points[1][0], this.points[1][1], this.hitRadius);
     if(this.options.star.val){
-      lctx.beginPath();
-      lctx.arc(this.points[2][0], this.points[2][1], this.hitRadius, 0, 2*Math.PI);
-      lctx.stroke();
-      lctx.fill();
-      lctx.restore();
+      drawHitCircle(lctx, this.points[2][0], this.points[2][1], this.hitRadius);
     }
   }
 

@@ -18,6 +18,7 @@ import {gS,
 import { _ } from 'underscore';
 import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './math_utils';
 
+import {drawHitCircle} from './canvas_utils';
 
 /*
 const drawEllipseByCenter = function(ctx, cx, cy, w, h) {
@@ -100,19 +101,8 @@ export class CircleTool {
       lctx.stroke();
       lctx.fill();
     }
-    lctx.save();
-    lctx.fillStyle = "rgba(255,0,0,0.2)";
-    lctx.lineWidth = 1.0;
-    lctx.strokeStyle = "rgba(255,0,0,1.0)";
-    lctx.beginPath();
-    lctx.arc(this.start.x-1, this.start.y-1, this.hitRadius, 0, 2*Math.PI);
-    lctx.stroke();
-    lctx.fill();
-    lctx.beginPath();
-    lctx.arc(this.end.x-1, this.end.y-1, this.hitRadius, 0, 2*Math.PI);
-    lctx.stroke();
-    lctx.fill();
-    lctx.restore();
+    drawHitCircle(lctx, this.start.x, this.start.y, this.hitRadius);
+    drawHitCircle(lctx, this.end.x, this.end.y, this.hitRadius);
   }
 
   commit() {

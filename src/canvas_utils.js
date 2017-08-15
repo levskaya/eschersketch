@@ -85,3 +85,39 @@ export const setCanvasPixelDensity = function(canvas, ratio) {
   // our canvas element
   context.scale(ratio, ratio);
 };
+
+
+export const drawCircle = function(ctx, x, y, r) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, 2*Math.PI);
+  ctx.stroke();
+  ctx.fill();
+}
+
+export const drawHitCircle = function(ctx, x, y, r) {
+  ctx.save();
+  ctx.lineWidth = 2.0;
+  ctx.fillStyle =   "rgba(255,0,0,0.2)";
+  ctx.strokeStyle = "rgba(0,0,0,1.0)";
+  ctx.beginPath();
+  ctx.arc(x, y, r-1, 0, 2*Math.PI);
+  ctx.stroke();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,1.0)";
+  ctx.beginPath();
+  ctx.arc(x, y, r+1, 0, 2*Math.PI);
+  ctx.stroke();
+  ctx.fill();
+  ctx.restore();
+}
+
+export const drawHitLine = function(ctx, x0, y0, x1, y1) {
+  ctx.save();
+  ctx.lineWidth = 2.0;
+  ctx.strokeStyle = "rgba(255,0,0,1.0)";
+  ctx.beginPath();
+  ctx.moveTo(x0,y0);
+  ctx.lineTo(x1,y1);
+  ctx.stroke();
+  ctx.restore();
+}

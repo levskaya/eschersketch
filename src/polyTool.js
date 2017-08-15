@@ -19,6 +19,7 @@ import {gS,
 import {l2dist} from './math_utils';
 import { _ } from 'underscore';
 
+import {drawHitCircle} from './canvas_utils';
 
 // Polygon Drawing
 //------------------------------------------------------------------------------
@@ -84,17 +85,9 @@ export class PolyTool {
       }
     }
     // draw handles
-    lctx.save();
-    lctx.lineWidth = 1.0;
-    lctx.fillStyle   = "rgba(255,0,0,0.2)";
-    lctx.strokeStyle = "rgba(255,0,0,1.0)";
     for(let pt of this.points) {
-      lctx.beginPath();
-      lctx.arc(pt[0]-1, pt[1]-1, this.hitRadius, 0, 2*Math.PI);
-      lctx.stroke();
-      lctx.fill();
+      drawHitCircle(lctx, pt[0]-1, pt[1]-1, this.hitRadius);
     }
-    lctx.restore();
   }
 
   commit() {

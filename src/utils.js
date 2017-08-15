@@ -24,6 +24,7 @@ export const deepClone = function(object) {
     return clone;
   };
 
+// Local Storage Helpers
 export const lsGetJSON = function (keyname){
   let jsonstr = localStorage.getItem(keyname);
   return JSON.parse(jsonstr);

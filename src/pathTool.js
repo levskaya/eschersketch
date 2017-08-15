@@ -18,6 +18,8 @@ import {gS,
 import { _ } from 'underscore';
 import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './math_utils';
 
+import {drawHitCircle, drawHitLine} from './canvas_utils';
+
 
 export class PathOp {
   constructor(ctxStyle, ops) {
@@ -110,70 +112,32 @@ export class PathTool {
 
     let lastpt = [];
     // draw handles
-    lctx.save();
-    lctx.lineWidth = 1.0;
-    lctx.fillStyle   = "rgba(255,0,0,0.2)";
-    lctx.strokeStyle = "rgba(255,0,0,1.0)";
     for(let op of this.ops) {
       if(op[0] == "M") {
-        lctx.beginPath();
-        lctx.arc(op[1], op[2], this.hitRadius, 0, 2*Math.PI);
-        lctx.stroke();
-        lctx.fill();
+        drawHitCircle(lctx, op[1], op[2], this.hitRadius);
         lastpt = [op[1], op[2]];
       }
       else if(op[0] == "L") {
-        lctx.beginPath();
-        lctx.arc(op[1], op[2], this.hitRadius, 0, 2*Math.PI);
-        lctx.stroke();
-        lctx.fill();
+        drawHitCircle(lctx, op[1], op[2], this.hitRadius);
         lastpt = [op[1], op[2]];
       }
       else if(op[0] == "C") {
         //endpoint
-        lctx.beginPath();
-        lctx.arc(op[5], op[6], this.hitRadius, 0, 2*Math.PI);
-        lctx.stroke();
-        lctx.fill();
+        drawHitCircle(lctx, op[5], op[6], this.hitRadius);
         //control points
-        lctx.save();
-        lctx.fillStyle = "rgba(255,0,0,1.0)";
-        lctx.beginPath();
-        lctx.arc(op[1], op[2], this.hitRadius-2, 0, 2*Math.PI);
-        lctx.stroke();
-        lctx.fill();
-        lctx.beginPath();
-        lctx.arc(op[3], op[4], this.hitRadius-2, 0, 2*Math.PI);
-        lctx.stroke();
-        lctx.fill();
+        drawHitCircle(lctx, op[1], op[2], this.hitRadius-2);
+        drawHitCircle(lctx, op[3], op[4], this.hitRadius-2);
         // handle lines for control points
-        lctx.beginPath();
-        lctx.moveTo(lastpt[0],lastpt[1]);
-        lctx.lineTo(op[1],op[2]);
-        lctx.stroke();
-        lctx.beginPath();
-        lctx.moveTo(op[3],op[4]);
-        lctx.lineTo(op[5],op[6]);
-        lctx.stroke();
-        lctx.restore();
+        drawHitLine(lctx,lastpt[0],lastpt[1],op[1],op[2]);
+        drawHitLine(lctx,op[3],op[4],op[5],op[6]);
         lastpt = [op[5], op[6]];
       }
     }
     if(this.cpoint.length > 0){ //temp control point render
-      lctx.save();
-      lctx.fillStyle = "rgba(255,0,0,1.0)";
-      lctx.beginPath();
-      lctx.arc(this.cpoint[0], this.cpoint[1], this.hitRadius-2, 0, 2*Math.PI);
-      lctx.stroke();
-      lctx.fill();
+      drawHitCircle(lctx, this.cpoint[0], this.cpoint[1], this.hitRadius-2);
       // handle line
-      lctx.beginPath();
-      lctx.moveTo(lastpt[0],lastpt[1]);
-      lctx.lineTo(this.cpoint[0],this.cpoint[1]);
-      lctx.stroke();
-      lctx.restore();
+      drawHitLine(lctx,lastpt[0],lastpt[1],this.cpoint[0],this.cpoint[1]);
     }
-    lctx.restore();
   }
 
   mouseDown(e) {

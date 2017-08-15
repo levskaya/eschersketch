@@ -18,6 +18,7 @@ import {gS,
 import { _ } from 'underscore';
 import {l2dist} from './math_utils';
 
+import {drawHitCircle} from './canvas_utils';
 
 // Draw Single Line Segments
 //------------------------------------------------------------------------------
@@ -74,19 +75,8 @@ export class LineTool {
       lctx.lineTo(Tp2[0], Tp2[1]);
       lctx.stroke();
     }
-    lctx.save();
-    lctx.fillStyle = "rgba(255,0,0,0.2)";
-    lctx.lineWidth = 1.0;
-    lctx.strokeStyle = "rgba(255,0,0,1.0)";
-    lctx.beginPath();
-    lctx.arc(this.start.x-1, this.start.y-1, this.hitRadius, 0, 2*Math.PI);
-    lctx.stroke();
-    lctx.fill();
-    lctx.beginPath();
-    lctx.arc(this.end.x-1, this.end.y-1, this.hitRadius, 0, 2*Math.PI);
-    lctx.stroke();
-    lctx.fill();
-    lctx.restore();
+    drawHitCircle(lctx, this.start.x-0.5, this.start.y-0.5, this.hitRadius-1);
+    drawHitCircle(lctx, this.end.x-0.5, this.end.y-0.5, this.hitRadius-1);
   }
 
   commit() {

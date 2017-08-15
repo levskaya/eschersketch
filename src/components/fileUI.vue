@@ -2,19 +2,22 @@
 <div id="fileUI" :style="panelStyle">
   <span class="UIheader">export</span><br>
 
-  <es-numfield param="filename" label="filename"
-  :val="fname" size="20" @numchange="changeFilename" key="fileui-fname"/><br>
+  <template v-if="params.showFileName">
+    <es-numfield param="filename" label="filename"
+      :val="fname" size="20" @numchange="changeFilename" key="fileui-fname"/>
+    <br>
+  </template>
 
   <div id="saveSVG" class="button" @mousedown="saveSVG">
     <span class="icon-folder-download"></span> SVG
   </div>
 
   <div id="savePNG" class="button" @mousedown="savePNG">
-    <span class="icon-folder-download"></span> PNG
+    <span class="icon-folder-download"></span> Picture
   </div>
 
   <div id="savePNGtile" class="button" @mousedown="savePNGTile">
-    <span class="icon-folder-download"></span> PNG Tile
+    <span class="icon-folder-download"></span> Tile
   </div>
 
   <br>

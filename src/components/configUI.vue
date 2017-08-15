@@ -2,9 +2,12 @@
   <div id="configUI" :style="panelStyle">
     <br><span class="UIheader">Options</span><br>
 
+    <b>UI options</b><br>
+    <es-checkbox param="showColorInputs" :val="params.showColorInputs" @checked="updateParam">Show Manual Color Inputs?</es-checkbox><br>
+    <es-checkbox param="showFileName" :val="params.showFileName" @checked="updateParam">Show Filename?</es-checkbox><br>
+
     <b>draw options</b><br>
     <es-numfield param="maxLineWidth" :val="options.maxLineWidth" size="2" @numchange="update">Max line width</es-numfield><br>
-    <es-checkbox param="showColorInputs" :val="params.showColorInputs" @checked="updateParam">Show Manual Color Inputs?</es-checkbox><br>
 
     <b>grid options</b><br>
     <es-checkbox param="dynamicGridSize" :val="options.dynamicGridSize" @checked="update">Dynamically Resize Grid?</es-checkbox><br>

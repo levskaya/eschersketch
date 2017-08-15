@@ -83,7 +83,8 @@ export const gS = new Vue({
       filename: "eschersketch",
       versionString: "v0.3",      //Eschersketch version
       copyText:"",
-      showColorInputs: false
+      showColorInputs: false,
+      showFileName: false,
     },
     options: {
       minLineWidth: 0.1,

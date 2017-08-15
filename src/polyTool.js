@@ -12,7 +12,7 @@
 // DRAWING GLOBALS
 import {gS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry,
+        affineset, updateSymmetry, updateStyle,
         commitOp
        } from './main';
 
@@ -186,9 +186,7 @@ export class PolyTool {
 
   enter(op){
     if(op){
-        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
-        _.assign(lctx, op.ctxStyle);
-        this.ctxStyle = _.clone(op.ctxStyle); //not really necessary...
+        updateStyle(op.ctxStyle);
         updateSymmetry(op.symmState);
         this.points = op.points;
         this.state = _OFF_;

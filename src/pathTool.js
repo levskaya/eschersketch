@@ -12,7 +12,7 @@
 // DRAWING GLOBALS
 import {gS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry,
+        affineset, updateSymmetry, updateStyle,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -422,8 +422,7 @@ export class PathTool {
 
   enter(op) {
     if(op){
-        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
-        _.assign(lctx, op.ctxStyle);
+        updateStyle(op.ctxStyle);
         updateSymmetry(op.symmState);
         this.ops = op.ops;
         this.opselected = [];

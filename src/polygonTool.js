@@ -12,7 +12,7 @@
 // DRAWING GLOBALS
 import {gS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry,
+        affineset, updateSymmetry, updateStyle,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -152,8 +152,7 @@ export class PolygonTool {
 
   enter(op){
     if(op){
-        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
-        _.assign(lctx, op.ctxStyle);
+        updateStyle(op.ctxStyle);
         updateSymmetry(op.symmState);
         for(let key of Object.keys(op.options)){
           this.options[key].val = op.options[key];

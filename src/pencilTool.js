@@ -12,7 +12,8 @@
 // DRAWING GLOBALS
 import {gS,
         livecanvas, lctx, canvas, ctx, lattice,
-        affineset, updateSymmetry, pressure,
+        affineset, updateSymmetry, updateStyle,
+        //pressure,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -126,11 +127,14 @@ export class PencilTool {
 
   enter(op){
     if(op){
-        _.assign(gS.ctxStyle, _.clone(op.ctxStyle));
-        _.assign(lctx, op.ctxStyle);
+        //_.assign(gS.ctxStyle, _.clone(op.ctxStyle));
+        //_.assign(lctx, op.ctxStyle);
+        updateStyle(op.ctxStyle);
         updateSymmetry(op.symmState);
-        for(let key of Object.keys(op.options)){
-          this.options[key].val = op.options[key];
+        if(op.options){
+          for(let key of Object.keys(op.options)){
+            this.options[key].val = op.options[key];
+          }
         }
         this.points = op.points;
         this.state = _OFF_;

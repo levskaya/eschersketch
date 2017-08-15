@@ -73,4 +73,3 @@ export const loadSketch = function(sketchID){
     fetchFromCloud(str);
   });
 }
-window.loadSketch=loadSketch;

@@ -13,7 +13,7 @@
 // Global Assets
 //------------------------------------------------------------------------------
 require('./assets/eschersketch.css'); //global css
-//require('./assets/icomoon.css');      //icon fonts
+//require('./assets/icomoon.css');    //icon fonts
 
 // Library Imports
 //------------------------------------------------------------------------------
@@ -21,17 +21,18 @@ import { _ } from 'underscore';
 import Vue from 'vue';
 import Hammer from 'hammerjs'; // touch-event support
 
-// polyfills
+// polyfills for saving files
 import {saveAs} from './libs/FileSaver.js';
 import {blobPolyfillLoader} from './libs/Blob.js';
 blobPolyfillLoader();
-// modifies global canvas object
+// modifies global canvas object to allow blob export
 import {canvastoBlobLoader} from './libs/canvas-toBlob.js';
 canvastoBlobLoader();
 
 // need to use my tweaked version of canvas2svg to avoid regex recursion limit
 import {canvas2SVGLoad} from './libs/canvas2svg.js';
 canvas2SVGLoad();
+
 // touch detection
 import {modernizrLoader} from './libs/modernizr-custom.js';
 modernizrLoader();
@@ -117,9 +118,6 @@ export const gS = new Vue({
       fillStyle:   "rgba(200, 100, 100, 0.5)",
       strokeStyle: "rgba(100, 100, 100, 1.0)"
     },
-    //....
-    //cmdstack: [],
-    //redostack: [],
   }
 });
 
@@ -127,7 +125,7 @@ export const gS = new Vue({
 //-------------------------------
 var cmdStack = [];
 var redoStack = [];
-window.getCmdStack = ()=>cmdStack; //HACK
+//window.getCmdStack = ()=>cmdStack; //HACK
 
 // Canvas / Context Globals
 //------------------------------------------------------------------------------
@@ -137,7 +135,7 @@ export var canvas = {};
 export var ctx = {};
 
 // rescaling ratio used by pixelFix, needed for pixel-level manipulation
-export var pixelratio = 1;
+var pixelratio = 1;
 
 // Contains Symmetries used by all other operations
 //------------------------------------------------------------------------------
@@ -148,16 +146,14 @@ export var affineset = {};
 // Global indices into Instantiated Tools and their Ops
 //------------------------------------------------------------------------------
 export const drawTools = {
+  grid: new GridTool(), //not a _drawing_ tool
   line: new LineTool(),
   circle: new CircleTool(),
   pencil: new PencilTool(),
-  grid: new GridTool(), //not a drawing tool
   poly: new PolyTool(),
   path: new PathTool(),
   polygon: new PolygonTool()
 };
-//window.drawTools = drawTools; //HACK: debugging
-
 const opsTable = {
   line: LineOp,
   pencil: PencilOp,
@@ -172,7 +168,6 @@ const opsTable = {
 //------------------------------------------------------------------------------
 gS.$on('symmUpdate',
        function(symmState) {
-         //_.assign(gS.symmState, symmState);
          updateSymmetry(symmState);
          //HACK: if the gridtool is active, update canvas if the grid ui is altered
          if(gS.params.curTool=="grid"){ drawTools["grid"].enter(); }
@@ -180,8 +175,7 @@ gS.$on('symmUpdate',
        });
 gS.$on('styleUpdate',
        function(styles) {
-         _.assign(lctx, _.clone(styles));
-         _.assign(gS.ctxStyle, _.clone(styles));
+         updateStyle(styles);
          drawTools[gS.params.curTool].liverender();
        });
 gS.$on('colorUpdate',
@@ -193,21 +187,13 @@ gS.$on('colorUpdate',
          }
          drawTools[gS.params.curTool].liverender();
        });
-gS.$on('toolUpdate',
-       function(tool){
-         changeTool(tool);
-       });
+gS.$on('toolUpdate', function(tool){ changeTool(tool); });
 gS.$on('toolOptionUpdate',
       function(name, value){
         drawTools[gS.params.curTool].options[name].val = value;
         drawTools[gS.params.curTool].liverender();
       });
 gS.$on('optionsUpdate', function(name, val){ gS.options[name] = val; });
-gS.$on('paramsUpdate', function(name, val){ gS.params[name] = val;});
-gS.$on('setHint', function(val){
-  if(gS.params.showHints) { gS.params.hintText = val; }
-});
-
 gS.$on('undo', function(){ undo(); });
 gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){ reset(); });
@@ -223,6 +209,7 @@ gS.$on('toggleUI', function() {
     gS.params.showLine = false;
     gS.params.showSymm = false;
     gS.params.showFile = false;
+    gS.params.showNetwork = false;
   } else {
     gS.params.fullUI = true;
     gS.params.showTool = true;
@@ -230,10 +217,15 @@ gS.$on('toggleUI', function() {
     gS.params.showLine = true;
     gS.params.showSymm = true;
     gS.params.showFile = true;
+    gS.params.showNetwork = true;
   }});
 gS.$on('help', function(){ gS.params.showHelp = ! gS.params.showHelp;});
 gS.$on('config', function(){ gS.params.showConfig = ! gS.params.showConfig; });
+gS.$on('paramsUpdate', function(name, val){ gS.params[name] = val;});
 gS.$on('toggleParam', function(paramName) { gS.params[paramName] = ! gS.params[paramName] });
+gS.$on('setHint', function(val){
+  if(gS.params.showHints) { gS.params.hintText = val; }
+});
 
 window.gS=gS;  // HACK: for debugging
 
@@ -249,13 +241,17 @@ var vueUI = new Vue({
 });
 
 
+//Style update
+export const updateStyle = function(styles) {
+  _.assign(lctx, _.clone(styles));
+  _.assign(gS.ctxStyle, _.clone(styles));
+}
+
 // Symmetry Functions
 //-------------------------------------------------------------------------------------------------
-
 const memo_generateTiling = _.memoize(generateTiling,
                                 function(){return JSON.stringify(arguments);});
 
-//HACK: quick and dirty, fix the call structure to be clean interface
 export const updateSymmetry = function(symmState) {
 
   _.assign(gS.symmState, symmState);
@@ -293,15 +289,10 @@ export const updateSymmetry = function(symmState) {
 const changeTool = function(toolName){
   let oldTool = drawTools[gS.params.curTool];
   oldTool.commit();
-  if('exit' in oldTool){
-    oldTool.exit();
-  }
-  // update global
+  oldTool.exit();
   gS.params.curTool = toolName;
   let newTool = drawTools[toolName];
-  if('enter' in newTool){
-    newTool.enter();
-  }
+  newTool.enter();
 };
 
 // alter sensitivity radius of manually canvas-rendered UI elements
@@ -312,71 +303,16 @@ const changeHitRadius = function(newR){
     }
   }
 };
-//window.changeHitRadius = changeHitRadius;
 
 
 
-// Canvas Mouse/Key Events -- dispatched to active Drawing Tool
-//------------------------------------------------------------------------------
-const dispatchMouseDown = function(e) {
-  e.preventDefault();
-  drawTools[gS.params.curTool].mouseDown(e);
-};
-
-const dispatchMouseUp = function(e) {
-  e.preventDefault();
-  drawTools[gS.params.curTool].mouseUp(e);
-};
-
-const dispatchMouseMove = function(e) {
-  e.preventDefault();
-  drawTools[gS.params.curTool].mouseMove(e);
-};
-
-const dispatchMouseLeave = function(e) {
-  if("mouseLeave" in drawTools[gS.params.curTool]) {
-    drawTools[gS.params.curTool].mouseLeave(e);
-  }
-};
-
-const dispatchKeyDown = function(e) {
-  if("keyDown" in drawTools[gS.params.curTool]) {
-    drawTools[gS.params.curTool].keyDown(e);
-  }
-};
-
-const dispatchKeyUp = function(e) {
-  if("keyUp" in drawTools[gS.params.curTool]) {
-    drawTools[gS.params.curTool].keyUp(e);
-  }
-};
-
-window.addEventListener('orientationchange', function(){
-  console.log("orientation change");
-  onResize();
-});
-window.addEventListener('resize', function(){
-    console.log("resize");
-    onResize();
-  });
-
-
-
-
-// Command Stack
-//------------------------------------------------------------------------------
-/* - objectify this
-   - think about adding "caching layers" of canvas contexts to speed up render
-     times during redos of complicated scenes
-   - when to clear out redo stack?
-*/
 // Command Stack
 //------------------------------------------------------------------------------
 
 // Makes transparent fill objects look cleaner by rendering fills first then strokes
 const cleanLinesModifier = function(op){
-    let strokeOp = ressurectOp(deepClone(op));
-    let fillOp = ressurectOp(deepClone(op));
+    let strokeOp = restoreOp(deepClone(op));
+    let fillOp = restoreOp(deepClone(op));
     fillOp.ctxStyle.strokeStyle = "rgba(0,0,0,0.0)"
     strokeOp.ctxStyle.fillStyle = "rgba(0,0,0,0.0)"
     return [fillOp, strokeOp];
@@ -384,8 +320,8 @@ const cleanLinesModifier = function(op){
 
 // Makes solid fill objects look cleaner by rendering all strokes then making clean interiors w. fills
 const cleanFillsModifier = function(op){
-    let strokeOp = ressurectOp(deepClone(op));
-    let fillOp = ressurectOp(deepClone(op));
+    let strokeOp = restoreOp(deepClone(op));
+    let fillOp = restoreOp(deepClone(op));
     fillOp.ctxStyle.strokeStyle = "rgba(0,0,0,0.0)"
     strokeOp.ctxStyle.fillStyle = "rgba(0,0,0,0.0)"
     return [strokeOp, fillOp];
@@ -423,12 +359,9 @@ export const commitOp = function(op){
 
 //only used for undo/redo
 const switchTool = function(toolName, op){
-  let oldTool = drawTools[gS.params.curTool];
-  if('exit' in oldTool){ oldTool.exit();  }
-  // update global
+  drawTools[gS.params.curTool].exit();
   gS.params.curTool = toolName;
-  let newTool = drawTools[toolName];
-  if('enter' in newTool){ newTool.enter(op); }
+  drawTools[gS.params.curTool].enter(op);
 };
 
 const undo = function(){
@@ -451,7 +384,6 @@ const undo = function(){
 };
 
 const redo = function(){
-  //console.log("redo cmdstack", cmdStack.length, "redostack", redoStack.length);
   if(redoStack.length>0){
     drawTools[gS.params.curTool].commit();  //commit live tool op
     let cmd = redoStack.pop();
@@ -462,7 +394,7 @@ const redo = function(){
 
 const reset = function(){
   //make sure stateful drawing tool isn't left in a weird spot
-  if('exit' in drawTools[gS.params.curTool]) {drawTools[gS.params.curTool].exit();}
+  drawTools[gS.params.curTool].exit();
   redoStack = [];
   cmdStack = [];
   lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
@@ -473,14 +405,14 @@ const serialize = function(){
   let saveObj = {
     name: gS.params.filename,
     version: getESVersion(),
+    format: 1,
     data: cmdStack
   }
-  //let jsonStr = JSON.stringify(cmdStack);
   let jsonStr = JSON.stringify(saveObj);
   return jsonStr;
 }
 
-const ressurectOp = function(deadOp){
+const restoreOp = function(deadOp){
     let op = new opsTable[deadOp.tool];
     return _.assign(op, deadOp)
 }
@@ -492,7 +424,7 @@ export const deserialize = function(jsonStr){
   console.log("loading ES file from version", loadObj.version);
   let newstack = [];
   for(let obj of loadObj.data){
-    newstack.push(ressurectOp(obj));
+    newstack.push(restoreOp(obj));
   }
   cmdStack = newstack;
   rerender(ctx);
@@ -523,7 +455,7 @@ export const saveSVG = function() {
   var C2Sctx = new C2S(canvas.width, canvas.height);
   // prevent problems with huge SVG size by constraining number of repeats exported
   let gridLimiter = function(op) {
-    let newop = ressurectOp(deepClone(op));
+    let newop = restoreOp(deepClone(op));
     newop.symmState.Nx = gS.options.svgGridNx;
     newop.symmState.Ny = gS.options.svgGridNy;
     return newop;
@@ -557,7 +489,7 @@ export const saveSVGTile = function() {
 
   // prevent recursion stack limit by constraining number of repeats exported
   let gridLimiter = function(op) {
-    let newop = ressurectOp(deepClone(op));
+    let newop = restoreOp(deepClone(op));
     newop.symmState.Nx = gS.options.svgGridNx;
     newop.symmState.Ny = gS.options.svgGridNy;
     return newop;
@@ -633,6 +565,91 @@ export const savePNGTile = function(){
   tileCanvas.remove();
 };
 
+// experimental cloud storage -----------------------------------------------------------------
+export const prepForUpload = function() {
+  let jsonstr = JSON.stringify({
+              name: gS.params.filename,
+              version: getESVersion(),
+              data: cmdStack
+             });
+  console.log("JSON size is ", jsonstr.length);
+  return jsonstr;
+}
+export const fetchFromCloud = function(jsonStr){
+  reset();
+  let shellObj = JSON.parse(jsonStr);
+  let loadObj = shellObj.content;
+  gS.params.filename = loadObj.name;
+  console.log("loading ES SketchID", shellObj.sketchID, "from version", loadObj.version);
+  let newstack = [];
+  for(let obj of loadObj.data){
+    newstack.push(restoreOp(obj));
+  }
+  cmdStack = newstack;
+  rerender(ctx);
+}
+
+import {loadSketch} from './network.js';
+const loadGivenSketch = function(){
+  let urlObj = new URL(window.location.href);
+  let querySketchID = urlObj.searchParams.get("s");
+  let urlSketchID = window.location.href.split('s/')[1];
+  if(querySketchID){
+    console.log("Query sketchID", querySketchID, "requested");
+    loadSketch(querySketchID);
+  } else if(urlSketchID){
+    console.log("URL sketchID", urlSketchID, "requested");
+    loadSketch(urlSketchID);
+  }
+}
+// end experimental cloud storage -------------------------------------------------------------
+
+
+
+// Canvas Mouse/Key Events -- dispatched to active Drawing Tool
+//------------------------------------------------------------------------------
+const dispatchMouseDown = function(e) {
+  e.preventDefault();
+  drawTools[gS.params.curTool].mouseDown(e);
+};
+
+const dispatchMouseUp = function(e) {
+  e.preventDefault();
+  drawTools[gS.params.curTool].mouseUp(e);
+};
+
+const dispatchMouseMove = function(e) {
+  e.preventDefault();
+  drawTools[gS.params.curTool].mouseMove(e);
+};
+
+const dispatchMouseLeave = function(e) {
+  if("mouseLeave" in drawTools[gS.params.curTool]) {
+    drawTools[gS.params.curTool].mouseLeave(e);
+  }
+};
+
+const dispatchKeyDown = function(e) {
+  if("keyDown" in drawTools[gS.params.curTool]) {
+    drawTools[gS.params.curTool].keyDown(e);
+  }
+};
+
+const dispatchKeyUp = function(e) {
+  if("keyUp" in drawTools[gS.params.curTool]) {
+    drawTools[gS.params.curTool].keyUp(e);
+  }
+};
+
+window.addEventListener('orientationchange', function(){
+  console.log("orientation change");
+  onResize();
+});
+window.addEventListener('resize', function(){
+    console.log("resize");
+    onResize();
+});
+
 
 // Major Canvas Handling Functions
 //--------------------------------------------------------------------------------------------------------
@@ -663,6 +680,8 @@ var onResize = function() { // also for onOrientationChange !
   drawTools[gS.params.curTool].liverender();
 }
 
+
+
 // set up initial context and symmetry
 const initState = function() {
   _.assign(lctx, gS.ctxStyle);
@@ -687,46 +706,6 @@ export const getESVersion = function() {
   if(window.ES_VERSION){ return ES_VERSION; } else { return "v0.3"; }
 }
 
-// experimental cloud storage -----------------------------------------------------------------
-export const prepForUpload = function() {
-  let jsonstr = JSON.stringify({
-              name: gS.params.filename,
-              version: getESVersion(),
-              data: cmdStack
-             });
-  console.log("JSON size is ", jsonstr.length);
-  return jsonstr;
-}
-export const fetchFromCloud = function(jsonStr){
-  reset();
-  let shellObj = JSON.parse(jsonStr);
-  let loadObj = shellObj.content;
-  gS.params.filename = loadObj.name;
-  console.log("loading ES SketchID", shellObj.sketchID, "from version", loadObj.version);
-  let newstack = [];
-  for(let obj of loadObj.data){
-    newstack.push(ressurectOp(obj));
-  }
-  cmdStack = newstack;
-  rerender(ctx);
-}
-
-import {loadSketch} from './network.js';
-const loadGivenSketch = function(){
-  let urlObj = new URL(window.location.href);
-  let querySketchID = urlObj.searchParams.get("s");
-  let urlSketchID = window.location.href.split('s/')[1];
-  if(querySketchID){
-    console.log("Query sketchID", querySketchID, "requested");
-    loadSketch(querySketchID);
-  } else if(urlSketchID){
-    console.log("URL sketchID", urlSketchID, "requested");
-    loadSketch(urlSketchID);
-  }
-}
-// end experimental cloud storage -------------------------------------------------------------
-
-
 const initGUI = function() {
   console.log("Eschersketch", getESVersion());
 
@@ -748,7 +727,6 @@ const initGUI = function() {
   livecanvas.height = gS.params.canvasHeight;
   pixelFix(livecanvas);
   lctx = livecanvas.getContext("2d");
-  window.lctx = lctx;//HACK
 
   livecanvas.onmousedown  = dispatchMouseDown; //disable for touch
   livecanvas.onmouseup    = dispatchMouseUp;   //disable for touch

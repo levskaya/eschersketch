@@ -37,7 +37,7 @@
 
   <br>
 
-  <template v-if="params.showNetwork">
+  <template v-if="params.showNetwork && !params.tempHideNetwork">
     <div id="save-online" class="button" @mousedown="uploadSketch">
       <span class="icon-cloud-upload"></span> Make Shareable Links!
     </div>

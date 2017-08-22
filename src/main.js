@@ -85,6 +85,7 @@ export const gS = new Vue({
       copyText:"",
       showColorInputs: false,
       showFileName: false,
+      tempHideNetwork: true  //HACK: temporary hide backend during deploy testing
     },
     options: {
       minLineWidth: 0.1,

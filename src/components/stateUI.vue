@@ -1,18 +1,18 @@
 <template>
   <div id="stateUI">
     <template v-if="params.fullUI">
-      <div id="logo" class="Aligner">
+      <div id="logo" class="Aligner" style="margin-top:-10px;">
         <div class="Aligner-item">
           <span class="eslogotext" style="font-variant:small-caps;margin-right:10px;">escher</span><br>
         </div>
         <div class="Aligner-item">
-          <img src="/static/svg/es_logo.svg" height="30px" style="margin-top:6px;"/>
+          <img src="/static/svg/eslogo2.svg" height="24px" style="margin-top:4px;"/>
         </div>
         <div class="Aligner-item">
           <span class="eslogotext" style="font-variant:small-caps;margin-left:10px;">sketch</span>
         </div>
         <div class="Aligner-item">
-          <div class="button" :class="{selected: !params.fullUI}" style="margin-left:80%"
+          <div class="button" :class="{selected: !params.fullUI}" style="margin-left:80%;"
                title="minimize UI" @click="toggleUI">
             <span class="icon-shrink2"></span>
           </div>
@@ -20,7 +20,7 @@
       </div>
     </template>
     <template v-else>
-        <span class="eslogo"><img src="/static/svg/es_logo.svg" height="25px" style="margin-bottom:-8px; padding:0px"/></span>
+        <span class="eslogo"><img src="/static/svg/eslogo2.svg" height="20px" style="margin-bottom:-4px; padding:0px"/></span>
     </template>
 
     <div class="button" @click="help" title="help" key="stateui-help-button">

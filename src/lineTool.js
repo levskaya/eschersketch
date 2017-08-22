@@ -23,10 +23,9 @@ import {drawHitCircle} from './canvas_utils';
 // Draw Single Line Segments
 //------------------------------------------------------------------------------
 export class LineOp {
-  constructor(ctxStyle, start, end) {
+    constructor(ctxStyle, points) {
     this.tool = "line";
-    this.start = start;
-    this.end = end;
+    this.points = points;
     this.ctxStyle = ctxStyle;
     this.symmState = _.clone(gS.symmState);
   }
@@ -36,8 +35,8 @@ export class LineOp {
     updateSymmetry(this.symmState);
     //gS.$emit('symmUpdate', this.symmState);
     for (let af of affineset) {
-      const Tp1 = af.on(this.start.x, this.start.y);
-      const Tp2 = af.on(this.end.x, this.end.y);
+      const Tp1 = af.on(this.points[0][0], this.points[0][1]);
+      const Tp2 = af.on(this.points[1][0], this.points[1][1]);
       ctx.beginPath();
       ctx.moveTo(Tp1[0], Tp1[1]);
       ctx.lineTo(Tp2[0], Tp2[1]);
@@ -55,8 +54,7 @@ const _MOVEEND_ = 4;
 
 export class LineTool {
   constructor() {
-    this.start = {};
-    this.end = {};
+    this.points = [[0,0],[0,0]];
     this.state = _INIT_;
     this.hitRadius = 4;
     this.actions = [
@@ -68,68 +66,63 @@ export class LineTool {
   liverender() {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let af of affineset) {
-      const Tp1 = af.on(this.start.x, this.start.y);
-      const Tp2 = af.on(this.end.x, this.end.y);
+      const Tp1 = af.on(this.points[0][0], this.points[0][1]);
+      const Tp2 = af.on(this.points[1][0], this.points[1][1]);
       lctx.beginPath();
       lctx.moveTo(Tp1[0], Tp1[1]);
       lctx.lineTo(Tp2[0], Tp2[1]);
       lctx.stroke();
     }
-    drawHitCircle(lctx, this.start.x-0.5, this.start.y-0.5, this.hitRadius-1);
-    drawHitCircle(lctx, this.end.x-0.5, this.end.y-0.5, this.hitRadius-1);
+    drawHitCircle(lctx, this.points[0][0]-0.5, this.points[0][1]-0.5, this.hitRadius);
+    drawHitCircle(lctx, this.points[1][0]-0.5, this.points[1][1]-0.5, this.hitRadius);
   }
 
   enter(op){
     if(op){
         updateStyle(op.ctxStyle);
         updateSymmetry(op.symmState);
-        this.start = op.start;
-        this.end = op.end;
+        this.points = op.points;
         this.state = _OFF_;
         this.liverender();
     } else{
-      this.start = {};
-      this.end = {};
+      this.points = [[0,0],[0,0]];
       this.state = _INIT_;
     }
   }
 
   exit(){
-      this.start = {};
-      this.end = {};
+      this.points = [[0,0],[0,0]];
       this.state = _INIT_;
   }
 
   commit() {
     if(this.state == _INIT_){return;}
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new LineOp(ctxStyle, this.start, this.end));
+    commitOp(new LineOp(ctxStyle, this.points));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.start = {};
-    this.end = {};
+    this.points = [[0,0],[0,0]];
     this.state = _INIT_;
   }
 
   cancel() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.state = _INIT_;
-    this.start = {};
-    this.end = {};
+    this.points = [[0,0],[0,0]];
   }
 
   mouseDown(e) {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
-    if(l2dist(pt,[this.start.x,this.start.y])<this.hitRadius) {
+    if(l2dist(pt, this.points[0])<this.hitRadius) {
       this.state = _MOVESTART_;
-    } else if(l2dist(pt,[this.end.x,this.end.y])<this.hitRadius) {
+    } else if(l2dist(pt, this.points[1])<this.hitRadius) {
       this.state = _MOVEEND_;
     } else {
       if(this.state==_OFF_) {
         this.commit();
       }
       this.state = _ON_;
-      this.start = { x: pt[0], y: pt[1] };
+      this.points[0] = pt;
     }
   }
 
@@ -137,15 +130,15 @@ export class LineTool {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
     if (this.state == _ON_) {
-        this.end = { x: pt[0], y: pt[1] };
+        this.points[1] = pt;
         this.liverender();
     }
     else if (this.state == _MOVESTART_) {
-      this.start = { x: pt[0], y: pt[1] };
+      this.points[0] = pt;
       this.liverender();
     }
     else if (this.state == _MOVEEND_) {
-      this.end = { x: pt[0], y: pt[1] };
+      this.points[1] = pt;
       this.liverender();
     }
   }

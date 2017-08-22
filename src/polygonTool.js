@@ -102,11 +102,11 @@ const bakeOptions = function(options){
 
 export class PolygonTool {
   constructor() {
-    this.points = [[-100,-100],[-100,-100],[-100,-100]]; // [pt_center, pt_outer_edge, pt_star_inner]
+    this.points = [[0,0],[0,0],[0,0]]; // [pt_center, pt_outer_edge, pt_star_inner]
     this.state = _INIT_;
     this.hitRadius = 4;
     this.options = {
-        edges: {val: 6,     type: "number", min:3},
+        edges: {val: 6,     type: "slider", min:3, max:24, step:1},
         star:  {val: false, type: "boolean"}
     };
     this.actions = [
@@ -146,13 +146,13 @@ export class PolygonTool {
         this.state = _OFF_;
         this.liverender();
     } else{
-      this.points = [[-100,-100],[-100,-100],[-100,-100]];
+      this.points = [[0,0],[0,0],[0,0]];
       this.state = _INIT_;
     }
   }
 
   exit(){
-      this.points = [[-100,-100],[-100,-100],[-100,-100]];
+      this.points = [[0,0],[0,0],[0,0]];
       this.state = _INIT_;
   }
 
@@ -161,14 +161,14 @@ export class PolygonTool {
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
     commitOp(new PolygonOp(ctxStyle, deepClone(this.points), bakeOptions(this.options)));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.points = [[-100,-100],[-100,-100],[-100,-100]];
+    this.points = [[0,0],[0,0],[0,0]];
     this.state = _INIT_;
   }
 
   cancel() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.state = _INIT_;
-    this.points = [[-100,-100],[-100,-100],[-100,-100]];
+    this.points = [[0,0],[0,0],[0,0]];
   }
 
   mouseDown(e) {

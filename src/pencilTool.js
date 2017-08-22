@@ -71,7 +71,7 @@ export class PencilTool {
     this.state = _INIT_;
     this.liverender = this.liverender_fast;
     this.options = {
-        simplification: {val:0.7, type: "number", min:0.2},
+        simplify: {val:0.6, type: "slider", min:0.4, max:10, step:0.2},
     };
   }
 
@@ -127,8 +127,6 @@ export class PencilTool {
 
   enter(op){
     if(op){
-        //_.assign(gS.ctxStyle, _.clone(op.ctxStyle));
-        //_.assign(lctx, op.ctxStyle);
         updateStyle(op.ctxStyle);
         updateSymmetry(op.symmState);
         if(op.options){
@@ -153,7 +151,7 @@ export class PencilTool {
   commit() {
     if(this.state===_INIT_){return;} //empty data case
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    let simplifiedPoints = simplifyPoints(this.points,this.options.simplification.val, true);
+    let simplifiedPoints = simplifyPoints(this.points,this.options.simplify.val, true);
     commitOp(new PencilOp(ctxStyle, simplifiedPoints, bakeOptions(this.options)));
     //console.log("pencil: point reduction", this.points.length, simplifiedPoints.length);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);

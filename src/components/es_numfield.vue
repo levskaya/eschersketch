@@ -8,6 +8,7 @@
     <input class="ghost-input" type="text" @change="numchange" :name="param" :value="val" :size="size"/>
 </span>
 </template>
+
 <script>
   export default {
     name: 'es-numfield',
@@ -20,6 +21,7 @@
     }
   }
 </script>
+
 <style scoped>
 .ghost-input {
   display: inline;

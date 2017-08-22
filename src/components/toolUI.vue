@@ -20,24 +20,33 @@
     <es-button name="path" :selected="curtool" @bclick="changeTool">
       <span class="icon-pen"></span>
     </es-button>
-
     <!--
     <es-button name="grid"   :selected="curtool" @bclick="changeTool">
       grid adjust
     </es-button>
     -->
     <br>
-    <!--<template v-if="toolOptions.length>0">-->
     <template v-for="option in Object.keys(toolOptions)">
-      <template v-if = "toolOptions[option].type=='boolean'">
-        <es-checkbox :param="option" :val="toolOptions[option].val" @checked="toolOptionUpdate"></es-checkbox>
+      <template v-if="toolOptions[option].type=='boolean'">
+        <es-checkbox :param="option"
+                     :val="toolOptions[option].val"
+                     @checked="toolOptionUpdate"></es-checkbox>
+      </template>
+      <template v-else-if="toolOptions[option].type=='slider'">
+        <es-slider :param="option" :key="option"
+                   :val="toolOptions[option].val"
+                   :min="toolOptions[option].min"
+                   :max="toolOptions[option].max"
+                   :step="toolOptions[option].step"
+                   @numchange="toolOptionUpdate"></es-slider>
       </template>
       <template v-else>
-        <es-numfield :param="option" :val="toolOptions[option].val" @numchange="toolOptionUpdate" size="2"></es-numfield>
+        <es-numfield :param="option"
+                     :val="toolOptions[option].val"
+                     @numchange="toolOptionUpdate"
+                     size="2"></es-numfield>
       </template>
-
     </template>
-    <!--</template>-->
 
   </div>
 </template>
@@ -45,12 +54,13 @@
 <script>
 import esCheckbox from './es_checkbox';
 import esNumfield from './es_numfield';
+import esSlider from './es_slider';
 import esButton from './es_button';
 import {gS, drawTools} from '../main.js';
 
 export default {
   props: ['params'],
-  components: {esButton, esNumfield, "es-checkbox": esCheckbox},
+  components: {esButton, esNumfield, esSlider, esCheckbox},
   computed:{
     curtool: function(){ return this.params.curTool; },
     panelStyle: function() {

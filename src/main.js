@@ -367,7 +367,6 @@ const switchTool = function(toolName, op){
 };
 
 const undo = function(){
-  //console.log("undo cmdstack", cmdStack.length, "redostack", redoStack.length);
   drawTools[gS.params.curTool].commit();  //commit live tool op
   let cmd = cmdStack.pop(); //now remove it
   if(cmd){ // if at first step with INIT tool, may not have anything, abort!
@@ -701,6 +700,11 @@ const initState = function() {
 
   updateSymmetry(_.clone(gS.symmState));
   rerender(ctx);
+
+  //HACK: needed to get Vue to properly update pencil options slider on init... a Vue bug?
+  gS.params.curTool = 'poly';
+  setTimeout(()=>gS.params.curTool = 'pencil', 10);
+
 };
 
 // get version string

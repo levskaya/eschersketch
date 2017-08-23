@@ -22,41 +22,39 @@ import {drawHitCircle, drawHitLine} from './canvas_utils';
 
 
 export class PathOp {
-  constructor(ctxStyle, ops) {
+  constructor(ctxStyle, points) {
     this.ctxStyle = ctxStyle;
-    // array of ["M",x,y] or ["L",x,y] or ["C",xc1,yc1,xc2,yc2,x,y] drawing ops
-    this.ops = ops;
+    this.points = points;
     this.tool = "path";
     this.symmState = _.clone(gS.symmState);
   }
 
   render(ctx) {
-    //if(this.ops.length==0){return;} //empty data case
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
-    //gS.$emit('symmUpdate', this.symmState);
     for (let af of affineset) {
       ctx.beginPath();
-      for(let op of this.ops){
-        if(op[0] == "M") {
-          let Tpt = af.on(op[1], op[2]);
-          ctx.moveTo(Tpt[0], Tpt[1]);
+      let Tpt = af.onVec(this.points[0]);
+      ctx.moveTo(Tpt[0], Tpt[1]);
+      let ptidx = 0;
+      while(ptidx < this.points.length-1){
+        let Tpt0  = af.onVec(this.points[ptidx+0]),
+            Tcpt0 = af.onVec(this.points[ptidx+1]),
+            Tcpt1 = af.onVec(this.points[ptidx+2]),
+            Tpt1  = af.onVec(this.points[ptidx+3]);
+        if(l2dist(Tpt0, Tcpt0) < EPS && l2dist(Tpt1, Tcpt1)){
+          ctx.lineTo(Tpt1[0], Tpt1[1]);
         }
-        else if(op[0] == "L") {
-          let Tpt = af.on(op[1], op[2]);
-          ctx.lineTo(Tpt[0], Tpt[1]);
+        else {
+          ctx.bezierCurveTo(Tcpt0[0], Tcpt0[1], Tcpt1[0], Tcpt1[1], Tpt1[0], Tpt1[1]);
         }
-        else if(op[0] == "C"){
-          let Tpt0 = af.on(op[1], op[2]);
-          let Tpt1 = af.on(op[3], op[4]);
-          let Tpt2 = af.on(op[5], op[6]);
-          ctx.bezierCurveTo(Tpt0[0], Tpt0[1], Tpt1[0], Tpt1[1], Tpt2[0], Tpt2[1]);
-        }
+        ptidx += 3;
       }
       ctx.stroke();
       ctx.fill();
     }
   }
+
 }
 
 //State Labels
@@ -65,19 +63,17 @@ const _OFF_  = 1;
 const _ON_   = 2;
 const _MOVE_ = 3;
 
+const EPS = 1.0e-6; // lineTo cutoff for proximity of control point to vertex
+
 //TODO: hide control points for most vertices unless they're "parent" vertex
 //      is selected
-
-// XXX: Below is a crazy mess... need to refactor live storage format of path into
-// something more amenable for traversal and editing.  e.g.:
-// Not path descriptor segments, but a list of vertices, each with its two control points
-// associated
 export class PathTool {
   constructor() {
-    this.ops = [];
+    //this.ops = [];
+    this.points = [];
     this.state = _INIT_;
-    this.cpoint = [];
-    this.opselected = [];
+    this.ctrlPoint = [];
+    this.pointsSelected = [];
     this.hitRadius = 4;
     this.actions = [
       {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
@@ -88,97 +84,108 @@ export class PathTool {
 
   liverender() {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
+    if(this.points.length==0){return;}
     for (let af of affineset) {
       lctx.beginPath();
-      for(let op of this.ops){
-        if(op[0] === "M") {
-          let Tpt = af.on(op[1], op[2]);
-          lctx.moveTo(Tpt[0], Tpt[1]);
+      let Tpt = af.onVec(this.points[0]);
+      lctx.moveTo(Tpt[0], Tpt[1]);
+      let ptidx = 0;
+      if(this.points.length >=4){
+        while(ptidx < this.points.length-1){
+          let Tpt0  = af.onVec(this.points[ptidx+0]),
+              Tcpt0 = af.onVec(this.points[ptidx+1]),
+              Tcpt1 = af.onVec(this.points[ptidx+2]),
+              Tpt1  = af.onVec(this.points[ptidx+3]);
+          // line specialization
+          if(l2dist(Tpt0, Tcpt0) < EPS && l2dist(Tpt1, Tcpt1)){
+            lctx.lineTo(Tpt1[0], Tpt1[1]);
+          }
+          else {
+            lctx.bezierCurveTo(Tcpt0[0], Tcpt0[1], Tcpt1[0], Tcpt1[1], Tpt1[0], Tpt1[1]);
+          }
+          ptidx += 3;
         }
-        else if(op[0] === "L") {
-          let Tpt = af.on(op[1], op[2]);
-          lctx.lineTo(Tpt[0], Tpt[1]);
-        }
-        else if(op[0] === "C"){
-          let Tpt0 = af.on(op[1], op[2]);
-          let Tpt1 = af.on(op[3], op[4]);
-          let Tpt2 = af.on(op[5], op[6]);
-          lctx.bezierCurveTo(Tpt0[0], Tpt0[1], Tpt1[0], Tpt1[1], Tpt2[0], Tpt2[1]);
-        }
+        lctx.stroke();
+        lctx.fill();
       }
-      lctx.stroke();
-      lctx.fill();
     }
 
-    let lastpt = [];
-    // draw handles
-    for(let op of this.ops) {
-      if(op[0] == "M") {
-        drawHitCircle(lctx, op[1], op[2], this.hitRadius);
-        lastpt = [op[1], op[2]];
-      }
-      else if(op[0] == "L") {
-        drawHitCircle(lctx, op[1], op[2], this.hitRadius);
-        lastpt = [op[1], op[2]];
-      }
-      else if(op[0] == "C") {
-        //endpoint
-        drawHitCircle(lctx, op[5], op[6], this.hitRadius);
-        //control points
-        drawHitCircle(lctx, op[1], op[2], this.hitRadius-2);
-        drawHitCircle(lctx, op[3], op[4], this.hitRadius-2);
-        // handle lines for control points
-        drawHitLine(lctx,lastpt[0],lastpt[1],op[1],op[2]);
-        drawHitLine(lctx,op[3],op[4],op[5],op[6]);
-        lastpt = [op[5], op[6]];
+    if(this.points.length==1){ //initial point
+      let pt0 = this.points[0];
+      drawHitCircle(lctx, pt0[0], pt0[1], this.hitRadius);
+    }
+    else { //general case
+      let ptidx = 0;
+      while(ptidx < this.points.length-1){
+        let pt0 = this.points[ptidx+0],
+            cpt0 = this.points[ptidx+1],
+            cpt1 = this.points[ptidx+2],
+            pt1  = this.points[ptidx+3];
+
+        if(l2dist(pt0,cpt0)>EPS){
+          drawHitCircle(lctx, cpt0[0], cpt0[1], this.hitRadius-2);
+          drawHitLine(lctx, pt0[0],pt0[1], cpt0[0],cpt0[1]);
+        }
+        if(l2dist(pt1,cpt1)>EPS){
+          drawHitCircle(lctx, cpt1[0], cpt1[1], this.hitRadius-2);
+          drawHitLine(lctx, pt1[0],pt1[1], cpt1[0],cpt1[1]);
+        }
+        drawHitCircle(lctx, pt0[0], pt0[1], this.hitRadius);
+        drawHitCircle(lctx, pt1[0], pt1[1], this.hitRadius);
+
+        ptidx += 3;
       }
     }
-    if(this.cpoint.length > 0){ //temp control point render
-      drawHitCircle(lctx, this.cpoint[0], this.cpoint[1], this.hitRadius-2);
-      // handle line
-      drawHitLine(lctx,lastpt[0],lastpt[1],this.cpoint[0],this.cpoint[1]);
+
+    let lastpt = this.points[this.points.length-1];
+    if(this.ctrlPoint.length > 0){ //temp control point render
+      drawHitCircle(lctx, this.ctrlPoint[0], this.ctrlPoint[1], this.hitRadius-2);
+      drawHitLine(lctx,lastpt[0],lastpt[1],this.ctrlPoint[0],this.ctrlPoint[1]);
     }
   }
 
   enter(op) {
-    if(op){
+    if(op) {
         updateStyle(op.ctxStyle);
         updateSymmetry(op.symmState);
-        this.ops = op.ops;
-        this.opselected = [];
-        this.cpoint = [];
+        this.points = op.points;
+        this.pointsSelected = [];
+        this.ctrlPoint = [];
         this.state = _OFF_;
         this.liverender();
-    } else{
-      this.ops = [];
-      this.opselected = [];
-      this.cpoint = [];
+    }
+    else {
+      this.points = [];
+      this.pointsSelected = [];
+      this.ctrlPoint = [];
       this.state = _INIT_;
     }
   }
 
   exit() {
-    this.ops = [];
-    this.opselected = [];
-    this.cpoint = [];
+    this.points = [];
+    this.pointsSelected = [];
+    this.ctrlPoint = [];
     this.state = _INIT_;
   }
 
   commit() {
-    if(this.state==_INIT_){return;} //empty data case
+    if(this.state==_INIT_){return;} //empty data cases
+    if(this.points.length<4){return;}
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new PathOp(ctxStyle, this.ops));
+    commitOp(new PathOp(ctxStyle, this.points));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
-    this.ops = [];
-    this.opselected = [];
-    this.cpoint = [];
+    this.points = [];
+    this.pointsSelected = [];
+    this.ctrlPoint = [];
     this.state = _INIT_;
   }
 
   cancel() {
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.state = _INIT_;
-    this.ops = [];
+    this.points = [];
+    this.ctrlPoint = [];
   }
 
   mouseDown(e) {
@@ -187,225 +194,191 @@ export class PathTool {
 
     if(this.state == _INIT_) { // NEW PATH
       this.state = _ON_;
-      this.ops = [ ["M", pt[0], pt[1]] ];
+      this.points = [ pt ]; //XXX: ???
       this.liverender();
     }
     else if(this.state == _OFF_) { // EXTANT PATH
       //-----------------------------------------------------------------------------
       // Adjustment of existing points
       let onPoint=false;
-      for(let idx=0; idx<this.ops.length; idx++) {
-        let op = this.ops[idx];
-        if(op[0]=="M" || op[0] == "L") {
-          if(l2dist(pt, [op[1],op[2]])<this.hitRadius) {
-            this.state = _MOVE_;
-            this.opselected = [[idx,0,'v']];
-            onPoint = true;
 
-            // does this endpoint overlap with a following control point?
-            if(idx+1 < this.ops.length && this.ops[idx+1][0]=="C") {
-              let nextop = this.ops[idx+1];
-              this.opselected.push([idx+1,0,'c']);
-            }
-            if(idx+1 >= this.ops.length && this.cpoint.length > 0) {
-              this.opselected.push([0,0,'t']);
-            }
-            break;
-          }
-        }
-        else if(op[0]=="C") {
-          // curve endpoint
-          if(l2dist(pt, [op[5], op[6]])<this.hitRadius) {
-            this.state = _MOVE_;
-            this.opselected = [[idx,2,'v']];
-            onPoint = true;
-
-            // select associated endpoints
-            this.opselected.push([idx,1,'c']);
-            if(idx+1 < this.ops.length && this.ops[idx+1][0]=="C"){
-              this.opselected.push([idx+1,0,'c']);
-            }
-            if(idx+1 >= this.ops.length && this.cpoint.length > 0) {
-              this.opselected.push([0,0,'t']);
-            }
-            break;
-          }
-
-          // curve control-points - overlap ruled out by above cases
-          if(l2dist(pt, [op[1], op[2]])<this.hitRadius) {
-            this.state = _MOVE_;
-            this.opselected = [[idx,0,'c']];
-            onPoint = true;
-            if(this.ops[idx-1][0]=="C"){
-              this.opselected.push([idx-1,1,'c']);
-            }
-            break;
-          }
-          if(l2dist(pt, [op[3], op[4]])<this.hitRadius) {
-            this.state = _MOVE_;
-            this.opselected = [[idx,1,'c']];
-            onPoint = true;
-            if(idx+1 < this.ops.length && this.ops[idx+1][0]=="C"){
-              this.opselected.push([idx+1,0,'c']);
-            }
-            if(idx+1 >= this.ops.length && this.cpoint.length > 0) {
-              this.opselected.push([0,0,'t']);
-            }
-            break;
-          }
-        }
-      }
-      // check hit on temporary, dangling endpoint
-      if(this.cpoint.length > 0){
-        if(l2dist(pt, this.cpoint) < this.hitRadius){
+      if(this.points.length==1){
+        let pt0 = this.points[0];
+        if(l2dist(pt, pt0) < this.hitRadius) {
           this.state = _MOVE_;
-          this.opselected = [[0,0,'t']];
-          onPoint = true;
-          if(this.ops[this.ops.length-1][0]=="C"){
-            this.opselected.push([this.ops.length-1,1,'c']);
+          this.pointsSelected = [[0,'v']];
+          if(this.ctrlPoint.length > 0) {
+            this.pointsSelected.push([0,'t']);
           }
+          onPoint = true;
         }
       }
+      let ptidx=0;
+      while(ptidx < this.points.length-1){
+        let pt0  = this.points[ptidx+0],
+            cpt0 = this.points[ptidx+1],
+            cpt1 = this.points[ptidx+2],
+            pt1  = this.points[ptidx+3];
+
+        if(l2dist(pt, pt0) < this.hitRadius) {
+          this.state = _MOVE_;
+          this.pointsSelected = [[ptidx+0,'v'], [ptidx+1,'c']];
+          if(ptidx-1 > 0) {
+            this.pointsSelected.push([ptidx-1,'c']);
+          }
+          onPoint = true;
+          break;
+        }
+        else if(l2dist(pt, pt1) < this.hitRadius) {
+          this.state = _MOVE_;
+          this.pointsSelected = [[ptidx+3,'v'], [ptidx+2,'c']];
+          if(ptidx+4 < this.points.length) {
+            this.pointsSelected.push([ptidx+4,'c']);
+          }
+          if(ptidx+4 >= this.points.length && this.ctrlPoint.length > 0) {
+            this.pointsSelected.push([0,'t']);
+          }
+          onPoint = true;
+          break;
+        }
+
+        // curve control-points
+        if(l2dist(pt, cpt0)<this.hitRadius) {
+          this.state = _MOVE_;
+          this.pointsSelected = [[ptidx+1,'c']];
+          onPoint = true;
+          if(ptidx-1 > 0) {
+            this.pointsSelected.push([ptidx-1,'c']);
+          }
+          break;
+        }
+        if(l2dist(pt, cpt1)<this.hitRadius) {
+          this.state = _MOVE_;
+          this.pointsSelected = [[ptidx+2,'c']];
+          onPoint = true;
+          if(ptidx+4 < this.points.length){
+            this.pointsSelected.push([ptidx+4,'c']);
+          }
+          if(ptidx+4 >= this.points.length && this.ctrlPoint.length > 0) {
+            this.pointsSelected.push([0,'t']);
+          }
+          break;
+        }
+
+        ptidx += 3;
+      }
+
+      // check hit on temporary, dangling endpoint
+      if(this.ctrlPoint.length > 0){
+        if(l2dist(pt, this.ctrlPoint) < this.hitRadius){
+          this.state = _MOVE_;
+          this.pointsSelected = [[0,'t']]
+          if(this.points.length>1){
+            this.pointsSelected.push([this.points.length-2,'c']);
+          }
+          onPoint = true;
+        }
+      }
+
       //-----------------------------------------------------------------------------
       // Adding New Points
       if(!onPoint){
-        if(this.cpoint.length === 0) {
+        if(this.ctrlPoint.length === 0) {
           this.state = _ON_;
-          this.ops.push( ["L", pt[0], pt[1]] );
+          this.points.push(this.points[this.points.length-1]);
+          this.points.push(pt);
+          this.points.push(pt);
           this.liverender();
         } else {
           this.state = _ON_;
-          this.ops.push( ["C",
-                             this.cpoint[0], this.cpoint[1],
-                             pt[0], pt[1],
-                             pt[0], pt[1] ] );
-          this.cpoint = []; //clear tmp control pt
+          this.points.push(this.ctrlPoint);
+          this.points.push(pt);
+          this.points.push(pt);
+          this.ctrlPoint = []; //clear tmp control pt
           this.liverender();
         }
       }
     }
   }
 
-  getOpEndPoint(op){
-    if(op[0]=="M"){return [op[1],op[2]];}
-    else if(op[0]=="L"){return [op[1],op[2]];}
-    else if(op[0]=="C"){return [op[5],op[6]];}
-  }
-
-  //could simplify this by not using L ops at all, just twiddling C ops
-  //then at end of commit() convert C ops representing lines to L ops... i think?
   mouseMove(e) {
     let rect = livecanvas.getBoundingClientRect();
     let pt = [e.clientX-rect.left, e.clientY-rect.top];
 
     if (this.state == _ON_) {
-      if(this.ops[this.ops.length-1][0]=="M"){
-        this.cpoint = [pt[0], pt[1]]; //tmp pt
+      if(this.points.length - 1 <= 0){
+        this.ctrlPoint = pt;
         this.liverender();
       }
-      //complicated, upconvert line operation to curve operation
-      else if(this.ops[this.ops.length-1][0]=="L"){
-        let thisop = this.ops[this.ops.length-1];
-        let prevop = this.ops[this.ops.length-2];
-        let thispt = this.getOpEndPoint(thisop); //line endpoint
-        let prevpt = this.getOpEndPoint(prevop); //line startpoint
+      else {
+        let thispt = this.points[this.points.length-1];//line endpoint
+        let prevpt = this.points[this.points.length-4];//line startpoint
         let reflpt = reflectPoint(thispt, pt);
-        this.ops[this.ops.length-1]=["C",
-                                     prevpt[0], prevpt[1],
-                                     reflpt[0], reflpt[1],
-                                     thispt[0], thispt[1]];
-        this.cpoint = [pt[0], pt[1]]; //tmp pt
-        this.liverender();
-      }
-      else if(this.ops[this.ops.length-1][0]=="C"){
-        let thisop = this.ops[this.ops.length-1];
-        let thispt = this.getOpEndPoint(thisop); //line endpoint
-        let reflpt = reflectPoint(thispt, pt);
-        this.ops[this.ops.length-1]=["C",
-                                     thisop[1], thisop[2],
-                                     reflpt[0], reflpt[1],
-                                     thispt[0], thispt[1]];
-        this.cpoint = [pt[0], pt[1]]; //tmp pt
+        this.points[this.points.length-2] = reflpt;
+        this.ctrlPoint = pt;
         this.liverender();
       }
     }
     else if(this.state == _MOVE_) {
-      let firstHit = this.opselected[0];
+      let firstHit = this.pointsSelected[0];
       // vertex move -------------------------------------------------
-      if(firstHit[2]=='v') {
-        let idx = firstHit[0];
-        let ptidx = firstHit[1];
-        let oldpt = [this.ops[idx][2*ptidx + 1],
-                     this.ops[idx][2*ptidx + 2]];
-        let delta = [pt[0]-oldpt[0], pt[1]-oldpt[1]];
-        this.ops[idx][2*ptidx + 1] = pt[0];
-        this.ops[idx][2*ptidx + 2] = pt[1];
+      if(firstHit[1]=='v') {
+        let ptidx = firstHit[0];
+        let oldpt = this.points[ptidx];
+        let delta = sub2(pt,oldpt);
+        this.points[ptidx] = pt;
 
-        for(let hit of this.opselected.slice(1)){
-          let idx = hit[0];
-          let ptidx = hit[1];
-          let pttype = hit[2];
+        for(let hit of this.pointsSelected.slice(1)){
+          let ptidx = hit[0];
+          let pttype = hit[1];
           if(pttype == "c") {
-            this.ops[idx][2*ptidx + 1] += delta[0];
-            this.ops[idx][2*ptidx + 2] += delta[1];
+            this.points[ptidx] = add2(this.points[ptidx], delta);
           }
           else if(pttype == "t") {
-            this.cpoint[0] += delta[0];
-            this.cpoint[1] += delta[1];
+            this.ctrlPoint = add2(this.ctrlPoint, delta);
           }
         }
         this.liverender();
       }
       // control point move -------------------------------------------
       // must maintain continuity
-      else if(firstHit[2]=='c') {
-        let idx = firstHit[0];
-        let ptidx = firstHit[1];
-        this.ops[idx][2*ptidx + 1] = pt[0];
-        this.ops[idx][2*ptidx + 2] = pt[1];
-        if(this.opselected.length===2){
-          let secondHit = this.opselected[1];
-          if(secondHit[2]=='c') {
-            let idx2 = secondHit[0];
-            let ptidx2 = secondHit[1];
-            let oppositept = [this.ops[idx2][2*ptidx2 + 1],
-                              this.ops[idx2][2*ptidx2 + 2]];
-            let centerpt = [this.ops[Math.min(idx,idx2)][5],
-                            this.ops[Math.min(idx,idx2)][6]];
-            let reflectVec = normalize(reflectPoint([0,0],sub2(pt, centerpt)));
+      else if(firstHit[1]=='c') {
+        let ptidx = firstHit[0];
+        this.points[ptidx] = pt;
+        if(this.pointsSelected.length===2){
+          let secondHit = this.pointsSelected[1];
+          if(secondHit[1]=='c') {
+            let ptidx2 = secondHit[0];
+            let oppositept = this.points[ptidx2];
+            let centerpt = this.points[(ptidx2>ptidx ? ptidx+1 : ptidx2+1)];
+            let reflectVec = normalize(reflectPoint([0,0], sub2(pt, centerpt)));
             let alpha = l2norm(sub2(oppositept, centerpt));
             let newpt = add2(scalar2(reflectVec,alpha), centerpt);
-            this.ops[idx2][2*ptidx2 + 1] = newpt[0];
-            this.ops[idx2][2*ptidx2 + 2] = newpt[1];
+            this.points[ptidx2] = newpt;
           }
-          else if(secondHit[2]=='t') {
-            let oppositept = this.cpoint;
-            let centerpt = [this.ops[this.ops.length-1][5],
-                            this.ops[this.ops.length-1][6]];
+          else if(secondHit[1]=='t') {
+            let oppositept = this.ctrlPoint;
+            let centerpt = this.points[this.points.length-1];
             let reflectVec = normalize(reflectPoint([0,0],sub2(pt, centerpt)));
             let alpha = l2norm(sub2(oppositept, centerpt));
             let newpt = add2(scalar2(reflectVec,alpha), centerpt);
-            this.cpoint[0] = newpt[0];
-            this.cpoint[1] = newpt[1];
+            this.ctrlPoint = newpt;
           }
         }
         this.liverender();
       }
       // control point move on dangling point --------------------------------
-      else if(firstHit[2]=='t') {
-        this.cpoint = pt;
-        if(this.opselected.length===2){
-          let secondHit = this.opselected[1];
-          let idx2 = secondHit[0];
-          let ptidx2 = secondHit[1];
-          let oppositept = [this.ops[idx2][2*ptidx2 + 1],
-                            this.ops[idx2][2*ptidx2 + 2]];
-          let centerpt = [this.ops[idx2][5], this.ops[idx2][6]];
+      else if(firstHit[1]=='t') {
+        this.ctrlPoint = pt;
+        if(this.pointsSelected.length===2){
+          let secondHit = this.pointsSelected[1];
+          let ptidx2 = secondHit[0];
+          let oppositept = this.points[ptidx2];
+          let centerpt = this.points[ptidx2+1];
           let reflectVec = normalize(reflectPoint([0,0],sub2(pt, centerpt)));
           let alpha = l2norm(sub2(oppositept, centerpt));
           let newpt = add2(scalar2(reflectVec,alpha), centerpt);
-          this.ops[idx2][2*ptidx2 + 1] = newpt[0];
-          this.ops[idx2][2*ptidx2 + 2] = newpt[1];
+          this.points[ptidx2] = newpt;
         }
         this.liverender();
       }
@@ -414,7 +387,7 @@ export class PathTool {
 
   mouseUp(e) {
     this.state = _OFF_;
-    this.opselected = [];
+    this.pointsSelected = [];
     this.liverender();
   }
 
@@ -428,17 +401,13 @@ export class PathTool {
   }
 
   back() {
-    if(this.ops.length > 1 &&
+    if(this.points.length > 1 &&
        this.state == _OFF_) {
-      var op = this.ops.pop();
-      if(op[0]=='C'){
-        this.cpoint=[op[1],op[2]];
-      } else {
-        this.cpoint=[];
-      }
-      this.liverender();
+         let [cpt0,cpt1,pt1] = this.points.splice(-3);
+         this.ctrlPoint = cpt0;
+         this.liverender();
     } else if (this.state == _OFF_) {
-      this.ops.pop();
+      this.points = [];
       this.state = _INIT_;
       this.liverender();
     }

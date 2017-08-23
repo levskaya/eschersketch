@@ -50,10 +50,9 @@ import {GridTool}     from './gridTool';
 import {LineTool, LineOp}     from './lineTool';
 import {PencilTool, PencilOp}   from './pencilTool';
 import {PolygonTool, PolygonOp}     from './polygonTool';
-
+import {CircleTool, CircleOp}   from './circleTool';
 import {PolyTool, PolyOp}     from './polyTool';
 import {PathTool, PathOp}     from './pathTool';
-import {CircleTool, CircleOp}   from './circleTool';
 
 
 // gS = global State

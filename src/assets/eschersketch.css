@@ -20,6 +20,9 @@ body {
 input {
   font-size: 14px;
 }
+#helppanel {
+  font-size: 14px;
+}
 
 @media (max-width: 768px) {
   body {
@@ -27,6 +30,9 @@ input {
   }
   input {
     font-size: 20px;
+  }
+  #helppanel {
+    font-size: 16px;  
   }
 }
 
@@ -100,38 +106,17 @@ a:hover, a.enabled { color: #f00; }
     -ms-user-select: none;
     user-select: none;
 }
+.button:hover, .button:focus {
+	background: #ffdddd;
+	border: solid 1px #dddddd;
+}
+.button:active {
+	background: #aaaaaa;
+  color:#333;
+}
 .selected {
     background: rgba(250,150,150,0.6);
 }
 .armed {
     background: rgba(255,0,0,0.6);
-}
-.button:hover, .button:focus {
-	background: #ffdddd;
-	border: solid 1px #dddddd;
-}
-
-.button:active {
-	/*-webkit-box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
-	-moz-box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
-	box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);*/
-	background: #aaaaaa;
-	_border: solid 1px #203E5F;
-  color:#333;
-}
-
-/* flexbox v-center */
-.Aligner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.Aligner-item {
-  max-width: 50%;
-}
-.Aligner-item--top {
-  align-self: flex-start;
-}
-.Aligner-item--bottom {
-  align-self: flex-end;
 }

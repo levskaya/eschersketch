@@ -177,19 +177,9 @@ export class CircleTool {
 
   keyDown(e) {
     if(e.target.type){return;} // don't interfere with input UI key-events
-
     for(let action of this.actions){
-      if(_.isArray(action.key)){
-        for(let keyOption of action.key){
-          if(keyOption == e.code) {
-            this[action.name]();
-          }
-        }
-      }
-      else {
-        if(action.key == e.code){
-          this[action.name]();
-        }
+      if(action.key == e.code){
+        this[action.name]();
       }
     }
   }

@@ -157,4 +157,21 @@ export default {
     text-align: center;
 }
 
+/* flexbox v-center */
+.Aligner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.Aligner-item {
+  max-width: 50%;
+}
+.Aligner-item--top {
+  align-self: flex-start;
+}
+.Aligner-item--bottom {
+  align-self: flex-end;
+}
+
+
 </style>

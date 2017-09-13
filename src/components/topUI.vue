@@ -15,13 +15,13 @@
     <nav-panel :params="params"/>
 
     <!-- Color UI -->
-    <color-ui :params="params" :strokeColor="strokeColor" :fillColor="fillColor"/>
+    <color-ui :params="params" :stroke-color="strokeColor" :fill-color="fillColor"/>
 
     <!-- Line Style UI -->
-    <style-ui :ctxStyle="ctxStyle" :params="params" :options="options"/>
+    <style-ui :ctx-style="ctxStyle" :params="params" :options="options"/>
 
     <!-- Symmetry and Grid Selection -->
-    <symmetry-ui :symmState="symmState" :params="params" :options="options"/>
+    <symmetry-ui :symm-state="symmState" :params="params" :options="options"/>
 
     <!-- Loading and Saving -->
     <file-ui :params="params"/>

@@ -241,7 +241,7 @@ window.gS=gS;  // HACK: for debugging
 import topUi from './components/topUI';
 var vueUI = new Vue({
   el: '#topUI',
-  template: '<top-ui :params="params" :options="options" :symmState="symmState" :ctxStyle="ctxStyle" />',
+  template: '<top-ui :params="params" :options="options" :symm-state="symmState" :ctx-style="ctxStyle" />',
   components: { topUi },
   data: {params: gS.params, options: gS.options, symmState: gS.symmState, ctxStyle: gS.ctxStyle}
 });

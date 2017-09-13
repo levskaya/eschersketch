@@ -113,7 +113,6 @@ export class PolyTool {
   }
 
   commit() {
-    //console.log("poly state at commit ", this.state);
     if(this.state==_INIT_){return;} //empty data case
     let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
     commitOp( new PolyOp(ctxStyle, this.points) );

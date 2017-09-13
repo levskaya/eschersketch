@@ -251,6 +251,7 @@ var vueUI = new Vue({
 export const updateStyle = function(styles) {
   _.assign(lctx, _.clone(styles));
   _.assign(gS.ctxStyle, _.clone(styles));
+  //console.log(gS.ctxStyle);
 }
 
 // Symmetry Functions
@@ -646,12 +647,12 @@ const dispatchKeyUp = function(e) {
 };
 
 window.addEventListener('orientationchange', function(){
-  console.log("orientation change");
+  //console.log("orientation change");
   onResize();
 });
 window.addEventListener('resize', function(){
-    console.log("resize");
-    onResize();
+  //console.log("resize");
+  onResize();
 });
 
 
@@ -661,7 +662,7 @@ var onResize = function() { // also for onOrientationChange !
   drawTools[gS.params.curTool].commit();  //commit live tool op first!
   let w = window.innerWidth;
   let h = window.innerHeight;
-  console.log("window innerDims ", w, h);
+  //console.log("window innerDims ", w, h);
   gS.params.canvasWidth = w;
   gS.params.canvasHeight = h;
   canvas.width = w;
@@ -721,7 +722,7 @@ const initGUI = function() {
   // set up symmetry grid based on screen size
   let w = window.innerWidth;
   let h = window.innerHeight;
-  console.log("window innerDims ", w, h);
+  //console.log("window innerDims ", w, h);
   gS.params.canvasWidth = w;
   gS.params.canvasHeight = h;
 

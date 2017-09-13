@@ -11,6 +11,10 @@
 
 import {gS, prepForUpload, fetchFromCloud, getJPGdata} from './main.js'
 
+//Lambda Endpoints
+const SketchEndpoint    = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/dev/sketch/";
+const PostImageEndpoint = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/dev/postimage";
+
 const HttpClient = function() {
     this.get = function(url, callback) {
         var xmlhttp = new XMLHttpRequest();
@@ -43,7 +47,7 @@ const rememberSketch = function(id){
 }
 
 export const saveSketch = function(){
-  let resturl = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/dev/sketch/";
+  let resturl = SketchEndpoint;
   let client = new HttpClient();
   client.post(resturl, prepForUpload(), function(str){
     let jsonObj = JSON.parse(str);
@@ -58,7 +62,7 @@ export const saveSketch = function(){
                     hash:   jsonObj.sketchID,
                     b64img: getJPGdata().replace("data:image/jpeg;base64,","")
                   });
-    imgclient.post("https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/dev/postimage", imgdata, function(str){
+    imgclient.post(PostImageEndpoint, imgdata, function(str){
       console.log("imgpost response", str);
     });
 
@@ -66,7 +70,7 @@ export const saveSketch = function(){
 }
 
 export const loadSketch = function(sketchID){
-  let resturl = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/dev/sketch/"+sketchID;
+  let resturl = SketchEndpoint;
   let client = new HttpClient();
   client.get(resturl, function(str){
     //console.log("success", str);

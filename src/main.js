@@ -183,9 +183,13 @@ gS.$on('styleUpdate',
 gS.$on('colorUpdate',
        function(clr) {
          if(clr.target == "stroke") {
-           lctx.strokeStyle = "rgba("+clr.r+","+clr.g+","+clr.b+","+clr.a+")";
+           let colorString = "rgba("+clr.r+","+clr.g+","+clr.b+","+clr.a+")";
+           lctx.strokeStyle = colorString;
+           gS.ctxStyle.strokeStyle = colorString;
          } else {
-           lctx.fillStyle = "rgba("+clr.r+","+clr.g+","+clr.b+","+clr.a+")";
+           let colorString = "rgba("+clr.r+","+clr.g+","+clr.b+","+clr.a+")";
+           lctx.fillStyle = colorString;
+           gS.ctxStyle.fillStyle = colorString;
          }
          drawTools[gS.params.curTool].liverender();
        });

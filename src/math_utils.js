@@ -54,3 +54,23 @@ export const cross2 =
 export const angleBetween = //angle between vecs pt0->pt1 and pt0->pt2
   (pt0, pt1, pt2) => asin(cross2(normalize(sub2(pt1,pt0)),
                                  normalize(sub2(pt2,pt0))));
+
+export const project2 =  // project pt2 onto line from pt0 to pt1, return projected 2vec
+  function(pt0, pt1, pt2) {
+    let unit01 = normalize(sub2(pt1,pt0));
+    let alpha = dot2(unit01, sub2(pt2,pt0));
+    return add2(scalar2(unit01, alpha), pt0);
+  }
+
+export const relproject2 =  // "relative" project pt2 onto line from pt0 to pt1, return projected 2vec WITH origin at pt0
+  function(pt0, pt1, pt2) {
+    let unit01 = normalize(sub2(pt1,pt0));
+    let alpha = dot2(unit01, sub2(pt2,pt0));
+    return scalar2(unit01, alpha);
+  }
+
+export const orthoproject2 = // project pt2 onto line ORTHOGONAL to that from pt0 to pt1, return projected 2vec
+  function(pt0, pt1, pt2) {
+    let rproj = relproject2(pt0,pt1,pt2);
+    return sub2(pt2,rproj);
+  }

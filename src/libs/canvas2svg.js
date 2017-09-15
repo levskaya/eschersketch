@@ -1192,6 +1192,56 @@
         }
     };
 
+    /*
+     * Ellipse command
+     * @param x
+     * @param y
+     * @param radiusX
+     * @param radiusY
+     * @param rotation
+     * @param startAngle
+     * @param endAngle
+     * @counterClockwise
+     */
+    ctx.prototype.ellipse = function(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterClockwise) {
+     //ellipse is the same svg command as arc, but with a radiusX and radiusY instead of just radius
+       if (startAngle === endAngle) {
+           return;
+       }
+       startAngle = startAngle % (2*Math.PI);
+       endAngle = endAngle % (2*Math.PI);
+       if(startAngle === endAngle) {
+           endAngle = ((endAngle + (2*Math.PI)) - 0.001 * (counterClockwise ? -1 : 1)) % (2*Math.PI);
+       }
+       var endX = x + Math.cos(-rotation) * radiusX * Math.cos(endAngle)
+                    + Math.sin(-rotation) * radiusY * Math.sin(endAngle),
+           endY = y - Math.sin(-rotation) * radiusX * Math.cos(endAngle)
+                    + Math.cos(-rotation) * radiusY * Math.sin(endAngle),
+           startX = x + Math.cos(-rotation) * radiusX * Math.cos(startAngle)
+                      + Math.sin(-rotation) * radiusY * Math.sin(startAngle),
+           startY = y - Math.sin(-rotation) * radiusX * Math.cos(startAngle)
+                      + Math.cos(-rotation) * radiusY * Math.sin(startAngle),
+           sweepFlag = counterClockwise ? 0 : 1,
+           largeArcFlag = 0,
+           diff = endAngle - startAngle;
+
+       if(diff < 0) {
+           diff += 2*Math.PI;
+       }
+
+       if(counterClockwise) {
+           largeArcFlag = diff > Math.PI ? 0 : 1;
+       } else {
+           largeArcFlag = diff > Math.PI ? 1 : 0;
+       }
+
+       this.lineTo(startX, startY);
+       this.__addPathCommand(format("A {rx} {ry} {xAxisRotation} {largeArcFlag} {sweepFlag} {endX} {endY}",
+           {rx:radiusX, ry:radiusY, xAxisRotation:rotation*(180/Math.PI), largeArcFlag:largeArcFlag, sweepFlag:sweepFlag, endX:endX, endY:endY}));
+
+       this.__currentPosition = {x: endX, y: endY};
+   };
+
     /**
      * Not yet implemented
      */

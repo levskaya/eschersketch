@@ -16,7 +16,7 @@ import {gS,
         commitOp
        } from './main';
 
-import {l2dist} from './math_utils';
+import {l2dist, EPS} from './math_utils';
 import { _ } from 'underscore';
 
 import {drawHitCircle} from './canvas_utils';
@@ -42,7 +42,9 @@ export class PolyOp {
         Tpt = af.on(pt[0], pt[1]);
         ctx.lineTo(Tpt[0], Tpt[1]);
       }
-      ctx.closePath(); //necessary?
+      if(l2dist(this.points[0],this.points[this.points.length-1])<EPS) {
+        ctx.closePath(); //necessary?
+      }
       ctx.stroke();
       ctx.fill();
     }
@@ -64,7 +66,8 @@ export class PolyTool {
     this.actions = [
       {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
       {name: "commit", desc: "start new", icon: "icon-checkmark", key: "Enter"},
-      {name: "back",   desc: "undo last point", icon: "icon-minus", key: "Backspace"}
+      {name: "back",   desc: "undo last point", icon: "icon-minus", key: "Backspace"},
+      {name: "closepath",   desc: "close path", icon: "icon-stroke", key: "KeyC"}
     ];
   }
 
@@ -127,6 +130,14 @@ export class PolyTool {
     this.state = _INIT_;
     this.points = [];
     this.selected = 0;
+  }
+
+  closepath() {
+    //add explicit closed flag?
+    if(this.points.length > 2 && l2dist(this.points[0],this.points[this.points.length-1])>EPS) {
+      this.points.push( this.points[0] );
+      this.liverender();
+    }
   }
 
   mouseDown(e) {

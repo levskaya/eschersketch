@@ -78,7 +78,9 @@ export class PathTool {
     this.actions = [
       {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
       {name: "commit", desc: "start new", icon: "icon-checkmark", key: "Enter"},
-      {name: "back",   desc: "undo last point", icon: "icon-minus", key: "Backspace"}
+      {name: "back",   desc: "undo last point", icon: "icon-minus", key: "Backspace"},
+      {name: "closepath",   desc: "close path", icon: "icon-stroke", key: "KeyC"},
+      {name: "smoothclose",   desc: "smooth close path", icon: "icon-radio-unchecked", key: "KeyS"}
     ];
   }
 
@@ -186,6 +188,47 @@ export class PathTool {
     this.state = _INIT_;
     this.points = [];
     this.ctrlPoint = [];
+  }
+
+  closepath() {
+    if(this.points.length < 4 || l2dist(this.points[0],this.points[this.points.length-1])<EPS){
+      return;
+    }
+    if(this.ctrlPoint.length === 0) {
+      this.state = _OFF_;
+      this.points.push(this.points[this.points.length-1]);
+      this.points.push(this.points[0]);
+      this.points.push(this.points[0]);
+    } else {
+      this.state = _OFF_;
+      this.points.push(this.ctrlPoint);
+      this.points.push(this.points[0]);
+      this.points.push(this.points[0]);
+      this.ctrlPoint = []; //clear tmp control pt
+    }
+    this.liverender();
+  }
+
+  smoothclose(){
+    if(this.points.length < 4 || l2dist(this.points[0],this.points[this.points.length-1])<EPS){
+      return;
+    }
+    if(this.ctrlPoint.length === 0) {
+      this.state = _OFF_;
+      this.points.push(this.points[this.points.length-1]);
+      let reflpt = reflectPoint(this.points[0], this.points[1]);
+      this.points.push(reflpt);
+      //this.points.push(this.points[0]);
+      this.points.push(this.points[0]);
+    } else {
+      this.state = _OFF_;
+      this.points.push(this.ctrlPoint);
+      let reflpt = reflectPoint(this.points[0], this.points[1]);
+      this.points.push(reflpt);
+      this.points.push(this.points[0]);
+      this.ctrlPoint = []; //clear tmp control pt
+    }
+    this.liverender();
   }
 
   mouseDown(e) {

@@ -537,8 +537,8 @@ export const planarSymmetries = {
   hexgrid: {
     rots: [],
     refs: [],
-    vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0],
+    vec0: [ sqrt(3), 0.0],
+    vec1: [ sqrt(3)/2, -1.5 ],
     tile: [ sqrt(3), 3 ]
   },
 
@@ -659,8 +659,8 @@ export const planarSymmetries = {
   p3: {
     rots: [ [ (2 * PI) / 3, sqrt(3)/2, -0.5 ], [ (4 * PI) / 3, sqrt(3)/2, -0.5 ] ],
     refs: [],
-    vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0],
+    vec0: [ sqrt(3), 0.0],
+    vec1: [ sqrt(3)/2, -1.5 ],
     tile: [ sqrt(3), 3 ]
   },
 
@@ -668,24 +668,24 @@ export const planarSymmetries = {
     rots: [ [ (2 * PI) / 3, sqrt(3)/2, -0.5 ], [ (4 * PI) / 3, sqrt(3)/2, -0.5 ],
             [ PI / 3.0, 0.0, 0.0], [ -PI / 3.0, 0.0, 0.0], [ (3 * PI) / 3.0, 0.0, 0.0] ],
     refs: [],
-    vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0],
+    vec0: [ sqrt(3), 0.0],
+    vec1: [ sqrt(3)/2, -1.5 ],
     tile: [ sqrt(3), 3 ]
   },
 
   p31m: {
     rots: [ [ (2 * PI)/3, sqrt(3)/2, -0.5 ], [ (4*PI)/3, sqrt(3)/2, -0.5 ] ],
     refs: [ [ PI/3, 0.0, 0.0], [ -PI/3, 0.0, 0.0], [ 0.0, 0.0, 0.0] ],
-    vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0],
+    vec0: [ sqrt(3), 0.0],
+    vec1: [ sqrt(3)/2, -1.5 ],
     tile: [ sqrt(3), 3 ]
   },
 
   p3m1: {
     rots: [ [ (2 * PI) / 3, 0, 0 ], [ (4 * PI) / 3, 0, 0 ] ],
     refs: [ [ -PI/2, 0, 0 ], [ ((-2 * PI)/3) - (PI/2), 0, 0 ], [ ((2 * PI)/3) - (PI/2), 0, 0 ] ],
-    vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0],
+    vec0: [ sqrt(3), 0.0],
+    vec1: [ sqrt(3)/2, -1.5 ],
     tile: [ sqrt(3), 3 ]
   },
 
@@ -694,8 +694,8 @@ export const planarSymmetries = {
     refs: [ [ PI / 6, 0, 0 ], [ (2 * PI) / 6, 0, 0 ], [ (3 * PI) / 6, 0, 0 ],
             [ (4 * PI) / 6, 0, 0 ], [ (5 * PI) / 6, 0, 0 ], [ (6 * PI) / 6, 0, 0 ] ],
     closeref: true,
-    vec0: [ sqrt(3)/2, -1.5 ],
-    vec1: [ sqrt(3), 0.0],
+    vec0: [ sqrt(3), 0.0],
+    vec1: [ sqrt(3)/2, -1.5 ],
     tile: [ sqrt(3), 3 ]
   }
 };

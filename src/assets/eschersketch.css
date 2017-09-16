@@ -32,7 +32,7 @@ input {
     font-size: 20px;
   }
   #helppanel {
-    font-size: 16px;  
+    font-size: 16px;
   }
 }
 
@@ -52,10 +52,12 @@ a:hover, a.enabled { color: #f00; }
 #sketchrender, #sketchlive  {
     position: absolute;
     cursor: crosshair;
+    overflow: hidden;
 }
 
 #sketch-UI {
-    overflow-y: scroll;
+    /*overflow-y: scroll;*/
+    overflow-y: hidden;
     overflow-x: hidden;
     position: absolute;
     top: 0px;

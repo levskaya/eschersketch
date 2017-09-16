@@ -5,6 +5,7 @@
     <b>UI options</b><br>
     <es-checkbox param="showColorInputs" :val="params.showColorInputs" @checked="updateParam">Show Manual Color Inputs?</es-checkbox><br>
     <es-checkbox param="showFileName" :val="params.showFileName" @checked="updateParam">Show Filename?</es-checkbox><br>
+    <es-checkbox param="showJSONexport" :val="params.showJSONexport" @checked="updateParam">Show JSON Export Links?</es-checkbox><br>
 
     <b>draw options</b><br>
     <es-numfield param="maxLineWidth" :val="options.maxLineWidth" size="2" @numchange="update">Max line width</es-numfield><br>
@@ -15,8 +16,8 @@
     <es-numfield param="maxGridNy" :val="options.maxGridNy" size="2" @numchange="update">Max Dynamic Grid Ny</es-numfield> <i>careful</i> <br>
 
     <b>export options</b><br>
+    <es-numfield param="pngUpsample" :val="options.pngUpsample" size="1" @numchange="update">PNG Upsample Factor</es-numfield><br>
     <es-numfield param="pngTileUpsample" :val="options.pngTileUpsample" size="1" @numchange="update">PNG Tile Upsample Factor</es-numfield><br>
-    <!--<es-numfield param="pngUpSample" :val="options.pngUpsample" size="1" @numchange="update">PNG Upsample Factor</es-numfield><br>-->
     <es-numfield param="svgGridNx" :val="options.svgGridNx" size="2" @numchange="update">SVG Export Grid Nx</es-numfield> <i>careful</i> <br>
     <es-numfield param="svgGridNy" :val="options.svgGridNy" size="2" @numchange="update">SVG Export Grid Ny</es-numfield> <i>careful</i> <br>
 

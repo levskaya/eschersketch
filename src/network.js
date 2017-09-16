@@ -10,10 +10,11 @@
 //------------------------------------------------------------------------------
 
 import {gS, prepForUpload, fetchFromCloud, getJPGdata} from './main.js'
+import {lsGetJSON, lsSaveJSON} from './utils.js';
 
-//Lambda Endpoints
-const SketchEndpoint    = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/dev/sketch/";
-const PostImageEndpoint = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/dev/postimage";
+//Server Endpoints
+const SketchEndpoint    = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/prod/sketch/";
+const PostImageEndpoint = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/prod/postimage";
 
 const HttpClient = function() {
     this.get = function(url, callback) {
@@ -38,7 +39,8 @@ const HttpClient = function() {
     }
 }
 
-import {lsGetJSON, lsSaveJSON} from './utils.js';
+// record list of shared sketches in localstorage, not used now and questionably useful
+// given the ephemerality of localstorage data in many browsers
 const rememberSketch = function(id){
     let memory = lsGetJSON("sketches") || [];
     let dateStr = (new Date()).toLocaleString();

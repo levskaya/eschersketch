@@ -20,24 +20,25 @@
     <span class="icon-folder-download"></span> Tile
   </div>
 
-  <br>
-  <span style="font-variant: small-caps;">
-    save&load <span style="color:red">experimental</span>
-  </span>
-  <br>
+  <template v-if="params.showJSONexport">
+    <br>
+    <span style="font-variant: small-caps;">
+      save&load <span style="color:red">experimental</span>
+    </span>
+    <br>
 
-  <div id="save-json" class="button" @mousedown="saveJSON">
-    <span class="icon-folder-download"></span> JSON
-  </div>
+    <div id="save-json" class="button" @mousedown="saveJSON">
+      <span class="icon-folder-download"></span> JSON
+    </div>
 
-  <label class="fileContainer">
-    <span class="icon-folder-upload"></span> JSON
-    <input id="the-file-input" type="file" @change="loadJSON">
-  </label>
+    <label class="fileContainer">
+      <span class="icon-folder-upload"></span> JSON
+      <input id="the-file-input" type="file" @change="loadJSON">
+    </label>
+  </template>
 
-  <br>
-
-  <template v-if="params.showNetwork && !params.tempHideNetwork">
+  <template v-if="params.showNetwork && !params.disableNetwork">
+    <br>
     <div id="save-online" class="button" @mousedown="uploadSketch">
       <span class="icon-cloud-upload"></span> Make Shareable Links!
     </div>
@@ -62,7 +63,7 @@
 <script>
 import es_numfield from './es_numfield';
 import es_button from './es_button';
-import {gS, saveSVG, saveSVGTile, savePNG, savePNGTile, saveJSON, loadJSON} from '../main.js';
+import {gS, saveSVG, savePNG, savePNGTile, saveJSON, loadJSON} from '../main.js';
 import {_} from 'underscore';
 import {saveSketch} from '../network.js';
 import Clipboard from 'clipboard';
@@ -113,7 +114,6 @@ export default {
     uploadSketch: function(){
       //console.log("trying to upload");
       saveSketch();
-
     }
   }
 }

@@ -61,7 +61,7 @@ import {PathTool, PathOp}     from './pathTool';
 //------------------------------------------------------------------------------
 export const gS = new Vue({
   data: {
-    // random global UI state variables
+    // global UI state variables
     params: {
       curTool: 'pencil',         // Tool State
       fullUI: true,
@@ -75,16 +75,17 @@ export const gS = new Vue({
       showConfig: false,
       showNetwork: false,
       showShareLinks: false,
-      showHints: false,           //contextual help, still janky...
+      showHints: false,           // contextual help, not fully implemented
       hintText: "",
       canvasHeight: 1200,
       canvasWidth:  1600,
       filename: "eschersketch",
-      versionString: "v0.3",      //Eschersketch version
+      versionString: "v0.3",      // repo version, updated to match git-describe --tags
       copyText:"",
-      showColorInputs: false,
+      showColorInputs: false,     // UI "expert mode" options
       showFileName: false,
-      tempHideNetwork: true  //HACK: temporary hide backend during deploy testing
+      showJSONexport: false,
+      disableNetwork: true        // enabled for online version, not useful for local install
     },
     options: {
       minLineWidth: 0.1,
@@ -94,7 +95,7 @@ export const gS = new Vue({
       maxGridNx: 50,
       maxGridNy: 50,
       pngTileUpsample: 4,
-      //pngUpsample: 2,    //TODO: implement complete redraw for whole frame PNG export
+      pngUpsample: 2,             // TODO: implement complete redraw for whole frame PNG export
       //pngGridNx: 20,
       //pngGridNy: 20,
       svgGridNx: 10,
@@ -127,7 +128,7 @@ export const gS = new Vue({
 //-------------------------------
 var cmdStack = [];
 var redoStack = [];
-//window.getCmdStack = ()=>cmdStack; //HACK
+window.getCmdStack = ()=>cmdStack; //HACK
 
 // Canvas / Context Globals
 //------------------------------------------------------------------------------
@@ -148,7 +149,7 @@ export var affineset = {};
 // Global indices into Instantiated Tools and their Ops
 //------------------------------------------------------------------------------
 export const drawTools = {
-  grid: new GridTool(), //not a _drawing_ tool
+  grid: new GridTool(), // not a _drawing_ tool
   line: new LineTool(),
   circle: new CircleTool(),
   pencil: new PencilTool(),
@@ -205,9 +206,9 @@ gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){ reset(); });
 
 // Pure UI Events
+
 //------------------------------------------------------------------------------------------
 gS.$on('toggleUI', function() {
-  //console.log("toggleUI");
   if(gS.params.fullUI){
     gS.params.fullUI = false;
     gS.params.showTool = false;
@@ -237,7 +238,7 @@ window.gS=gS;  // HACK: for debugging
 
 
 // Initialize Vue UI
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
 import topUi from './components/topUI';
 var vueUI = new Vue({
   el: '#topUI',
@@ -251,7 +252,6 @@ var vueUI = new Vue({
 export const updateStyle = function(styles) {
   _.assign(lctx, _.clone(styles));
   _.assign(gS.ctxStyle, _.clone(styles));
-  //console.log(gS.ctxStyle);
 }
 
 // Symmetry Functions
@@ -371,6 +371,14 @@ const switchTool = function(toolName, op){
 };
 
 const undo = function(){
+  // if the user has started drawing with the current tool
+  // simply erase current
+  /*
+  if(drawTools[gS.params.curTool].isDirty()){
+    drawTools[gS.params.curTool].enter();
+    lctx.clearRect(0, 0, canvas.width, canvas.height);
+  }*/
+
   drawTools[gS.params.curTool].commit();  //commit live tool op
   let cmd = cmdStack.pop(); //now remove it
   if(cmd){ // if at first step with INIT tool, may not have anything, abort!
@@ -473,46 +481,6 @@ export const saveSVG = function() {
   saveAs(blob, gS.params.filename + ".svg");
 };
 
-export const saveSVGTile = function() {
-  // get square tile dimensions
-  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
-  dX *= gS.symmState.d;
-  dY *= gS.symmState.d;
-
-  // canvas2svg fake context:
-  var C2Sctx = new C2S(dX, dY);
-  //correct for center off-set and pixel-scaling
-  //tctx.scale(pixelScale, pixelScale);
-  C2Sctx.translate(-1*gS.symmState.x, -1*gS.symmState.y);
-  /*C2Sctx.beginPath();
-  C2Sctx.moveTo(gS.symmState.x, gS.symmState.y);
-  C2Sctx.lineTo(gS.symmState.x+dX, gS.symmState.y);
-  C2Sctx.lineTo(gS.symmState.x+dX, gS.symmState.y+dY);
-  C2Sctx.lineTo(gS.symmState.x, gS.symmState.y+dY);
-  C2Sctx.closePath();
-  C2Sctx.clip();*/
-
-  // prevent recursion stack limit by constraining number of repeats exported
-  let gridLimiter = function(op) {
-    let newop = restoreOp(deepClone(op));
-    newop.symmState.Nx = gS.options.svgGridNx;
-    newop.symmState.Ny = gS.options.svgGridNy;
-    return newop;
-  }
-  rerender(C2Sctx, modifier=gridLimiter);
-  //serialize the SVG
-  var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
-  //save text blob as SVG
-  var blob = new Blob([mySerializedSVG], {type: "image/svg+xml"});
-  saveAs(blob, gS.params.filename + ".svg");
-};
-
-// TODO : allow arbitrary upscaling of canvas pixel backing density using
-//        setCanvasPixelDensity
-export const savePNG = function() {
-  canvas.toBlobHD(blob => saveAs(blob, gS.params.filename + ".png"));
-};
-
 // Get base64 encoded JPG of current scene (for snapshot upload)
 export const getJPGdata = function(){
   const pixelScale = 1;//gS.options.pngTileUpsample; // pixel density scaling factor
@@ -530,19 +498,27 @@ export const getJPGdata = function(){
   //correct for center off-set and pixel-scaling
   //tctx.scale(pixelScale, pixelScale);
   //tctx.translate(-1*gS.symmState.x, -1*gS.symmState.x);
-  //rerender scene and export bitmap
-  //rerender(tctx, {modifier: cleanLinesModifier}); //XXX: very clean effect!
-  //rerender(tctx, {modifier: cleanFillsModifier}); //XXX: very clean effect!
   tctx.save();
   tctx.fillStyle="rgba(255,255,255,1.0)";
   tctx.fillRect(0, 0, canvas.width, canvas.height);
   tctx.restore();
   rerender(tctx, {clear: false});
   let jpegData = tmpCanvas.toDataURL("image/jpeg", jpegQuality);
-  //saveAs(jpegData, gS.params.filename + "_tmp.jpeg");
-  //tmpCanvas.toBlobHD(blob => saveAs(blob, gS.params.filename + "_tmp.jpg"));
   tmpCanvas.remove();
   return jpegData;
+};
+
+export const savePNG = function() {
+  const pixelScale = gS.options.pngUpsample; // pixel density scaling factor
+  // Render into temporary canvas for blob conversion and export
+  let tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = canvas.width;
+  tmpCanvas.height = canvas.height;
+  setCanvasPixelDensity(tmpCanvas, pixelScale);
+  let tctx = tmpCanvas.getContext("2d");
+  rerender(tctx);
+  tmpCanvas.toBlobHD(blob => saveAs(blob, gS.params.filename + ".png"));
+  tmpCanvas.remove();
 };
 
 // Export small, hi-res, square-tileable PNG
@@ -561,7 +537,7 @@ export const savePNGTile = function(){
   let tctx = tileCanvas.getContext("2d");
   //correct for center off-set and pixel-scaling
   tctx.scale(pixelScale, pixelScale);
-  tctx.translate(-1*gS.symmState.x, -1*gS.symmState.x);
+  tctx.translate(-1*gS.symmState.x, -1*gS.symmState.y);
   //rerender scene and export bitmap
   //rerender(tctx, {modifier: cleanLinesModifier}); //XXX: very clean effect!
   //rerender(tctx, {modifier: cleanFillsModifier}); //XXX: very clean effect!
@@ -570,16 +546,20 @@ export const savePNGTile = function(){
   tileCanvas.remove();
 };
 
-// experimental cloud storage -----------------------------------------------------------------
+
+// Backend
+//------------------------------------------------------------------------------
 export const prepForUpload = function() {
   let jsonstr = JSON.stringify({
               name: gS.params.filename,
-              version: getESVersion(),
+              version: getESVersion(), // eschersketch version
+              format: 1,               // file format version for futureproofing
               data: cmdStack
              });
   console.log("JSON size is ", jsonstr.length);
   return jsonstr;
 }
+
 export const fetchFromCloud = function(jsonStr){
   reset();
   let shellObj = JSON.parse(jsonStr);
@@ -600,15 +580,13 @@ const loadGivenSketch = function(){
   let querySketchID = urlObj.searchParams.get("s");
   let urlSketchID = window.location.href.split('s/')[1];
   if(querySketchID){
-    console.log("Query sketchID", querySketchID, "requested");
+    //console.log("Query sketchID", querySketchID, "requested");
     loadSketch(querySketchID);
   } else if(urlSketchID){
-    console.log("URL sketchID", urlSketchID, "requested");
+    //console.log("URL sketchID", urlSketchID, "requested");
     loadSketch(urlSketchID);
   }
 }
-// end experimental cloud storage -------------------------------------------------------------
-
 
 
 // Canvas Mouse/Key Events -- dispatched to active Drawing Tool
@@ -628,6 +606,7 @@ const dispatchMouseMove = function(e) {
   drawTools[gS.params.curTool].mouseMove(e);
 };
 
+//not currently used: leave/enter events don't generalize to touch interfaces
 const dispatchMouseLeave = function(e) {
   if("mouseLeave" in drawTools[gS.params.curTool]) {
     drawTools[gS.params.curTool].mouseLeave(e);
@@ -647,11 +626,10 @@ const dispatchKeyUp = function(e) {
 };
 
 window.addEventListener('orientationchange', function(){
-  //console.log("orientation change");
   onResize();
 });
+
 window.addEventListener('resize', function(){
-  //console.log("resize");
   onResize();
 });
 

@@ -13,6 +13,7 @@ const { min, max, abs, sqrt, floor, round, sin, cos, tan, acos, asin, atan, pow,
 
 // Math Functions
 //------------------------------------------------------------------------------
+export const EPS = 1.0e-9;
 
 export const sign = // sign func -> -1, 1
     (x) => (x < 0) ? -1 : 1;

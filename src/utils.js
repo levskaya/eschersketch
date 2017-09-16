@@ -14,13 +14,11 @@ import { _ } from 'underscore';
 // extracted from GH mateusmaso/underscore.deepclone
 export const deepClone = function(object) {
     var clone = _.clone(object);
-
     _.each(clone, function(value, key) {
       if (_.isObject(value)) {
         clone[key] = deepClone(value);
       }
     });
-
     return clone;
   };
 
@@ -33,4 +31,4 @@ export const lsSaveJSON = function (keyname, obj){
   let jsonstr = JSON.stringify(obj);
   localStorage.setItem(keyname, jsonstr);
 }
-window.lsGetJSON=lsGetJSON; //HACK
+//window.lsGetJSON=lsGetJSON; // HACK for development

@@ -10,7 +10,7 @@
 
         <div class="icon-w-keyhint">
           <es-button :name="action.name" selected="" :hint="action.desc" @bclick="takeAction">
-            <span :class="action.icon" :title="action.key"/>
+            <span :class="action.icon" :title="action.desc"/>
           </es-button>
         <div class="keyhint" v-html="$options.filters.printableKeyCode(action.key)"></div>
         </div>

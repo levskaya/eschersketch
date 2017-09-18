@@ -71,9 +71,9 @@ export const gS = new Vue({
       showLine: true,
       showSymm: true,
       showFile: true,
+      showNetwork: true,
       showHelp: false,
       showConfig: false,
-      showNetwork: false,
       showShareLinks: false,
       showHints: false,           // contextual help, not fully implemented
       hintText: "",

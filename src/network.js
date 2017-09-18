@@ -13,8 +13,8 @@ import {gS, prepForUpload, fetchFromCloud, getJPGdata} from './main.js'
 import {lsGetJSON, lsSaveJSON} from './utils.js';
 
 //Server Endpoints
-const SketchEndpoint    = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/prod/sketch/";
-const PostImageEndpoint = "https://k7kvzcc7s0.execute-api.us-west-1.amazonaws.com/prod/postimage";
+const SketchEndpoint    = "https://3lgie108n8.execute-api.us-west-1.amazonaws.com/prod/sketch/";
+const PostImageEndpoint = "https://3lgie108n8.execute-api.us-west-1.amazonaws.com/prod/postimage";
 
 const HttpClient = function() {
     this.get = function(url, callback) {
@@ -58,21 +58,21 @@ export const saveSketch = function(){
     //gS.params.copyText = "https://eschersket.ch/?s="+jsonObj.sketchID;
     gS.params.copyText = "https://eschersket.ch/s/"+jsonObj.sketchID;
     gS.params.showShareLinks = true;
-    console.log("trying an image post");
+    console.log("Posting image for share links");
     let imgclient = new HttpClient();
     let imgdata = JSON.stringify({
                     hash:   jsonObj.sketchID,
                     b64img: getJPGdata().replace("data:image/jpeg;base64,","")
                   });
     imgclient.post(PostImageEndpoint, imgdata, function(str){
-      console.log("imgpost response", str);
+      let jsonObj = JSON.parse(str);
+      console.log("Image post", jsonObj['status'] ? "suceeded" : "failed");
     });
-
   });
 }
 
 export const loadSketch = function(sketchID){
-  let resturl = SketchEndpoint;
+  let resturl = SketchEndpoint + sketchID;
   let client = new HttpClient();
   client.get(resturl, function(str){
     //console.log("success", str);

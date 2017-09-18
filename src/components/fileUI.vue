@@ -43,17 +43,17 @@
       <span class="icon-cloud-upload"></span> Make Shareable Links!
     </div>
 
-  <template v-if="params.showShareLinks">
-    <div id="copy-button" class="button" v-if="params.copyText.length>0">
-      Copy the Link to Your Sketch
-    </div>
-    <div id="fb-button" class="button">
-      <a :href="fbLink">Share your Sketch on Facebook</a>
-    </div>
-    <div id="twitter-button" class="button">
-      <a :href="twitterLink">Share your Sketch on Twitter</a>
-    </div>
-  </template>
+    <template v-if="params.showShareLinks">
+      <div id="copy-button" class="button" v-if="params.copyText.length>0">
+        Copy the Link to Your Sketch
+      </div>
+      <div id="fb-button" class="button">
+        <a :href="fbLink">Share your Sketch on Facebook</a>
+      </div>
+      <div id="twitter-button" class="button">
+        <a :href="twitterLink">Share your Sketch on Twitter</a>
+      </div>
+    </template>
 
   </template>
 

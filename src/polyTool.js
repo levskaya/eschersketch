@@ -24,11 +24,11 @@ import {drawHitCircle} from './canvas_utils';
 // Polygon Drawing
 //------------------------------------------------------------------------------
 export class PolyOp {
-  constructor(ctxStyle, points) {
+  constructor(symmState, ctxStyle, points) {
     this.points = points;
     this.tool = "poly";
     this.ctxStyle = ctxStyle;
-    this.symmState = _.clone(gS.symmState);
+    this.symmState = symmState;
   }
 
   render(ctx) {
@@ -117,8 +117,9 @@ export class PolyTool {
 
   commit() {
     if(this.state==_INIT_){return;} //empty data case
-    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp( new PolyOp(ctxStyle, this.points) );
+    let ctxStyle = _.clone(gS.ctxStyle);
+    let symmState = _.clone(gS.symmState);
+    commitOp( new PolyOp(symmState, ctxStyle, this.points) );
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.state = _INIT_;
     this.points = [];

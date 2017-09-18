@@ -67,15 +67,15 @@ const pointToAngle = function(pt0,pt1) {
   return angle;
 }
 
-// Draw Simple Circles, no ellipse / arc-segments yet!
+// Draw Circles, Ellipses, Arc-segments
 //------------------------------------------------------------------------------
 export class CircleOp {
-  constructor(ctxStyle, points, options) {
+  constructor(symmState, ctxStyle, points, options) {
     this.tool = "circle";
     this.points = points;
     this.options = options;
     this.ctxStyle = ctxStyle;
-    this.symmState = _.clone(gS.symmState);
+    this.symmState = symmState;
   }
 
   render(ctx){
@@ -170,8 +170,9 @@ export class CircleTool {
 
   commit() {
     if(this.state == _INIT_){return;}
-    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new CircleOp(ctxStyle, this.points, bakeOptions(this.options)));
+    let ctxStyle = _.clone(gS.ctxStyle);
+    let symmState = _.clone(gS.symmState);
+    commitOp(new CircleOp(symmState, ctxStyle, this.points, bakeOptions(this.options)));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.points = [[0,0],[0,0],[0,0]];
     this.state = _INIT_;

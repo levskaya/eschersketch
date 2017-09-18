@@ -22,11 +22,11 @@ import {drawHitCircle, drawHitLine} from './canvas_utils';
 
 
 export class PathOp {
-  constructor(ctxStyle, points) {
+  constructor(symmState, ctxStyle, points) {
     this.ctxStyle = ctxStyle;
     this.points = points;
     this.tool = "path";
-    this.symmState = _.clone(gS.symmState);
+    this.symmState = symmState;
   }
 
   render(ctx) {
@@ -174,8 +174,9 @@ export class PathTool {
   commit() {
     if(this.state==_INIT_){return;} //empty data cases
     if(this.points.length<4){return;}
-    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new PathOp(ctxStyle, this.points));
+    let ctxStyle = _.clone(gS.ctxStyle);
+    let symmState = _.clone(gS.symmState);
+    commitOp(new PathOp(symmState, ctxStyle, this.points));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.points = [];
     this.pointsSelected = [];

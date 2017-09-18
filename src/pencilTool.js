@@ -26,12 +26,12 @@ import {simplifyPoints} from './simplifyPoints'; // Douglas-Peucker
 //------------------------------------------------------------------------------
 //TODO: add smoothing factor
 export class PencilOp {
-  constructor(ctxStyle, points, options) {
+  constructor(symmState, ctxStyle, points, options) {
     this.tool = "pencil";
     this.points = points;
     this.options = options;
     this.ctxStyle = ctxStyle;
-    this.symmState = _.clone(gS.symmState);
+    this.symmState = symmState;
   }
 
   render(ctx){
@@ -150,9 +150,10 @@ export class PencilTool {
 
   commit() {
     if(this.state===_INIT_){return;} //empty data case
-    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    let simplifiedPoints = simplifyPoints(this.points,this.options.simplify.val, true);
-    commitOp(new PencilOp(ctxStyle, simplifiedPoints, bakeOptions(this.options)));
+    let ctxStyle = _.clone(gS.ctxStyle);
+    let symmState = _.clone(gS.symmState);
+    let simplifiedPoints = simplifyPoints(this.points, this.options.simplify.val, true);
+    commitOp(new PencilOp(symmState, ctxStyle, simplifiedPoints, bakeOptions(this.options)));
     //console.log("pencil: point reduction", this.points.length, simplifiedPoints.length);
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
   }

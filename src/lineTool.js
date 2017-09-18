@@ -23,11 +23,11 @@ import {drawHitCircle} from './canvas_utils';
 // Draw Single Line Segments
 //------------------------------------------------------------------------------
 export class LineOp {
-    constructor(ctxStyle, points) {
+    constructor(symmState, ctxStyle, points) {
     this.tool = "line";
     this.points = points;
     this.ctxStyle = ctxStyle;
-    this.symmState = _.clone(gS.symmState);
+    this.symmState = symmState;
   }
 
   render(ctx){
@@ -97,8 +97,9 @@ export class LineTool {
 
   commit() {
     if(this.state == _INIT_){return;}
-    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new LineOp(ctxStyle, this.points));
+    let ctxStyle = _.clone(gS.ctxStyle);
+    let symmState = _.clone(gS.symmState);
+    commitOp(new LineOp(symmState, ctxStyle, this.points));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.points = [[0,0],[0,0]];
     this.state = _INIT_;

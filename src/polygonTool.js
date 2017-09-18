@@ -58,12 +58,12 @@ const drawStar = function(ctx, pt0, pt1, pt2, Nrots){
 // Draw Simple Circles, no ellipse / arc-segments yet!
 //------------------------------------------------------------------------------
 export class PolygonOp {
-  constructor(ctxStyle, points, options) {
+  constructor(symmState, ctxStyle, points, options) {
     this.tool = "polygon";
     this.points = points;
     this.options = options;
     this.ctxStyle = ctxStyle;
-    this.symmState = _.clone(gS.symmState);
+    this.symmState = symmState;
   }
 
   render(ctx){
@@ -158,8 +158,9 @@ export class PolygonTool {
 
   commit() {
     if(this.state == _INIT_){return;}
-    let ctxStyle = _.assign({}, _.pick(lctx, ...Object.keys(gS.ctxStyle)));
-    commitOp(new PolygonOp(ctxStyle, deepClone(this.points), bakeOptions(this.options)));
+    let ctxStyle = _.clone(gS.ctxStyle);
+    let symmState = _.clone(gS.symmState);
+    commitOp(new PolygonOp(symmState, ctxStyle, deepClone(this.points), bakeOptions(this.options)));
     lctx.clearRect(0, 0, livecanvas.width, livecanvas.height);
     this.points = [[0,0],[0,0],[0,0]];
     this.state = _INIT_;

@@ -738,6 +738,9 @@ const initGUI = function() {
 
   initState();
 
+  //start in minimized state on small mobile screens
+  if(w <= 425) { gS.$emit("toggleUI"); }
+
   //parse URL for get params and load from backend
   loadGivenSketch();
 

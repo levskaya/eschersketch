@@ -23,7 +23,7 @@
         <span class="eslogo"><img src="/static/svg/eslogo2.svg" height="20px" style="margin-bottom:-4px; padding:0px"/></span>
     </template>
 
-    <div class="button" @click="help" title="help" key="stateui-help-button">
+    <div class="button pulsate" @click="help" title="help" key="stateui-help-button">
       <span class="icon-question-circle"></span>
       <!--<b>?</b>-->
     </div>
@@ -173,5 +173,34 @@ export default {
   align-self: flex-end;
 }
 
+
+
+@-webkit-keyframes color_change {
+	from { background-color: #eeeeee; }
+	to { background-color: #ffaaaa; }
+}
+@-moz-keyframes color_change {
+	from { background-color: #eeeeee; }
+	to { background-color: #ffaaaa; }
+}
+@-ms-keyframes color_change {
+	from { background-color: #eeeeee; }
+	to { background-color: #ffaaaa; }
+}
+@-o-keyframes color_change {
+	from { background-color: #eeeeee; }
+	to { background-color: #ffaaaa; }
+}
+@keyframes color_change {
+	from { background-color: #eeeeee; }
+	to { background-color: #ffaaaa; }
+}
+.pulsate {
+	-webkit-animation: color_change 1s 10 alternate;
+	-moz-animation: color_change 1s 10 alternate;
+	-ms-animation: color_change 1s 10 alternate;
+	-o-animation: color_change 1s 10 alternate;
+	animation: color_change 1s 10 alternate;
+}
 
 </style>

@@ -85,6 +85,7 @@ export const gS = new Vue({
       showColorInputs: false,     // UI "expert mode" options
       showFileName: false,
       showJSONexport: false,
+      showGridParameters: false,
       disableNetwork: true,       // enabled for online version, not useful for local install
     },
     options: {

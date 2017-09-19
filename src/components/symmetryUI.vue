@@ -34,22 +34,25 @@
     <es-button name="p3m1" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="p6m" :selected="cursym" @bclick="changeSym"></es-button><br>
 
-    <es-numfield param="X" :val="symmState.x" size="4" @numchange="update"></es-numfield>
-    <es-numfield param="Y" :val="symmState.y" size="4" @numchange="update"></es-numfield>
+    <es-button name="grid" :selected="curtool" @bclick="changeTool">
+      grid adjust
+    </es-button>
 
+    <template v-if="params.showGridParameters">
+      <es-numfield param="X" :val="symmState.x" size="4" @numchange="update"></es-numfield>
+      <es-numfield param="Y" :val="symmState.y" size="4" @numchange="update"></es-numfield>
+    </template>
     <span :style="showGridParams">
-      <template v-if="!options.dynamicGridSize">
-        <es-numfield param="Nx" :val="symmState.Nx" @numchange="update" size="2"></es-numfield>
-        <es-numfield param="Ny" :val="symmState.Ny" @numchange="update" size="2"></es-numfield><br>
+      <template v-if="params.showGridParameters">
+        <template v-if="!options.dynamicGridSize">
+          <es-numfield param="Nx" :val="symmState.Nx" @numchange="update" size="2"></es-numfield>
+          <es-numfield param="Ny" :val="symmState.Ny" @numchange="update" size="2"></es-numfield><br>
+        </template>
+        <es-numfield param="d" label="&Delta;" :val="symmState.d" size="3" @numchange="update"></es-numfield>
       </template>
-      <es-numfield param="d" label="&Delta;" :val="symmState.d" size="3" @numchange="update"></es-numfield>
       <div class="button" @click="halveD">&#189;</div>
       <div class="button" @click="doubleD">2x</div>
     </span><br>
-
-    <es-button name="grid"   :selected="curtool" @bclick="changeTool">
-      grid adjust
-    </es-button>
 
   </div>
 </template>

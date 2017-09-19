@@ -17,7 +17,7 @@
     </es-button>
     <es-button name="strokefill" :selected="ctxStyle.drawOrder" @bclick="changeOrder">
      <span class="icon-draworder-strokefill"/>
-    </es-button><br>
+   </es-button>&nbsp;
 
     <es-button name="butt" :selected="ctxStyle.lineCap" @bclick="changeCap">
       <span class="icon-linecap-butt"/>
@@ -27,7 +27,7 @@
     </es-button>
     <es-button name="square" :selected="ctxStyle.lineCap" @bclick="changeCap">
       <span class="icon-linecap-square"/>
-    </es-button>
+    </es-button>&nbsp;
 
     <es-button name="round" :selected="ctxStyle.lineJoin" @bclick="changeJoin">
       <span class="icon-linejoin-round"/>

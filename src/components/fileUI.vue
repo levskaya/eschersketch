@@ -42,16 +42,19 @@
     <div id="save-online" class="button" @mousedown="uploadSketch">
       <span class="icon-cloud-upload"></span> Make Shareable Links!
     </div>
-
+    <br>
     <template v-if="params.showShareLinks">
       <div id="copy-button" class="button" v-if="params.copyText.length>0">
-        Copy the Link to Your Sketch
+        <span class="icon-link"/>
       </div>
       <div id="fb-button" class="button">
-        <a :href="fbLink">Share your Sketch on Facebook</a>
+        <a :href="fbLink"><span class="icon-facebook-square"/></a>
       </div>
       <div id="twitter-button" class="button">
-        <a :href="twitterLink">Share your Sketch on Twitter</a>
+        <a :href="twitterLink"><span class="icon-twitter-square"/></a>
+      </div>
+      <div id="pinterest-button" class="button">
+        <a :href="pinLink"><span class="icon-pinterest"/></a>
       </div>
     </template>
 
@@ -94,7 +97,13 @@ export default {
       let myurl = encodeURI(gS.params.copyText);
       let twitterHref = `https://twitter.com/intent/tweet?url=${myurl}&text=Eschersketch`
       return twitterHref;
-    }
+    },
+    pinLink: function() {
+      let myuri = encodeURI(gS.params.copyText);
+      let jpguri = myuri.replace("/s/","/social/")+".jpg";
+      let pinHref = `https://pinterest.com/pin/create/button/?url=${myuri}&media=${jpguri}&description=an%20eschersketch`
+      return pinHref;
+    },
   },
   methods:{  //XXX: dirty, need to move all of these to top-level "$emit" calls
     savePNG: function() { savePNG(); },

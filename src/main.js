@@ -496,7 +496,7 @@ export const saveSVG = function() {
 // Get base64 encoded JPG of current scene (for snapshot upload)
 export const getJPGdata = function(){
   const pixelScale = 1;//gS.options.pngTileUpsample; // pixel density scaling factor
-  const jpegQuality = 0.9;
+  const jpegQuality = 0.92;
   // get square tile dimensions
   let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
   dX *= gS.symmState.d * pixelScale;

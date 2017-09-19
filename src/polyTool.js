@@ -12,7 +12,7 @@
 // DRAWING GLOBALS
 import {gS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry, updateStyle,
+        affineset, updateSymmetry, updateStyle, drawKeyToOrderMap,
         commitOp
        } from './main';
 
@@ -34,19 +34,25 @@ export class PolyOp {
   render(ctx) {
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
-    for (let af of affineset) {
-      ctx.beginPath();
-      let Tpt = af.on(this.points[0][0], this.points[0][1]);
-      ctx.moveTo(Tpt[0], Tpt[1]);
-      for(let pt of this.points.slice(1)) {
-        Tpt = af.on(pt[0], pt[1]);
-        ctx.lineTo(Tpt[0], Tpt[1]);
+    const drawOrder = drawKeyToOrderMap[this.ctxStyle.drawOrder]; // optional separation of stroke / fill layers
+    for(let drawSet of drawOrder){
+      for (let af of affineset) {
+        ctx.beginPath();
+        let Tpt = af.on(this.points[0][0], this.points[0][1]);
+        ctx.moveTo(Tpt[0], Tpt[1]);
+        for(let pt of this.points.slice(1)) {
+          Tpt = af.on(pt[0], pt[1]);
+          ctx.lineTo(Tpt[0], Tpt[1]);
+        }
+        if(l2dist(this.points[0],this.points[this.points.length-1])<EPS) {
+          ctx.closePath(); //necessary?
+        }
+        for(let drawFunc of drawSet){ //drawFunc = "stroke" or "fill"
+          ctx[drawFunc]();
+        }
+        //ctx.stroke();
+        //ctx.fill();
       }
-      if(l2dist(this.points[0],this.points[this.points.length-1])<EPS) {
-        ctx.closePath(); //necessary?
-      }
-      ctx.stroke();
-      ctx.fill();
     }
   }
 }
@@ -74,17 +80,23 @@ export class PolyTool {
   liverender() {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
     if(this.state==_INIT_){return;} //empty data case
-    for (let af of affineset) {
-      lctx.beginPath();
-      let Tpt = af.on(this.points[0][0], this.points[0][1]);
-      lctx.moveTo(Tpt[0], Tpt[1]);
-      for(let pt of this.points.slice(1)) {
-        Tpt = af.on(pt[0], pt[1]);
-        lctx.lineTo(Tpt[0], Tpt[1]);
-      }
-      lctx.stroke();
-      if(this.points.length > 2) {
-        lctx.fill();
+    const drawOrder = drawKeyToOrderMap[gS.ctxStyle.drawOrder]; // optional separation of stroke / fill layers
+    for(let drawSet of drawOrder){
+      for (let af of affineset) {
+        lctx.beginPath();
+        let Tpt = af.on(this.points[0][0], this.points[0][1]);
+        lctx.moveTo(Tpt[0], Tpt[1]);
+        for(let pt of this.points.slice(1)) {
+          Tpt = af.on(pt[0], pt[1]);
+          lctx.lineTo(Tpt[0], Tpt[1]);
+        }
+        for(let drawFunc of drawSet){
+          lctx[drawFunc]();
+        }
+        //lctx.stroke();
+        //if(this.points.length > 2) { //necessary?
+        //  lctx.fill();
+        //}
       }
     }
     // draw handles

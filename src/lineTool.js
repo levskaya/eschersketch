@@ -12,7 +12,7 @@
 // DRAWING GLOBALS
 import {gS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry, updateStyle,
+        affineset, updateSymmetry, updateStyle, drawKeyToOrderMap,
         commitOp
        } from './main';
 import { _ } from 'underscore';

@@ -7,7 +7,17 @@
                :min="options.minLineWidth"
                :max="options.maxLineWidth"
                :step="options.deltaLineWidth"
-               @numchange="changethick"></es-slider>
+               @numchange="changeThick"></es-slider>
+
+    <es-button name="normal" :selected="ctxStyle.drawOrder" @bclick="changeOrder">
+     <span class="icon-draworder-normal"/>
+    </es-button>
+    <es-button name="fillstroke" :selected="ctxStyle.drawOrder" @bclick="changeOrder">
+     <span class="icon-draworder-fillstroke"/>
+    </es-button>
+    <es-button name="strokefill" :selected="ctxStyle.drawOrder" @bclick="changeOrder">
+     <span class="icon-draworder-strokefill"/>
+    </es-button><br>
 
     <es-button name="butt" :selected="ctxStyle.lineCap" @bclick="changeCap">
       <span class="icon-linecap-butt"/>
@@ -58,10 +68,11 @@ export default {
     }
   },
   methods: {
-    changethick: function(name, value){gS.$emit('styleUpdate', {lineWidth: value});   },
+    changeThick: function(name, value){gS.$emit('styleUpdate', {lineWidth: value});   },
     changeCap:   function(capName){    gS.$emit('styleUpdate', {lineCap: capName});   },
     changeJoin:  function(joinName){   gS.$emit('styleUpdate', {lineJoin: joinName}); },
-    changeMiter: function(name, val){  gS.$emit('styleUpdate', {miterLimit: val});    }
+    changeMiter: function(name, val){  gS.$emit('styleUpdate', {miterLimit: val});    },
+    changeOrder: function(orderName){  gS.$emit('styleUpdate', {drawOrder: orderName});     },
   }
 }
 </script>

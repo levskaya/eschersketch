@@ -12,7 +12,7 @@
 // DRAWING GLOBALS
 import {gS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry, updateStyle,
+        affineset, updateSymmetry, updateStyle, drawKeyToOrderMap,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -32,29 +32,34 @@ export class PathOp {
   render(ctx) {
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
-    for (let af of affineset) {
-      ctx.beginPath();
-      let Tpt = af.onVec(this.points[0]);
-      ctx.moveTo(Tpt[0], Tpt[1]);
-      let ptidx = 0;
-      while(ptidx < this.points.length-1){
-        let Tpt0  = af.onVec(this.points[ptidx+0]),
-            Tcpt0 = af.onVec(this.points[ptidx+1]),
-            Tcpt1 = af.onVec(this.points[ptidx+2]),
-            Tpt1  = af.onVec(this.points[ptidx+3]);
-        if(l2dist(Tpt0, Tcpt0) < EPS && l2dist(Tpt1, Tcpt1)){
-          ctx.lineTo(Tpt1[0], Tpt1[1]);
+    const drawOrder = drawKeyToOrderMap[this.ctxStyle.drawOrder]; // optional separation of stroke / fill layers
+    for(let drawSet of drawOrder){
+      for (let af of affineset) {
+        ctx.beginPath();
+        let Tpt = af.onVec(this.points[0]);
+        ctx.moveTo(Tpt[0], Tpt[1]);
+        let ptidx = 0;
+        while(ptidx < this.points.length-1){
+          let Tpt0  = af.onVec(this.points[ptidx+0]),
+              Tcpt0 = af.onVec(this.points[ptidx+1]),
+              Tcpt1 = af.onVec(this.points[ptidx+2]),
+              Tpt1  = af.onVec(this.points[ptidx+3]);
+          if(l2dist(Tpt0, Tcpt0) < EPS && l2dist(Tpt1, Tcpt1)){
+            ctx.lineTo(Tpt1[0], Tpt1[1]);
+          }
+          else {
+            ctx.bezierCurveTo(Tcpt0[0], Tcpt0[1], Tcpt1[0], Tcpt1[1], Tpt1[0], Tpt1[1]);
+          }
+          ptidx += 3;
         }
-        else {
-          ctx.bezierCurveTo(Tcpt0[0], Tcpt0[1], Tcpt1[0], Tcpt1[1], Tpt1[0], Tpt1[1]);
+        for(let drawFunc of drawSet){ //drawFunc = "stroke" or "fill"
+          ctx[drawFunc]();
         }
-        ptidx += 3;
+        //ctx.stroke();
+        //ctx.fill();
       }
-      ctx.stroke();
-      ctx.fill();
     }
   }
-
 }
 
 //State Labels
@@ -87,31 +92,36 @@ export class PathTool {
   liverender() {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
     if(this.points.length==0){return;}
-    for (let af of affineset) {
-      lctx.beginPath();
-      let Tpt = af.onVec(this.points[0]);
-      lctx.moveTo(Tpt[0], Tpt[1]);
-      let ptidx = 0;
-      if(this.points.length >=4){
-        while(ptidx < this.points.length-1){
-          let Tpt0  = af.onVec(this.points[ptidx+0]),
-              Tcpt0 = af.onVec(this.points[ptidx+1]),
-              Tcpt1 = af.onVec(this.points[ptidx+2]),
-              Tpt1  = af.onVec(this.points[ptidx+3]);
-          // line specialization
-          if(l2dist(Tpt0, Tcpt0) < EPS && l2dist(Tpt1, Tcpt1)){
-            lctx.lineTo(Tpt1[0], Tpt1[1]);
+    const drawOrder = drawKeyToOrderMap[gS.ctxStyle.drawOrder]; // optional separation of stroke / fill layers
+    for(let drawSet of drawOrder){
+      for (let af of affineset) {
+        lctx.beginPath();
+        let Tpt = af.onVec(this.points[0]);
+        lctx.moveTo(Tpt[0], Tpt[1]);
+        let ptidx = 0;
+        if(this.points.length >=4){
+          while(ptidx < this.points.length-1){
+            let Tpt0  = af.onVec(this.points[ptidx+0]),
+                Tcpt0 = af.onVec(this.points[ptidx+1]),
+                Tcpt1 = af.onVec(this.points[ptidx+2]),
+                Tpt1  = af.onVec(this.points[ptidx+3]);
+            // line specialization
+            if(l2dist(Tpt0, Tcpt0) < EPS && l2dist(Tpt1, Tcpt1)){
+              lctx.lineTo(Tpt1[0], Tpt1[1]);
+            }
+            else {
+              lctx.bezierCurveTo(Tcpt0[0], Tcpt0[1], Tcpt1[0], Tcpt1[1], Tpt1[0], Tpt1[1]);
+            }
+            ptidx += 3;
           }
-          else {
-            lctx.bezierCurveTo(Tcpt0[0], Tcpt0[1], Tcpt1[0], Tcpt1[1], Tpt1[0], Tpt1[1]);
+          for(let drawFunc of drawSet){
+            lctx[drawFunc]();
           }
-          ptidx += 3;
+          //lctx.stroke();
+          //lctx.fill();
         }
-        lctx.stroke();
-        lctx.fill();
       }
     }
-
     if(this.points.length==1){ //initial point
       let pt0 = this.points[0];
       drawHitCircle(lctx, pt0[0], pt0[1], this.hitRadius);

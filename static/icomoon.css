@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?ldfwgm');
-  src:  url('fonts/icomoon.eot?ldfwgm#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?ldfwgm') format('truetype'),
-    url('fonts/icomoon.woff?ldfwgm') format('woff'),
-    url('fonts/icomoon.svg?ldfwgm#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?javaz8');
+  src:  url('fonts/icomoon.eot?javaz8#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?javaz8') format('truetype'),
+    url('fonts/icomoon.woff?javaz8') format('woff'),
+    url('fonts/icomoon.svg?javaz8#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -24,6 +24,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-draworder-normal:before {
+  content: "\e919";
+}
+.icon-draworder-fillstroke:before {
+  content: "\e91a";
+}
+.icon-draworder-strokefill:before {
+  content: "\e91b";
+}
 .icon-polyline:before {
   content: "\e902";
 }
@@ -83,6 +92,18 @@
 }
 .icon-question-circle:before {
   content: "\f059";
+}
+.icon-twitter-square:before {
+  content: "\f081";
+}
+.icon-facebook-square:before {
+  content: "\f082";
+}
+.icon-chain:before {
+  content: "\f0c1";
+}
+.icon-link:before {
+  content: "\f0c1";
 }
 .icon-exchange:before {
   content: "\f0ec";

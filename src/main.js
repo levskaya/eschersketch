@@ -85,7 +85,7 @@ export const gS = new Vue({
       showColorInputs: false,     // UI "expert mode" options
       showFileName: false,
       showJSONexport: false,
-      disableNetwork: true        // enabled for online version, not useful for local install
+      disableNetwork: true,       // enabled for online version, not useful for local install
     },
     options: {
       minLineWidth: 0.1,
@@ -94,11 +94,11 @@ export const gS = new Vue({
       dynamicGridSize: true,      // recalculate grid Nx,Ny on grid delta change
       maxGridNx: 50,
       maxGridNy: 50,
-      pngTileUpsample: 4,
-      pngUpsample: 2,             // TODO: implement complete redraw for whole frame PNG export
+      pngTileUpsample: 4,         // PNG picture/tile export upsample factors
+      pngUpsample: 2,
       //pngGridNx: 20,
       //pngGridNy: 20,
-      svgGridNx: 10,
+      svgGridNx: 10,              // Limits symmetry copies in SVG export to keep filesize manageable
       svgGridNy: 10,
     },
     // Symmetry State - captured
@@ -114,9 +114,10 @@ export const gS = new Vue({
     //-------------------------------
     // -- the keys of this object also determine which canvas ctx properties are cached inside drawing ops
     ctxStyle: {
-      lineCap:     "butt",  // butt, round, square
-      lineJoin:    "round", // round, bevel, miter
-      miterLimit:  10.0,    // applies to miter setting above
+      drawOrder:   "fillstroke",   // normal, fillstroke, strokefill
+      lineCap:     "butt",     // butt, round, square
+      lineJoin:    "round",    // round, bevel, miter
+      miterLimit:  10.0,       // applies to miter setting above
       lineWidth:   1.0,
       fillStyle:   "rgba(200, 100, 100, 0.5)",
       strokeStyle: "rgba(100, 100, 100, 1.0)"
@@ -249,10 +250,17 @@ var vueUI = new Vue({
 
 
 //Style update
+//-------------------------------------------------------------------------------------------------
 export const updateStyle = function(styles) {
   _.assign(lctx, _.clone(styles));
   _.assign(gS.ctxStyle, _.clone(styles));
 }
+
+export const drawKeyToOrderMap = {
+  "normal":     [["stroke",   "fill"]],
+  "strokefill": [["stroke"], ["fill"]],
+  "fillstroke": [["fill"],   ["stroke"]]
+};
 
 // Symmetry Functions
 //-------------------------------------------------------------------------------------------------
@@ -556,7 +564,7 @@ export const prepForUpload = function() {
               format: 1,               // file format version for futureproofing
               data: cmdStack
              });
-  console.log("JSON size is ", jsonstr.length);
+  console.log("JSON size is", jsonstr.length);
   return jsonstr;
 }
 
@@ -772,7 +780,9 @@ const initTouchEvents = function() {
   changeHitRadius(15);
 };
 
-/* Crude, but this works! -------------------------------------------------------------
+// Pressure Support (unfinished)
+//------------------------------------------------------------------------------
+/* Crude, but this works!
 import Pressure from 'pressure';
 export var pressure;
 // Pressure.js

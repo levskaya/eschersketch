@@ -12,7 +12,7 @@
 // DRAWING GLOBALS
 import {gS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry, updateStyle,
+        affineset, updateSymmetry, updateStyle, drawKeyToOrderMap,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -81,18 +81,23 @@ export class CircleOp {
   render(ctx){
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
-    //gS.$emit('symmUpdate', this.symmState);
-    for (let af of affineset) {
-      const Tp0 = af.on(this.points[0][0], this.points[0][1]);
-      const Tp1 = af.on(this.points[1][0], this.points[1][1]);
-      const Tp2 = af.on(this.points[2][0], this.points[2][1]);
-      let Tmajor = l2dist(Tp0,Tp1);
-      let Tminor = l2dist(Tp0,Tp2);
-      let angle = pointToAngle(Tp0,Tp1);
-      ctx.beginPath();
-      ctx.ellipse(Tp0[0], Tp0[1], Tmajor, Tminor, angle, 0, Math.PI/180.0 * this.options.arcAngle,0);
-      ctx.stroke();
-      ctx.fill();
+    const drawOrder = drawKeyToOrderMap[this.ctxStyle.drawOrder]; // optional separation of stroke / fill layers
+    for(let drawSet of drawOrder){
+      for (let af of affineset) {
+        const Tp0 = af.on(this.points[0][0], this.points[0][1]);
+        const Tp1 = af.on(this.points[1][0], this.points[1][1]);
+        const Tp2 = af.on(this.points[2][0], this.points[2][1]);
+        let Tmajor = l2dist(Tp0,Tp1);
+        let Tminor = l2dist(Tp0,Tp2);
+        let angle = pointToAngle(Tp0,Tp1);
+        ctx.beginPath();
+        ctx.ellipse(Tp0[0], Tp0[1], Tmajor, Tminor, angle, 0, Math.PI/180.0 * this.options.arcAngle,0);
+        for(let drawFunc of drawSet){ //drawFunc = "stroke" or "fill"
+          ctx[drawFunc]();
+        }
+        //ctx.stroke();
+        //ctx.fill();
+      }
     }
   }
 }
@@ -120,7 +125,7 @@ export class CircleTool {
     this.state = _INIT_;
     this.hitRadius = 4;
     this.actions = [
-      {name: "cancel", desc: "cancel",    icon: "icon-cross",     key: "Escape"},
+      {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
       {name: "commit", desc: "start new (automatic on new click)", icon: "icon-checkmark", key: "Enter"},
     ];
     this.options = {
@@ -130,17 +135,24 @@ export class CircleTool {
 
   liverender() {
     lctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let af of affineset) {
-      const Tp0 = af.on(this.points[0][0], this.points[0][1]);
-      const Tp1 = af.on(this.points[1][0], this.points[1][1]);
-      const Tp2 = af.on(this.points[2][0], this.points[2][1]);
-      let Tmajor = l2dist(Tp0,Tp1);
-      let Tminor = l2dist(Tp0,Tp2);
-      let angle = pointToAngle(Tp0,Tp1);
-      lctx.beginPath();
-      lctx.ellipse(Tp0[0], Tp0[1], Tmajor, Tminor, angle, 0, Math.PI/180.0*this.options.arcAngle.val,0);
-      lctx.stroke();
-      lctx.fill();
+    //const drawOrder = [["stroke"], ["fill"]];
+    const drawOrder = drawKeyToOrderMap[gS.ctxStyle.drawOrder]; // optional separation of stroke / fill layers
+    for(let drawSet of drawOrder){
+      for (let af of affineset) {
+        const Tp0 = af.on(this.points[0][0], this.points[0][1]);
+        const Tp1 = af.on(this.points[1][0], this.points[1][1]);
+        const Tp2 = af.on(this.points[2][0], this.points[2][1]);
+        let Tmajor = l2dist(Tp0,Tp1);
+        let Tminor = l2dist(Tp0,Tp2);
+        let angle = pointToAngle(Tp0,Tp1);
+        lctx.beginPath();
+        lctx.ellipse(Tp0[0], Tp0[1], Tmajor, Tminor, angle, 0, Math.PI/180.0*this.options.arcAngle.val,0);
+        for(let drawFunc of drawSet){ //drawFunc = "stroke" or "fill"
+          lctx[drawFunc]();
+        }
+        //lctx.stroke();
+        //lctx.fill();
+      }
     }
     drawHitCircle(lctx, this.points[0][0]-0.5, this.points[0][1]-0.5, this.hitRadius);
     drawHitCircle(lctx, this.points[1][0]-0.5, this.points[1][1]-0.5, this.hitRadius);
@@ -219,8 +231,6 @@ export class CircleTool {
       this.liverender();
     }
     else if (this.state == _MOVEMAJOR_) {
-      //this.points[1] = pt;
-      //this.liverender();
       let theta = angleBetween(this.points[0], this.points[1], pt);
       let rotM  = RotationAbout(-theta, this.points[0][0], this.points[0][1]);
       let scale = l2norm(sub2(pt,this.points[0])) / (l2norm(sub2(this.points[1],this.points[0])) + 1.0e-9); //XXX: NaN edgecase?

@@ -12,7 +12,7 @@
 // DRAWING GLOBALS
 import {gS,
         livecanvas, lctx, canvas, ctx,
-        affineset, updateSymmetry, updateStyle,
+        affineset, updateSymmetry, updateStyle, drawKeyToOrderMap,
         commitOp
        } from './main';
 import { _ } from 'underscore';
@@ -33,8 +33,8 @@ const drawPolygon = function(ctx, pt0, pt1, Nedges){
     Tpt = rotTr.onVec(Tpt);
     ctx.lineTo(Tpt[0], Tpt[1]);
   }
-  ctx.stroke();
-  ctx.fill();
+  //ctx.stroke();
+  //ctx.fill();
 }
 //draws 2N-vertex star figure with center at pt0, first "outer" vertex at pt1, first "inner" vertex at pt2
 const drawStar = function(ctx, pt0, pt1, pt2, Nrots){
@@ -51,8 +51,8 @@ const drawStar = function(ctx, pt0, pt1, pt2, Nrots){
     ctx.lineTo(Tpt2[0], Tpt2[1]);
     ctx.lineTo(Tpt1[0], Tpt1[1]);
   }
-  ctx.stroke();
-  ctx.fill();
+  //ctx.stroke();
+  //ctx.fill();
 }
 
 // Draw Simple Circles, no ellipse / arc-segments yet!
@@ -69,17 +69,22 @@ export class PolygonOp {
   render(ctx){
     _.assign(ctx, this.ctxStyle);
     updateSymmetry(this.symmState);
-    for (let af of affineset) {
-      const Tp0 = af.onVec(this.points[0]);
-      const Tp1 = af.onVec(this.points[1]);
-      const Tp2 = af.onVec(this.points[2]);
-      if(this.options.star){
-        drawStar(ctx, Tp0, Tp1, Tp2, this.options.edges);
+    const drawOrder = drawKeyToOrderMap[this.ctxStyle.drawOrder]; // optional separation of stroke / fill layers
+    for(let drawSet of drawOrder){
+      for (let af of affineset) {
+        const Tp0 = af.onVec(this.points[0]);
+        const Tp1 = af.onVec(this.points[1]);
+        const Tp2 = af.onVec(this.points[2]);
+        if(this.options.star){
+          drawStar(ctx, Tp0, Tp1, Tp2, this.options.edges);
+        }
+        else {
+          drawPolygon(ctx, Tp0, Tp1, this.options.edges);
+        }
+        for(let drawFunc of drawSet){ //drawFunc = "stroke" or "fill"
+          ctx[drawFunc]();
+        }
       }
-      else {
-        drawPolygon(ctx, Tp0, Tp1, this.options.edges);
-      }
-
     }
   }
 }
@@ -118,14 +123,20 @@ export class PolygonTool {
   liverender() {
     if(this.state == _INIT_) {return;}
     lctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let af of affineset) {
-      const Tp0 = af.onVec(this.points[0]);
-      const Tp1 = af.onVec(this.points[1]);
-      const Tp2 = af.onVec(this.points[2]);
-      if(this.options.star.val){
-        drawStar(lctx, Tp0, Tp1, Tp2, this.options.edges.val);
-      } else {
-        drawPolygon(lctx, Tp0, Tp1, this.options.edges.val);
+    const drawOrder = drawKeyToOrderMap[gS.ctxStyle.drawOrder]; // optional separation of stroke / fill layers
+    for(let drawSet of drawOrder) {
+      for (let af of affineset) {
+        const Tp0 = af.onVec(this.points[0]);
+        const Tp1 = af.onVec(this.points[1]);
+        const Tp2 = af.onVec(this.points[2]);
+        if(this.options.star.val){
+          drawStar(lctx, Tp0, Tp1, Tp2, this.options.edges.val);
+        } else {
+          drawPolygon(lctx, Tp0, Tp1, this.options.edges.val);
+        }
+        for(let drawFunc of drawSet){ //drawFunc = "stroke" or "fill"
+          lctx[drawFunc]();
+        }
       }
     }
     drawHitCircle(lctx, this.points[0][0], this.points[0][1], this.hitRadius);

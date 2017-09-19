@@ -55,6 +55,7 @@ Icon   | Description
 -------|-------------------------
 <span class="icon-linecap-butt"/><span class="icon-linecap-round"/><span class="icon-linecap-square"/> | set line cap to butt, round, or square style
 <span class="icon-linejoin-round"/><span class="icon-linejoin-bevel"/><span class="icon-linejoin-miter"/> | set line joins to round, beveled, or mitered
+<span class="icon-draworder-normal"/> <span style="visibility:hidden"></span> <span class="icon-draworder-fillstroke"/> <span style="visibility:hidden"></span> <span class="icon-draworder-strokefill"/> | draw stroke and fill simultaneously, or draw fills _then_ strokes, or vice versa
 
 For the miter join, a "miter limit" is set, which cuts off how far the pointy bits can go for lines joining at very narrow angles.
 
@@ -83,21 +84,22 @@ The __grid adjustment__ tool allows to you move the "center" of the point-symmet
 
 * __SVG__ Saves all drawn objects into an SVG file for use in a proper vector graphics tool for creating nice designs.  __Warning:__ given the huge numbers of replicates in a complicated scene with a fine grid, this could grind to a halt or fail altogether if there's too much being exported on too fine a grid size.  This is fairly primitive, exporting everything into a big group, so you may want to export different features separately to build up clean layers in Illustrator, etc.
 
-<span style="color:#f00"><b>Experimental / Unstable</b></span>
+## Sharing Links to your Drawing
 
-* __SAVE JSON__ This exports eschersketch's raw scene description to a JSON file.
+* __Make Shareable Links__ will save a copy of your drawing online that you can link to in one of three ways:
 
-* __LOAD JSON__ This loads a file saved by the above and reconstructs the exact image produced previously.
-
-Because these serialize straight from Eschersketch's internal representation, these formats are __not__ stable, and could change dramatically as Eschersketch is developed in the online version.  Save in SVG for a more durable format, unless you want to download and run the Eschersketch codebase itself - in that case each save file contains the git short-ref of the codebase version for those wishing to run eschersketch locally.
 
 ## Further Reading
 
 I highly recommend the compilation [Designa][designa] from Wooden Books, especially it's chapter by Daud Sutton on Islamic Design.
 
-## Github
+## Source
 
 The source code for Eschersketch is available on [github][gh].
+
+## Contact
+
+Questions and comments can be directed to [info@eschersket.ch][mail] or twitter [@eschersketch][twit].
 
 <slot name="footer"></slot>
 
@@ -107,3 +109,5 @@ The source code for Eschersketch is available on [github][gh].
 [spoon]: https://www.spoonflower.com/designs/new
 [designa]: https://www.amazon.com/Designa-Wooden-Books/dp/1620406594
 [gh]: https://github.com/levskaya/eschersketch
+[mail]: mailto:info@eschersket.ch
+[twit]: https://twitter.com/eschersketch

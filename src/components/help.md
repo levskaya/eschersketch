@@ -4,7 +4,7 @@
 
 An imperfect tool for drawing and exploring symmetrical patterns and designs.  It can export pictures, pattern tiles for fabric and wallpaper design, and SVG for further editing.  You can also publish your drawings and share them on Facebook and Twitter.
 
-## Undo / Redo
+## Commands
 
 Icon   | Tool | Description
 -------|------|-------------------
@@ -49,13 +49,13 @@ Color can be set by clicking within the saturation panel, the hue slider, and th
 
 ## Line Styling
 
-Line width can be set, as well as the line-cap -- the shape at the end of the line, noticeable for thicker lines, and the line-join, which dictates how two line segments are connected together - round, beveled, or in a pointy "miter".
+Line width can be set, as well as the _line-cap_, the shape at the end of the line, noticeable for thicker lines, and the _line-join_, which dictates how two line segments are connected together, round, beveled, or in a pointy "miter".
 
 Icon   | Description
 -------|-------------------------
 <span class="icon-linecap-butt"/><span class="icon-linecap-round"/><span class="icon-linecap-square"/> | set line cap to butt, round, or square style
 <span class="icon-linejoin-round"/><span class="icon-linejoin-bevel"/><span class="icon-linejoin-miter"/> | set line joins to round, beveled, or mitered
-<span class="icon-draworder-normal"/> <span style="visibility:hidden"></span> <span class="icon-draworder-fillstroke"/> <span style="visibility:hidden"></span> <span class="icon-draworder-strokefill"/> | draw stroke and fill simultaneously, or draw fills _then_ strokes, or vice versa
+<span class="icon-draworder-normal"/> <span class="icon-draworder-fillstroke"/> <span class="icon-draworder-strokefill"/> | draw stroke and fill simultaneously, or draw fills _then_ strokes, or vice versa
 
 For the miter join, a "miter limit" is set, which cuts off how far the pointy bits can go for lines joining at very narrow angles.
 
@@ -74,30 +74,29 @@ __Hexagonally Symmetric Patterns__ : p3, p6, p31m, p3m1, p6m
 
 ## Grid Adjustment
 
-The __grid adjustment__ tool allows to you move the "center" of the point-symmetry or wallpaper symmetry as well as scale the grid-spacing used in wallpaper symmetries.  You can also manually set the __X__, __Y__ center position or the grid spacing __Δ__.  Most commonly, one wants a grid-spacing exactly __½__ or __2x__ the current one - buttons are provided to do just that.
+The __grid adjustment__ tool allows to you move the "center" of the point-symmetry or wallpaper symmetry as well as scale the grid-spacing used in wallpaper symmetries.  Most commonly, one wants a grid-spacing exactly __½__ or __2x__ the current one - buttons are provided to do just that.
 
 ## Exporting and Saving Files
 
-* __PNG__ Save the visible frame as a PNG file for use directly.
+__Picture__ Save the visible frame as a PNG image file.
 
-* __PNG Tile__ This is very useful: a symmetric wallpaper pattern can be described by a small tile, and used in tools such as Photoshop's "pattern fill", used to generate textures for 3d-graphics, or uploaded to sites such as [Spoonflower][spoon] to be turned into custom wrapping-paper, fabric textiles, or wallpaper!  When exported as a tile, eschersketch upsamples the pixel density by a factor of 4x, so as to provide enough DPI for decent prints.
+__Tile__ This is very useful: a symmetric wallpaper pattern can be described by a small tile, and used in tools such as Photoshop's "pattern fill", used to generate textures for 3d-graphics, or uploaded to sites such as [Spoonflower][spoon] or [Contrado][contrado] to be turned into custom wrapping-paper, fabric textiles, or wallpaper!  When exported as a tile, eschersketch upsamples the pixel density by a factor of 4x, so as to provide enough DPI for decent prints.
 
-* __SVG__ Saves all drawn objects into an SVG file for use in a proper vector graphics tool for creating nice designs.  __Warning:__ given the huge numbers of replicates in a complicated scene with a fine grid, this could grind to a halt or fail altogether if there's too much being exported on too fine a grid size.  This is fairly primitive, exporting everything into a big group, so you may want to export different features separately to build up clean layers in Illustrator, etc.
+__SVG__ Saves all drawn objects into an SVG file for use in a proper vector graphics tool.  __Warning:__ given the huge numbers of replicates in a complicated scene with a fine grid, this could grind to a halt if there's too much being exported on too fine a grid size.  This is fairly primitive right now, exporting everything into a big group, so you may want to export different features separately to build up clean layers.
 
 ## Sharing Links to your Drawing
 
-* __Make Shareable Links__ will save a copy of your drawing online that you can link to in one of three ways:
+  Icon |  Description
+-------|-------------------------
+<span class="icon-cloud-upload"></span> | will save a copy of your drawing online that you can link to in one of four ways:
+<span class="icon-link"></span> | copy a direct link to clipboard
+<span class="icon-facebook-square"></span> <span class="icon-twitter-square"></span> <span class="icon-pinterest"></span> | post to facebook, twitter, or pinterest
 
-
-## Further Reading
+## Et Cetera
 
 I highly recommend the compilation [Designa][designa] from Wooden Books, especially it's chapter by Daud Sutton on Islamic Design.
 
-## Source
-
 The source code for Eschersketch is available on [github][gh].
-
-## Contact
 
 Questions and comments can be directed to [info@eschersket.ch][mail] or twitter [@eschersketch][twit].
 
@@ -107,6 +106,7 @@ Questions and comments can be directed to [info@eschersket.ch][mail] or twitter 
 [2]: https://en.wikipedia.org/wiki/Wallpaper_group
 [3]: https://en.wikipedia.org/wiki/Aperiodic_tiling
 [spoon]: https://www.spoonflower.com/designs/new
+[contrado]: https://www.contrado.com/
 [designa]: https://www.amazon.com/Designa-Wooden-Books/dp/1620406594
 [gh]: https://github.com/levskaya/eschersketch
 [mail]: mailto:info@eschersket.ch

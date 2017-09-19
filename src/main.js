@@ -205,7 +205,10 @@ gS.$on('toolOptionUpdate',
 gS.$on('optionsUpdate', function(name, val){ gS.options[name] = val; });
 gS.$on('undo', function(){ undo(); });
 gS.$on('redo', function(){ redo(); });
-gS.$on('reset', function(){ reset(); });
+gS.$on('reset', function(){
+  reset();
+  gS.params.showShareLinks=false;
+});
 
 // Pure UI Events
 

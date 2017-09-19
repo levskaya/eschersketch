@@ -23,7 +23,7 @@
         <span class="eslogo"><img src="/static/svg/eslogo2.svg" height="20px" style="margin-bottom:-4px; padding:0px"/></span>
     </template>
 
-    <div class="button pulsate" @click="help" title="help" key="stateui-help-button">
+    <div class="button" :class="{pulsate: pageJustLoaded}" @click="help" title="help" key="stateui-help-button">
       <span class="icon-question-circle"></span>
       <!--<b>?</b>-->
     </div>
@@ -70,8 +70,11 @@ import {gS} from '../main.js';
 
 export default {
   props: ['params'],
-  data: function(){ return {toggled: false, armed: false}; },
+  data: function(){ return {toggled: false, armed: false, pageJustLoaded:true}; },
   components: {},
+  mounted: function() {
+    setTimeout(() => this.pageJustLoaded=false, 10000);
+  },
   computed:{
     toggleClass: function() {
       if(this.toggled) {
@@ -109,6 +112,7 @@ export default {
     },
     toggleFile: function(){
       gS.$emit('toggleParam', 'showFile');
+      gS.$emit('toggleParam', 'showNetwork');
     },
     help: function(){ console.log("call help"); gS.$emit('help'); },
     config: function(){ gS.$emit('config'); },
@@ -177,30 +181,30 @@ export default {
 
 @-webkit-keyframes color_change {
 	from { background-color: #eeeeee; }
-	to { background-color: #ffaaaa; }
+	to { background-color: #ff8888; }
 }
 @-moz-keyframes color_change {
 	from { background-color: #eeeeee; }
-	to { background-color: #ffaaaa; }
+	to { background-color: #ff8888; }
 }
 @-ms-keyframes color_change {
 	from { background-color: #eeeeee; }
-	to { background-color: #ffaaaa; }
+	to { background-color: #ff8888; }
 }
 @-o-keyframes color_change {
 	from { background-color: #eeeeee; }
-	to { background-color: #ffaaaa; }
+	to { background-color: #ff8888; }
 }
 @keyframes color_change {
 	from { background-color: #eeeeee; }
-	to { background-color: #ffaaaa; }
+	to { background-color: #ff8888; }
 }
 .pulsate {
-	-webkit-animation: color_change 1s 10 alternate;
-	-moz-animation: color_change 1s 10 alternate;
-	-ms-animation: color_change 1s 10 alternate;
-	-o-animation: color_change 1s 10 alternate;
-	animation: color_change 1s 10 alternate;
+	-webkit-animation: color_change 0.5s 20 alternate;
+	-moz-animation: color_change 0.5s 20 alternate;
+	-ms-animation: color_change 0.5s 20 alternate;
+	-o-animation: color_change 0.5s 20 alternate;
+	animation: color_change 0.5s 20 alternate;
 }
 
 </style>

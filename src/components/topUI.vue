@@ -28,8 +28,8 @@
 
     <!-- Footnote -->
     <div :style="{display: params.fullUI ? 'block' : 'none'}">
-      <br><br>
-      <div style="font-size:10px;text-align:center;">Anselm Levskaya &copy; 2017</div>
+      <br>
+      <div style="font-size:10px;color:#888888;text-align:left;">Anselm Levskaya &copy; 2017</div>
     </div>
 
   </div><!-- /sketch-UI -->

@@ -6,7 +6,7 @@
       @touchstart="handleChange">
       <div class="pointer" :style="{top: pointerTop, left: pointerLeft}">
         <div class="picker"></div>
-      </div>  
+      </div>
     </div>
   </div>
 </template>
@@ -93,7 +93,7 @@ export default {
             h: h,
             s: this.colors.hsl.s,
             l: this.colors.hsl.l,
-            a: this.colors.hsl.a,
+            a: this.colors.a,
             source: 'hsl'
           })
         }
@@ -112,7 +112,7 @@ export default {
             h: h,
             s: this.colors.hsl.s,
             l: this.colors.hsl.l,
-            a: this.colors.hsl.a,
+            a: this.colors.a,
             source: 'hsl'
           })
         }

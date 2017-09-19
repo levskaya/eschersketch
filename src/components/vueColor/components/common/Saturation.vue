@@ -76,7 +76,7 @@ export default {
         h: this.colors.hsv.h,
         s: saturation,
         v: bright,
-        a: this.colors.hsv.a,
+        a: this.colors.a,
         source: 'hsva'
       })
     },

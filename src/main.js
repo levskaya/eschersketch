@@ -478,11 +478,14 @@ export const saveSVG = function() {
   // prevent problems with huge SVG size by constraining number of repeats exported
   let gridLimiter = function(op) {
     let newop = restoreOp(deepClone(op));
-    newop.symmState.Nx = gS.options.svgGridNx;
-    newop.symmState.Ny = gS.options.svgGridNy;
+    newop.symmState.Nx = Number(gS.options.svgGridNx);
+    newop.symmState.Ny = Number(gS.options.svgGridNy);
     return newop;
   }
+  let tmpDynamism = gS.options.dynamicGridSize;
+  gS.options.dynamicGridSize = false;
   rerender(C2Sctx, {modifier: gridLimiter});
+  gS.options.dynamicGridSize = tmpDynamism;
   //serialize the SVG
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?
   //save text blob as SVG

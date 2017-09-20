@@ -34,7 +34,7 @@ state management.
 Almost all actions are routed through a simple global state store and event bus, it has not yet been ported into
 Vuex but this would not be difficult.
 
-### External Libs
+### External Libs/Tools
 
 - The color panel code is derived from [Vue-Color][vc]. It's been tweaked to fix a touch-event handling bug and to
   modify style defaults.
@@ -42,6 +42,7 @@ Vuex but this would not be difficult.
 - Uses eligrey's [FileSaver.js][fs] and [canvas-toBlob.js][ctb] polyfills to support saving files.
 - Uses a modified [canvas2svg][c2s] to export to SVG.
 - Also using vue-markdown-loader for handling inline written content.
+- [icomoon][icomoon] was used to help with icon generation.
 
 ### Bugs
 
@@ -61,3 +62,4 @@ have no idea if this is a reproducible bug.
 [fs]:https://github.com/eligrey/FileSaver.js
 [ctb]:https://github.com/eligrey/canvas-toBlob.js
 [c2s]: https://github.com/gliffy/canvas2svg
+[icomoon]: https://icomoon.io/

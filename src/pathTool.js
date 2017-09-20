@@ -55,8 +55,6 @@ export class PathOp {
         for(let drawFunc of drawSet){ //drawFunc = "stroke" or "fill"
           ctx[drawFunc]();
         }
-        //ctx.stroke();
-        //ctx.fill();
       }
     }
   }
@@ -117,8 +115,6 @@ export class PathTool {
           for(let drawFunc of drawSet){
             lctx[drawFunc]();
           }
-          //lctx.stroke();
-          //lctx.fill();
         }
       }
     }

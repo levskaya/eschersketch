@@ -16,56 +16,13 @@ import {gS,
         commitOp
        } from './main';
 import { _ } from 'underscore';
-import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint, angleBetween, orthoproject2} from './math_utils';
+import {add2, sub2, scalar2, normalize, l2norm, l2dist,
+        reflectPoint, angleBetween, orthoproject2, pointToAngle} from './math_utils';
 
 import {RotationAbout, RotationTransform, ScalingTransform} from './symmetryGenerator';
 
 import {drawHitCircle} from './canvas_utils';
 
-/*
-const drawEllipseByCenter = function(ctx, cx, cy, w, h) {
-  drawEllipse(ctx, cx - w/2.0, cy - h/2.0, w, h);
-}
-const drawEllipse = function(ctx, x, y, w, h) {
-  var kappa = .5522848,
-      ox = (w / 2) * kappa, // control point offset horizontal
-      oy = (h / 2) * kappa, // control point offset vertical
-      xe = x + w,           // x-end
-      ye = y + h,           // y-end
-      xm = x + w / 2,       // x-middle
-      ym = y + h / 2;       // y-middle
-
-  ctx.beginPath();
-  ctx.moveTo(x, ym);
-  ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-  ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-  ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-  ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-  //ctx.closePath(); // not used correctly, see comments (use to close off open path)
-  ctx.stroke();
-}
-*/
-
-const { PI, asin } = Math;
-const pointToAngle = function(pt0,pt1) {
-  const pt = normalize(sub2(pt1,pt0));
-  let angle = 0;
-  if(pt[0]>=0){
-    if(pt[1]>=0){ // UR quadrant
-      angle = asin(pt[1]);
-    } else {      // LR quadrant
-      angle = 2*PI - asin(-pt[1]);
-    }
-  } else {
-    if(pt[1]>=0){ // UL quadrant
-      angle = PI - asin(pt[1]);
-    } else {      // LL quadrant
-      angle = PI + asin(-pt[1]);
-    }
-  }
-  //console.log(angle);
-  return angle;
-}
 
 // Draw Circles, Ellipses, Arc-segments
 //------------------------------------------------------------------------------
@@ -95,8 +52,6 @@ export class CircleOp {
         for(let drawFunc of drawSet){ //drawFunc = "stroke" or "fill"
           ctx[drawFunc]();
         }
-        //ctx.stroke();
-        //ctx.fill();
       }
     }
   }

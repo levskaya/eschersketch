@@ -61,17 +61,37 @@ export const project2 =  // project pt2 onto line from pt0 to pt1, return projec
     let unit01 = normalize(sub2(pt1,pt0));
     let alpha = dot2(unit01, sub2(pt2,pt0));
     return add2(scalar2(unit01, alpha), pt0);
-  }
+  };
 
 export const relproject2 =  // "relative" project pt2 onto line from pt0 to pt1, return projected 2vec WITH origin at pt0
   function(pt0, pt1, pt2) {
     let unit01 = normalize(sub2(pt1,pt0));
     let alpha = dot2(unit01, sub2(pt2,pt0));
     return scalar2(unit01, alpha);
-  }
+  };
 
 export const orthoproject2 = // project pt2 onto line ORTHOGONAL to that from pt0 to pt1, return projected 2vec
   function(pt0, pt1, pt2) {
     let rproj = relproject2(pt0,pt1,pt2);
     return sub2(pt2,rproj);
-  }
+  };
+
+export const pointToAngle = // calculates angle of pt1 about pt0, 0 deg at pos X axis
+  function(pt0, pt1) {
+    const pt = normalize(sub2(pt1,pt0));
+    let angle = 0;
+    if(pt[0]>=0){
+      if(pt[1]>=0){ // UR quadrant
+        angle = asin(pt[1]);
+      } else {      // LR quadrant
+        angle = 2*PI - asin(-pt[1]);
+      }
+    } else {
+      if(pt[1]>=0){ // UL quadrant
+        angle = PI - asin(pt[1]);
+      } else {      // LL quadrant
+        angle = PI + asin(-pt[1]);
+      }
+    }
+    return angle;
+  };

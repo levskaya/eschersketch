@@ -33,8 +33,6 @@ const drawPolygon = function(ctx, pt0, pt1, Nedges){
     Tpt = rotTr.onVec(Tpt);
     ctx.lineTo(Tpt[0], Tpt[1]);
   }
-  //ctx.stroke();
-  //ctx.fill();
 }
 //draws 2N-vertex star figure with center at pt0, first "outer" vertex at pt1, first "inner" vertex at pt2
 const drawStar = function(ctx, pt0, pt1, pt2, Nrots){
@@ -51,8 +49,6 @@ const drawStar = function(ctx, pt0, pt1, pt2, Nrots){
     ctx.lineTo(Tpt2[0], Tpt2[1]);
     ctx.lineTo(Tpt1[0], Tpt1[1]);
   }
-  //ctx.stroke();
-  //ctx.fill();
 }
 
 // Draw Simple Circles, no ellipse / arc-segments yet!

@@ -50,8 +50,6 @@ export class PolyOp {
         for(let drawFunc of drawSet){ //drawFunc = "stroke" or "fill"
           ctx[drawFunc]();
         }
-        //ctx.stroke();
-        //ctx.fill();
       }
     }
   }
@@ -93,10 +91,6 @@ export class PolyTool {
         for(let drawFunc of drawSet){
           lctx[drawFunc]();
         }
-        //lctx.stroke();
-        //if(this.points.length > 2) { //necessary?
-        //  lctx.fill();
-        //}
       }
     }
     // draw handles
@@ -118,7 +112,6 @@ export class PolyTool {
       this.state = _INIT_;
       this.selected = 0;
     }
-
   }
 
   exit(){
@@ -199,7 +192,6 @@ export class PolyTool {
       this.points[this.selected] = [pt[0], pt[1]];
       this.liverender();
     }
-
   }
 
   mouseUp(e) {

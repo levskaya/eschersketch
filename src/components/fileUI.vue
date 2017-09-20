@@ -42,7 +42,7 @@
     <div id="save-online" class="button" @mousedown="uploadSketch">
       <span class="icon-cloud-upload"></span> Share!
     </div>
-    
+
     <template v-if="params.showShareLinks">
       <div id="copy-button" class="button" v-if="params.copyText.length>0">
         <span class="icon-link"/>
@@ -66,15 +66,14 @@
 <script>
 import es_numfield from './es_numfield';
 import es_button from './es_button';
-import {gS, saveSVG, savePNG, savePNGTile, saveJSON, loadJSON} from '../main.js';
+import {gS, saveSVG, savePNG, savePNGTile, saveJSON, loadJSON} from '../main';
+import {networkConfig} from '../config';
+import {saveSketch} from '../network';
 import {_} from 'underscore';
-import {saveSketch} from '../network.js';
 import Clipboard from 'clipboard';
+
 var clipboard = new Clipboard('#copy-button', {
-    text: function() {
-        //console.log("copytext", gS.params.copyText);
-        return gS.params.copyText;
-    }
+    text: function() { return gS.params.copyText; }
 });
 
 export default {
@@ -89,19 +88,19 @@ export default {
     },
     fname: function() {return this.params.filename;},
     fbLink: function() {
-      let myurl = encodeURI(gS.params.copyText);
-      let fbHref = `https://www.facebook.com/dialog/share?app_id=1435026029878806&display=page&href=${myurl}&redirect_uri=${myurl}`
+      let myuri = encodeURI(gS.params.copyText);
+      let fbHref = networkConfig.fbHref.replace(/_MYURI_/g, myuri);
       return fbHref;
     },
     twitterLink: function() {
-      let myurl = encodeURI(gS.params.copyText);
-      let twitterHref = `https://twitter.com/intent/tweet?url=${myurl}&text=Eschersketch`
+      let myuri = encodeURI(gS.params.copyText);
+      let twitterHref = networkConfig.twitterHref.replace(/_MYURI_/g, myuri);
       return twitterHref;
     },
     pinLink: function() {
       let myuri = encodeURI(gS.params.copyText);
       let jpguri = myuri.replace("/s/","/social/")+".jpg";
-      let pinHref = `https://pinterest.com/pin/create/button/?url=${myuri}&media=${jpguri}&description=an%20eschersketch`
+      let pinHref = networkConfig.pinHref.replace(/_MYURI_/g, myuri).replace(/_JPGURI_/g, jpguri);
       return pinHref;
     },
   },
@@ -121,7 +120,6 @@ export default {
       }
     },
     uploadSketch: function(){
-      //console.log("trying to upload");
       saveSketch();
     }
   }

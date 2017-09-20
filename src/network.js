@@ -11,10 +11,7 @@
 
 import {gS, prepForUpload, fetchFromCloud, getJPGdata} from './main.js'
 import {lsGetJSON, lsSaveJSON} from './utils.js';
-
-//Server Endpoints
-const SketchEndpoint    = "https://3lgie108n8.execute-api.us-west-1.amazonaws.com/prod/sketch/";
-const PostImageEndpoint = "https://3lgie108n8.execute-api.us-west-1.amazonaws.com/prod/postimage";
+import {networkConfig} from './config';
 
 const HttpClient = function() {
     this.get = function(url, callback) {
@@ -30,7 +27,7 @@ const HttpClient = function() {
       let xmlhttp = new XMLHttpRequest();
       xmlhttp.open("POST", url, true);
       xmlhttp.setRequestHeader("Content-type", "application/json");
-      xmlhttp.onreadystatechange = function () { //Call a function when the state changes.
+      xmlhttp.onreadystatechange = function () {
           if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
               callback(xmlhttp.responseText);
           }
@@ -49,14 +46,13 @@ const rememberSketch = function(id){
 }
 
 export const saveSketch = function(){
-  let resturl = SketchEndpoint;
+  let resturl = networkConfig.SketchEndpoint;
   let client = new HttpClient();
   client.post(resturl, prepForUpload(), function(str){
     let jsonObj = JSON.parse(str);
     console.log("new sketchID", jsonObj.sketchID);
     rememberSketch(jsonObj.sketchID);
-    //gS.params.copyText = "https://eschersket.ch/?s="+jsonObj.sketchID;
-    gS.params.copyText = "https://eschersket.ch/s/"+jsonObj.sketchID;
+    gS.params.copyText = networkConfig.shareURLPrefix + jsonObj.sketchID;
     gS.params.showShareLinks = true;
     console.log("Posting image for share links");
     let imgclient = new HttpClient();
@@ -64,7 +60,7 @@ export const saveSketch = function(){
                     hash:   jsonObj.sketchID,
                     b64img: getJPGdata().replace("data:image/jpeg;base64,","")
                   });
-    imgclient.post(PostImageEndpoint, imgdata, function(str){
+    imgclient.post(networkConfig.PostImageEndpoint, imgdata, function(str){
       let jsonObj = JSON.parse(str);
       console.log("Image post", jsonObj['status'] ? "suceeded" : "failed");
     });
@@ -72,10 +68,9 @@ export const saveSketch = function(){
 }
 
 export const loadSketch = function(sketchID){
-  let resturl = SketchEndpoint + sketchID;
+  let resturl = networkConfig.SketchEndpoint + sketchID;
   let client = new HttpClient();
   client.get(resturl, function(str){
-    //console.log("success", str);
     fetchFromCloud(str);
   });
 }

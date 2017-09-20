@@ -13,6 +13,7 @@
 // Global Assets
 //------------------------------------------------------------------------------
 require('./assets/eschersketch.css'); //global css
+//fonts still in static due to subtle webpack issues:
 //require('./assets/icomoon.css');    //icon fonts
 
 // Library Imports
@@ -25,11 +26,13 @@ import Hammer from 'hammerjs'; // touch-event support
 import {saveAs} from './libs/FileSaver.js';
 import {blobPolyfillLoader} from './libs/Blob.js';
 blobPolyfillLoader();
+
 // modifies global canvas object to allow blob export
 import {canvastoBlobLoader} from './libs/canvas-toBlob.js';
 canvastoBlobLoader();
 
-// need to use my tweaked version of canvas2svg to avoid regex recursion limit
+// using a tweaked version of canvas2svg to avoid regex recursion limit
+// and to draw ellipses
 import {canvas2SVGLoad} from './libs/canvas2svg.js';
 canvas2SVGLoad();
 
@@ -42,7 +45,7 @@ modernizrLoader();
 import {deepClone} from './utils';
 import {pixelFix, setCanvasPixelDensity, parseColor} from './canvas_utils';
 import {generateTiling, planarSymmetries, RosetteGroup, IdentitySet} from './symmetryGenerator';
-
+import {networkConfig} from './config';
 
 // Import all the Drawing Tools
 //------------------------------------------------------------------------------
@@ -80,14 +83,15 @@ export const gS = new Vue({
       canvasHeight: 1200,
       canvasWidth:  1600,
       filename: "eschersketch",
-      versionString: "v0.3",      // repo version, updated to match git-describe --tags
+      versionString: "v0.3.1",    // repo version, updated to match git-describe --tags
       copyText:"",
       showColorInputs: false,     // UI "expert mode" options
       showFileName: false,
       showJSONexport: false,
       showGridParameters: false,
-      disableNetwork: true,       // enabled for online version, not useful for local install
+      disableNetwork: !networkConfig.networkEnabled, // enabled for online version, not useful for local install
     },
+    // global UI options
     options: {
       minLineWidth: 0.1,
       deltaLineWidth: 0.1,
@@ -102,20 +106,20 @@ export const gS = new Vue({
       svgGridNx: 10,              // Limits symmetry copies in SVG export to keep filesize manageable
       svgGridNy: 10,
     },
-    // Symmetry State - captured
+    // Symmetry State
     //-------------------------------
     // -- each drawing op caches the current value of these params when committed
     symmState: {sym: 'p6m',    // symmetry name/key
                 x:800, y:400,  // center of constructed grid symmetry
-                d:100, t:0,    // grid-spacing and rotation (not implemented yet)
+                d:100, t:0,    // grid-spacing and rotation (rotation not implemented yet)
                 Nx:18, Ny:14,  // grid Nx, Ny should NOT be too large - too large --> too many draw calls!
                 Nrot: 0, Nref: 3, rot: 0 // Rosette parameters
               },
     // Style State
     //-------------------------------
-    // -- the keys of this object also determine which canvas ctx properties are cached inside drawing ops
+    // -- each drawing op caches the current value of these params when committed
     ctxStyle: {
-      drawOrder:   "fillstroke",   // normal, fillstroke, strokefill
+      drawOrder:   "fillstroke",   // normal, fillstroke, strokefill; NOT a normal attrib of canvas ctx
       lineCap:     "butt",     // butt, round, square
       lineJoin:    "round",    // round, bevel, miter
       miterLimit:  10.0,       // applies to miter setting above
@@ -130,7 +134,7 @@ export const gS = new Vue({
 //-------------------------------
 var cmdStack = [];
 var redoStack = [];
-window.getCmdStack = ()=>cmdStack; //HACK
+//window.getCmdStack = ()=>cmdStack; //HACK: debugging
 
 // Canvas / Context Globals
 //------------------------------------------------------------------------------
@@ -211,7 +215,6 @@ gS.$on('reset', function(){
 });
 
 // Pure UI Events
-
 //------------------------------------------------------------------------------------------
 gS.$on('toggleUI', function() {
   if(gS.params.fullUI){
@@ -238,7 +241,6 @@ gS.$on('toggleParam', function(paramName) { gS.params[paramName] = ! gS.params[p
 gS.$on('setHint', function(val){
   if(gS.params.showHints) { gS.params.hintText = val; }
 });
-
 window.gS=gS;  // HACK: for debugging
 
 
@@ -383,14 +385,6 @@ const switchTool = function(toolName, op){
 };
 
 const undo = function(){
-  // if the user has started drawing with the current tool
-  // simply erase current
-  /*
-  if(drawTools[gS.params.curTool].isDirty()){
-    drawTools[gS.params.curTool].enter();
-    lctx.clearRect(0, 0, canvas.width, canvas.height);
-  }*/
-
   drawTools[gS.params.curTool].commit();  //commit live tool op
   let cmd = cmdStack.pop(); //now remove it
   if(cmd){ // if at first step with INIT tool, may not have anything, abort!
@@ -706,7 +700,7 @@ const initState = function() {
 
 // get version string
 export const getESVersion = function() {
-  if(window.ES_VERSION){ return ES_VERSION; } else { return "v0.3"; }
+  if(window.ES_VERSION){ return ES_VERSION; } else { return "v0.3.1"; }
 }
 
 const initGUI = function() {
@@ -790,7 +784,7 @@ const initTouchEvents = function() {
   changeHitRadius(15);
 };
 
-// Pressure Support (unfinished)
+// Pen Pressure Support (unfinished)
 //------------------------------------------------------------------------------
 /* Crude, but this works!
 import Pressure from 'pressure';

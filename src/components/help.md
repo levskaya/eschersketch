@@ -1,5 +1,10 @@
 <slot name="header"></slot>
 
+## Quick Demo
+<p style="text-align:center">
+  <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/iKF9nnKlxdI?rel=0" frameborder="0" allowfullscreen></iframe>
+</p>
+
 ## What is this?
 
 An imperfect tool for drawing and exploring symmetrical patterns and designs.  It can export pictures, pattern tiles for fabric and wallpaper design, and SVG for further editing.  You can also publish your drawings and share them on Facebook and Twitter.
@@ -8,22 +13,24 @@ An imperfect tool for drawing and exploring symmetrical patterns and designs.  I
 
 Icon   | Tool | Description
 -------|------|-------------------
+<span class="icon-shrink2"></span> | minimize | for small screens this puts the UI into a minimal mode
+<span class="icon-enlarge2"></span> | maximize | this reveals all of the major UI controls at once
 <span class="icon-undo"/>| undo | steps back a drawing step, re-entering interactive editing for previous draw tool
 <span class="icon-redo"/>| redo | reapplies a previously undone tool - note that the redo stack is not automatically emptied
-<span class="icon-bin"/>| reset | __erases everything__ - requires two clicks within 1sec to activate
+<span class="icon-bin"/>| reset | __erases everything__ - requires a double-click to activate
 <span class="icon-cog"/>| settings | expert mode options and configuration parameters for eschersketch
-<span class="icon-question-circle"></span>| this help | leads you to the truth
+<span class="icon-question-circle"></span>| this help | is trying it's best to be of use
 
- ## Drawing Tools
+## Drawing Tools
 
- Icon   | Tool | Description
- -------|------|-------------------
- <span class="icon-pencil"/>  | __pencil__ tool | freehand drawing tool, stroke-only, variable smoothing factor
- <span class="icon-line"/> | __line__ tool | draws single line segments between two _adjustable_ points
- <span class="icon-hexagon"/>| __polygon__ tool | draws a straight-sided __regular__ polygon _or_ star, _adjustable_ points
- <span class="icon-radio-unchecked"/> | __circle__ tool | draws circles, ellipses, and arcs,  from three _adjustable_ points
- <span class="icon-polyline"/> | __polyline__ tool | draws a straight-sided freehand polygon, _adjustable_ points
- <span class="icon-pen"/>| __path__ tool | draws bezier curves and straight lines, both vertices and control points are _adjustable_
+Icon   | Tool | Description
+-------|------|-------------------
+<span class="icon-pencil"/>  | __pencil__ tool | freehand drawing tool, stroke-only, variable smoothing factor
+<span class="icon-line"/> | __line__ tool | draws single line segments between two _adjustable_ points
+<span class="icon-hexagon"/>| __polygon__ tool | draws a straight-sided __regular__ polygon _or_ star, _adjustable_ points
+<span class="icon-radio-unchecked"/> | __circle__ tool | draws circles, ellipses, and arcs,  from three _adjustable_ points
+<span class="icon-polyline"/> | __polyline__ tool | draws a straight-sided freehand polygon, _adjustable_ points
+<span class="icon-pen"/>| __path__ tool | draws bezier curves and straight lines, both vertices and control points are _adjustable_
 
 For the adjustable tools, a few more buttons/commands are present for saving, cancelling, and undoing points:
 Icon   | Tool | Description
@@ -94,7 +101,12 @@ __SVG__ Saves all drawn objects into an SVG file for use in a proper vector grap
 
 ## Et Cetera
 
-I highly recommend the compilation [Designa][designa] from Wooden Books, especially it's chapter by Daud Sutton on Islamic Design.
+For further reading I highly recommend:
+ - The compilation [Designa][designa] from Wooden Books, especially it's book by Daud Sutton on Islamic Design.
+ - David Wade's [Pattern in Islamic Art][patislart]
+ - Craig Kaplan's [thesis][cskthesis] and [lecture][csktalk] on the math behind some Islamic geometric patterns.
+ - A [video][zillijvid] of the Moroccan Zillij tilework and other symmetric craftwork done for the Met by traditional artisans.
+ - A [video][kumikovid1] showing the Japanese tradition of Kumiko Zaiku - intricate symmetric latticework.
 
 The source code for Eschersketch is available on [github][gh].
 
@@ -111,3 +123,8 @@ Questions and comments can be directed to [info@eschersket.ch][mail] or twitter 
 [gh]: https://github.com/levskaya/eschersketch
 [mail]: mailto:info@eschersket.ch
 [twit]: https://twitter.com/eschersketch
+[cskthesis]: http://www.cgl.uwaterloo.ca/csk/phd/
+[csktalk]: https://www.youtube.com/watch?v=FBn6VgoF3fE
+[patislart]: https://patterninislamicart.com/
+[zillijvid]: https://www.youtube.com/watch?v=Og6cTlwBTrk
+[kumikovid1]: https://www.youtube.com/watch?v=9REJTj9egKU

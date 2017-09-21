@@ -13,7 +13,6 @@
 
 /*! @source http://purl.eligrey.com/github/canvas-toBlob.js/blob/master/canvas-toBlob.js */
 
-export const canvastoBlobLoader = function () {//XXX: added
 (function(view) {
 "use strict";
 var
@@ -124,4 +123,3 @@ if (HTMLCanvasElement && (!canvas_proto.toBlob || !canvas_proto.toBlobHD)) {
 	}
 }
 }(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content || this));
-};//XXX: added

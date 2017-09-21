@@ -24,21 +24,14 @@ import Hammer from 'hammerjs'; // touch-event support
 
 // polyfills for saving files
 import {saveAs} from './libs/FileSaver.js';
-import {blobPolyfillLoader} from './libs/Blob.js';
-blobPolyfillLoader();
-
+require('./libs/Blob.js');
 // modifies global canvas object to allow blob export
-import {canvastoBlobLoader} from './libs/canvas-toBlob.js';
-canvastoBlobLoader();
-
+require('./libs/canvas-toBlob.js');
 // using a tweaked version of canvas2svg to avoid regex recursion limit
 // and to draw ellipses
-import {canvas2SVGLoad} from './libs/canvas2svg.js';
-canvas2SVGLoad();
-
+require('./libs/canvas2svg.js');
 // touch detection
-import {modernizrLoader} from './libs/modernizr-custom.js';
-modernizrLoader();
+require('./libs/modernizr-custom.js');
 
 // Local Imports
 //------------------------------------------------------------------------------

@@ -13,7 +13,6 @@
   plusplus: true */
 
 /*! @source http://purl.eligrey.com/github/Blob.js/blob/master/Blob.js */
-export const blobPolyfillLoader = function () {//XXX: added
 (function (view) {
 	"use strict";
 
@@ -209,4 +208,3 @@ export const blobPolyfillLoader = function () {//XXX: added
 	};
 	view.Blob.prototype = getPrototypeOf(new view.Blob());
 }(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content || this));
-};

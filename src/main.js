@@ -491,10 +491,6 @@ export const saveSVG = function() {
 export const getJPGdata = function(){
   const pixelScale = 1;//gS.options.pngTileUpsample; // pixel density scaling factor
   const jpegQuality = 0.92;
-  // get square tile dimensions
-  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
-  dX *= gS.symmState.d * pixelScale;
-  dY *= gS.symmState.d * pixelScale;
 
   // Render into tile-sized canvas for blob conversion and export
   let tmpCanvas = document.createElement('canvas');
@@ -503,7 +499,7 @@ export const getJPGdata = function(){
   let tctx = tmpCanvas.getContext("2d");
   //correct for center off-set and pixel-scaling
   //tctx.scale(pixelScale, pixelScale);
-  //tctx.translate(-1*gS.symmState.x, -1*gS.symmState.x);
+  //tctx.translate(-1*gS.symmState.x, -1*gS.symmState.y);
   tctx.save();
   tctx.fillStyle="rgba(255,255,255,1.0)";
   tctx.fillRect(0, 0, canvas.width, canvas.height);

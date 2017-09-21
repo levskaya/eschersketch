@@ -114,7 +114,7 @@ export default {
       gS.$emit('toggleParam', 'showFile');
       gS.$emit('toggleParam', 'showNetwork');
     },
-    help: function(){ console.log("call help"); gS.$emit('help'); },
+    help: function(){ gS.$emit('help'); },
     config: function(){ gS.$emit('config'); },
     }
 }

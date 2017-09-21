@@ -44,11 +44,6 @@ Vuex but this would not be difficult.
 - Also using vue-markdown-loader for handling inline written content.
 - [icomoon][icomoon] was used to help with icon generation.
 
-### Bugs
-
-Some older-but-recent versions of iOS on ipads insist on scrolling the main canvas instead of drawing despite all JS
-and CSS settings to the contrary - I've only seen this on one device that was readily fixed by an OS upgrade, so I
-have no idea if this is a reproducible bug.
 
 [1]: http://en.wikipedia.org/wiki/Wallpaper_group
 [2]: https://en.wikipedia.org/wiki/Point_group

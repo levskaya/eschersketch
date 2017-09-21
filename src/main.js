@@ -129,6 +129,10 @@ var cmdStack = [];
 var redoStack = [];
 //window.getCmdStack = ()=>cmdStack; //HACK: debugging
 
+// HammerJS Manager Global
+//------------------------------------------------------------------------------
+var mc;
+
 // Canvas / Context Globals
 //------------------------------------------------------------------------------
 export var livecanvas = {};
@@ -578,13 +582,8 @@ export const fetchFromCloud = function(jsonStr){
 
 import {loadSketch} from './network.js';
 const loadGivenSketch = function(){
-  let urlObj = new URL(window.location.href);
-  let querySketchID = urlObj.searchParams.get("s");
   let urlSketchID = window.location.href.split('s/')[1];
-  if(querySketchID){
-    //console.log("Query sketchID", querySketchID, "requested");
-    loadSketch(querySketchID);
-  } else if(urlSketchID){
+  if(urlSketchID) {
     //console.log("URL sketchID", urlSketchID, "requested");
     loadSketch(urlSketchID);
   }
@@ -742,11 +741,12 @@ const initTouchEvents = function() {
   // get a reference to top canvas element
   var stage = document.getElementById('sketchlive');
   // create a manager for that element
-  var mc = new Hammer.Manager(stage);
+  mc = new Hammer.Manager(stage);
   var Pan = new Hammer.Pan({
     direction: Hammer.DIRECTION_ALL,
     threshold: 0
   });
+  console.log("init touchevents");
   mc.add(Pan);
   mc.on('panstart', function(e) {
     var fakeEv = {clientX: e.center.x,
@@ -776,6 +776,7 @@ const initTouchEvents = function() {
   //XXX: should scale w. screen size, too big on tablets I suspect
   changeHitRadius(15);
 };
+//window.initTouchEvents = initTouchEvents; //HACK
 
 // Pen Pressure Support (unfinished)
 //------------------------------------------------------------------------------

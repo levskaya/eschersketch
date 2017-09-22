@@ -34,7 +34,7 @@
     <es-button name="p3m1" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="p6m" :selected="cursym" @bclick="changeSym"></es-button><br>
 
-    <es-button name="grid" :selected="curtool" @bclick="changeTool">
+    <es-button name="grid" :selected="curtool" @bclick="toggleGridTool">
       grid adjust
     </es-button>
 
@@ -88,7 +88,13 @@ export default {
   },
   methods: {
     changeSym: function(symname){ gS.$emit('symmUpdate', {sym: symname}); },
-    changeTool: function(toolName){ gS.$emit('toolUpdate', toolName); },
+    toggleGridTool: function(toolName){
+      if(gS.params.curTool == toolName){ //toolName == "grid"
+        gS.$emit('toolUpdate', gS.params.lastTool);
+      } else {
+        gS.$emit('toolUpdate', toolName);
+      }
+    },
     update: function(name, val){
       var gridcopy = _.clone(gS.symmState);
       gridcopy[name] = Number(val);

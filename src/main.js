@@ -60,6 +60,7 @@ export const gS = new Vue({
     // global UI state variables
     params: {
       curTool: 'pencil',         // Tool State
+      lastTool: 'pencil',        // only used by gridtool for toggling
       fullUI: true,
       showNav: true,
       showTool: true,
@@ -252,13 +253,16 @@ var vueUI = new Vue({
 });
 
 
-//Style update
+// Style update
 //-------------------------------------------------------------------------------------------------
 export const updateStyle = function(styles) {
   _.assign(lctx, _.clone(styles));
   _.assign(gS.ctxStyle, _.clone(styles));
 }
 
+// this is used by the two-step drawing process in most stroke+fill vector tools
+// to define order of drawing separate "layers" of strokes and fills to preserve symmetrical
+// appearance
 export const drawKeyToOrderMap = {
   "normal":     [["stroke",   "fill"]],
   "strokefill": [["stroke"], ["fill"]],
@@ -305,6 +309,7 @@ export const updateSymmetry = function(symmState) {
 // Set up Globals and UI for calling into Drawing Tools
 //------------------------------------------------------------------------------
 const changeTool = function(toolName){
+  gS.params.lastTool = gS.params.curTool;
   let oldTool = drawTools[gS.params.curTool];
   oldTool.commit();
   oldTool.exit();

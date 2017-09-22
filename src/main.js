@@ -474,16 +474,26 @@ export const loadJSON = function(file) {
 export const saveSVG = function() {
   // canvas2svg fake context:
   var C2Sctx = new C2S(canvas.width, canvas.height);
-  // prevent problems with huge SVG size by constraining number of repeats exported
-  let gridLimiter = function(op) {
+  let svgModifier = function(op) {
     let newop = restoreOp(deepClone(op));
+    // prevent problems with huge SVG size by constraining
+    // number of repeats exported
     newop.symmState.Nx = Number(gS.options.svgGridNx);
     newop.symmState.Ny = Number(gS.options.svgGridNy);
+    // force canvas2svg to encapsulate each symmetry set in an SVG group
+    // a poor man's layered export
+    newop._render = newop.render;
+    newop.render = function(ctx) {
+      ctx.save();
+      this._render(ctx);
+      ctx.restore();
+    };
     return newop;
   }
+  //disable dynamic grid size adjustment during svg render
   let tmpDynamism = gS.options.dynamicGridSize;
   gS.options.dynamicGridSize = false;
-  rerender(C2Sctx, {modifier: gridLimiter});
+  rerender(C2Sctx, {modifier: svgModifier});
   gS.options.dynamicGridSize = tmpDynamism;
   //serialize the SVG
   var mySerializedSVG = C2Sctx.getSerializedSvg(); // options?

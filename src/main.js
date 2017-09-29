@@ -76,7 +76,7 @@ export const gS = new Vue({
       canvasHeight: 1200,
       canvasWidth:  1600,
       filename: "eschersketch",
-      versionString: "v0.3.1",    // repo version, updated to match git-describe --tags
+      versionString: "v0.3.3",    // repo version, updated to match git-describe --tags
       copyText:"",
       disableNetwork: !networkConfig.networkEnabled, // enabled for online version, not useful for local install
     },
@@ -718,7 +718,7 @@ const initState = function() {
 
 // get version string
 export const getESVersion = function() {
-  if(window.ES_VERSION){ return ES_VERSION; } else { return "v0.3.1"; }
+  if(window.ES_VERSION){ return ES_VERSION; } else { return "v0.3.3"; }
 }
 
 const initGUI = function() {

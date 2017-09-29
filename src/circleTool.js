@@ -80,7 +80,7 @@ export class CircleTool {
     this.state = _INIT_;
     this.hitRadius = 4;
     this.actions = [
-      {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
+      {name: "cancel", desc: "cancel ellipse", icon: "icon-cross", key: "Escape"},
       {name: "commit", desc: "start new (automatic on new click)", icon: "icon-checkmark", key: "Enter"},
     ];
     this.options = {

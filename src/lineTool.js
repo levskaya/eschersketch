@@ -58,7 +58,7 @@ export class LineTool {
     this.state = _INIT_;
     this.hitRadius = 4;
     this.actions = [
-      {name: "cancel", desc: "cancel",    icon: "icon-cross",     key: "Escape"},
+      {name: "cancel", desc: "cancel line",    icon: "icon-cross",     key: "Escape"},
       {name: "commit", desc: "start new (automatic on new click)", icon: "icon-checkmark", key: "Enter"},
     ];
   }

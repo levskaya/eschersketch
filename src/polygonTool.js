@@ -111,7 +111,7 @@ export class PolygonTool {
         star:  {val: false, type: "boolean"}
     };
     this.actions = [
-      {name: "cancel", desc: "cancel",    icon: "icon-cross",     key: "Escape"},
+      {name: "cancel", desc: "cancel polygon",    icon: "icon-cross",     key: "Escape"},
       {name: "commit", desc: "start new (automatic on new click)", icon: "icon-checkmark", key: "Enter"},
     ];
   }

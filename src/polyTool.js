@@ -68,8 +68,8 @@ export class PolyTool {
     this.selected = -1;
     this.hitRadius = 4;
     this.actions = [
-      {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
-      {name: "commit", desc: "start new", icon: "icon-checkmark", key: "Enter"},
+      {name: "cancel", desc: "cancel polyline", icon: "icon-cross", key: "Escape"},
+      {name: "commit", desc: "start new polyline", icon: "icon-checkmark", key: "Enter"},
       {name: "back",   desc: "undo last point", icon: "icon-minus", key: "Backspace"},
       {name: "closepath",   desc: "close path", icon: "icon-stroke", key: "KeyC"}
     ];

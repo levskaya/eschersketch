@@ -72,8 +72,8 @@ export class PencilTool {
         simplify: {val:0.6, type: "slider", min:0.4, max:10, step:0.2},
     };
     this.actions = [
-      {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
-      {name: "commit", desc: "start new (automatic on new click)", icon: "icon-checkmark", key: "Enter"},
+      {name: "cancel", desc: "cancel line", icon: "icon-cross", key: "Escape"},
+      {name: "commit", desc: "start new line (automatic on new click)", icon: "icon-checkmark", key: "Enter"},
     ];
   }
 

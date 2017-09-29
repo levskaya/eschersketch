@@ -79,8 +79,8 @@ export class PathTool {
     this.pointsSelected = [];
     this.hitRadius = 4;
     this.actions = [
-      {name: "cancel", desc: "cancel", icon: "icon-cross", key: "Escape"},
-      {name: "commit", desc: "start new", icon: "icon-checkmark", key: "Enter"},
+      {name: "cancel", desc: "cancel path", icon: "icon-cross", key: "Escape"},
+      {name: "commit", desc: "start new path", icon: "icon-checkmark", key: "Enter"},
       {name: "back",   desc: "undo last point", icon: "icon-minus", key: "Backspace"},
       {name: "closepath",   desc: "close path", icon: "icon-stroke", key: "KeyC"},
       {name: "smoothclose",   desc: "smooth close path", icon: "icon-radio-unchecked", key: "KeyS"}

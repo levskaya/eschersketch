@@ -13,7 +13,7 @@
         </div>
         <div class="Aligner-item">
           <div class="button" :class="{selected: !params.fullUI}" style="margin-left:80%;"
-              @mousedown="toggleUI" @mouseover="setHint" hint="minimized/mobile UI mode">
+              @click="toggleUI" @mouseover="setHint" hint="minimized/mobile UI mode">
             <span class="icon-shrink2"></span>
           </div>
         </div>
@@ -76,7 +76,7 @@
 
 
     <template v-if="!params.fullUI">
-      <div class="button" @mousedown="toggleUI" key="stateui-enlarge-button"
+      <div class="button" @click="toggleUI" key="stateui-enlarge-button"
            @mouseover="setHint" hint="full UI mode">
         <span class="icon-enlarge2"></span>
       </div>

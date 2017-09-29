@@ -195,6 +195,7 @@ export class PolyTool {
   }
 
   mouseUp(e) {
+    if(this.state===_INIT_){return;} //edgecase of accidental mouseup before drawing
     this.state = _OFF_;
   }
 

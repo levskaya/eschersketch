@@ -82,9 +82,11 @@ a:hover, a.enabled { color: #f00; }
 .UIheader {
   display:inline-block;
   font-variant: small-caps;
+  font-weight: 500;
   margin:5px 0 5px 0;
+  padding-top: 0.2rem;
   padding-right:100%;
-  _width: 100%;
+  /*width: 100%;*/
   border-bottom: 1px solid;
   border-color: #ddd;
 }

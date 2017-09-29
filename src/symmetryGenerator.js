@@ -347,9 +347,9 @@ const findclosure = function(Afset, recursion_limit) {
 const makegrid = function(nx, ny, d) {
     const Afs = [];
     for (var i = 0; i < nx; i++) {
-	for (var j = 0; j < ny; j++) {
-	    Afs.push(TranslationTransform(i * d, j * d));
-	}
+    	for (var j = 0; j < ny; j++) {
+    	    Afs.push(TranslationTransform(i * d, j * d));
+    	}
     }
     return Afs;
 };
@@ -387,7 +387,7 @@ export const RosetteGroup = function(n1, n2, x, y, offsetangle) {
   const Af2 = reflectRosette(n2, x, y);
   return findclosure(Af1.concat(affinesetproduct([ RotationAbout(offsetangle, x, y) ], Af2)));
 };
-
+/*
 const multiRosette = function(n1, n2, x1, y1, x2, y2) {
   const Af1 = rotateRosette(n1, x1, y1);
   const Af2 = reflectRosette(n2, x2, y2);
@@ -426,7 +426,7 @@ const multiRosette3 = function(n1, n2, n3, a, d, skew, x, y) {
 
   return afset;
 };
-
+*/
 
 // Generate Lattice
 //--------------------------------------------------------------------------------------------------

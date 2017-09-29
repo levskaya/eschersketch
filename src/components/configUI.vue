@@ -4,7 +4,7 @@
 
     <b>UI options</b><br>
     <es-checkbox param="showHints" :val="options.showHints" @checked="update">Show Hints?</es-checkbox>
-    <i>not on touch screen</i><br>
+    <i>bad for touchscreen</i><br>
     <es-checkbox param="showColorInputs" :val="options.showColorInputs" @checked="update">Show Manual Color Inputs?</es-checkbox><br>
     <es-checkbox param="showGridParameters" :val="options.showGridParameters" @checked="update">Show Grid Parameters?</es-checkbox><br>
     <es-checkbox param="showFileName" :val="options.showFileName" @checked="update">Show Filename?</es-checkbox><br>

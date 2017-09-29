@@ -18,7 +18,7 @@ Icon   | Tool | Description
 <span class="icon-undo"/>| undo | steps back a drawing step, re-entering interactive editing for previous draw tool
 <span class="icon-redo"/>| redo | reapplies a previously undone tool - note that the redo stack is not automatically emptied
 <span class="icon-bin"/>| reset | __erases everything__ - requires a double-click to activate
-<span class="icon-cog"/>| settings | expert mode options and configuration parameters for eschersketch
+<span class="icon-cog"/>| settings | expert mode options and configuration (e.g. disable hint messages, manual grid control)
 <span class="icon-question-circle"></span>| this help | is trying it's best to be of use
 
 ## Drawing Tools

@@ -87,9 +87,9 @@ The __grid adjustment__ tool allows to you move the "center" of the point-symmet
 
 __Picture__ Save the visible frame as a PNG image file.
 
-__Tile__ This is very useful: a symmetric wallpaper pattern can be described by a small tile, and used in tools such as Photoshop's "pattern fill", used to generate textures for 3d-graphics, or uploaded to sites such as [Spoonflower][spoon] or [Contrado][contrado] to be turned into custom wrapping-paper, fabric textiles, or wallpaper!  When exported as a tile, eschersketch upsamples the pixel density by a factor of 4x, so as to provide enough DPI for decent prints.
+__Tile__ This is very useful: a symmetric wallpaper pattern can be described by a small tile, and used in tools such as Photoshop's "pattern fill", used to generate textures for 3d-graphics, or uploaded to sites such as [Spoonflower][spoon] or [Contrado][contrado] to be turned into custom wrapping-paper, fabric textiles, or wallpaper!  When exported as a tile, Eschersketch upsamples the pixel density by a factor of 4x, so as to provide enough DPI for decent prints.
 
-__SVG__ Saves all drawn objects into an SVG file for use in a proper vector graphics tool.  __Warning:__ given the huge numbers of replicates in a complicated scene with a fine grid, this could grind to a halt if there's too much being exported on too fine a grid size.  This is fairly primitive right now, exporting everything into a big group, so you may want to export different features separately to build up clean layers.
+__SVG__ Saves all drawn objects into an SVG file for use in a proper vector graphics tool.  __Warning:__ given the huge numbers of replicates in a complicated scene with a fine grid, this could grind to a halt if there's too much being exported on too fine a grid size.  Each drawing operation's replicated graphical elements are exported in their own group.
 
 ## Sharing Links to your Drawing
 

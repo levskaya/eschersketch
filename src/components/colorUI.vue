@@ -3,20 +3,22 @@
     <span class="UIheader">color</span><br>
 
     <!-- buttons to select which color to pick -->
-    <div class="colorbutton" :class="{selected: isStroke}" @mousedown="pickStroke" @mouseenter="setHint" hint="set stroke color">
+    <div class="colorbutton" :class="{selected: isStroke}" @mousedown="pickStroke"
+         @mouseover="setHint" hint="set stroke color">
       <span class="icon-stroke" :style="strokeStyle"></span>
     </div>
-    <div class="colorbutton" :class="{selected: !isStroke}" @mousedown="pickFill" @mouseenter="setHint" hint="set fill color">
+    <div class="colorbutton" :class="{selected: !isStroke}" @mousedown="pickFill" 
+         @mouseover="setHint" hint="set fill color">
       <span class="icon-fill" :style="fillStyle"></span>
     </div>
 
     <!-- buttons to kill (opacity->0) stroke or fill color -->
-    <div class="button" @mousedown="nukeStroke" @mouseenter="setHint" hint="make stroke invisible">
+    <es-button name="nukeStroke" @bclick="nukeStroke" hint="make stroke invisible">
       <span class="icon-no-stroke"><span class="path1"></span><span class="path2"></span></span>
-    </div>
-    <div class="button" @mousedown="nukeFill" @mouseenter="setHint" hint="make fill invisible">
+    </es-button>
+    <es-button name="nukeFill" @bclick="nukeFill" hint="make fill invisible">
       <span class="icon-no-fill"><span class="path1"></span><span class="path2"></span></span>
-    </div>
+    </es-button>
 
     <!-- color pickers -->
     <div id="strokecolor" :style="{display: isStroke ? 'block' : 'none' }">
@@ -42,9 +44,10 @@
 <script>
 import {gS} from '../main.js';
 import colorPicker from './colorPicker';
+import esButton from './es_button';
 
 export default {
-  components: {colorPicker},
+  components: {colorPicker, esButton},
   props: ['params', 'options', 'strokeColor', 'fillColor'],
   data: function() {return {isStroke: true}; },
   computed: {

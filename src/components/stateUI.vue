@@ -13,7 +13,7 @@
         </div>
         <div class="Aligner-item">
           <div class="button" :class="{selected: !params.fullUI}" style="margin-left:80%;"
-               title="minimize UI" @click="toggleUI">
+              @mousedown="toggleUI" @mouseover="setHint" hint="minimized/mobile UI mode">
             <span class="icon-shrink2"></span>
           </div>
         </div>
@@ -23,41 +23,61 @@
         <span class="eslogo"><img src="/static/svg/eslogo2.svg" height="20px" style="margin-bottom:-4px; padding:0px"/></span>
     </template>
 
-    <div class="button" :class="{pulsate: pageJustLoaded}" @click="help" title="help" key="stateui-help-button">
+    <div class="button" :class="{pulsate: pageJustLoaded}" @mousedown="help"
+         key="stateui-help-button" @mouseover="setHint" hint="show help screen">
       <span class="icon-question-circle"></span>
       <!--<b>?</b>-->
     </div>
 
     <template v-if="params.fullUI">
-      <div class="button"  @click="config" title="settings"><span class="icon-cog"></span></div>
+      <div class="button" @mousedown="config"
+           @mouseover="setHint" hint="settings e.g. turn off these hints">
+        <span class="icon-cog"></span>
+      </div>
     </template>
 
     <template v-if="!params.fullUI">
-      <div class="button" :class="{selected: params.showTool}" @click="toggleTool" key="stateui-tool-button" title="show color">
+      <div class="button" :class="{selected: params.showTool}" @mousedown="toggleTool"
+            key="stateui-tool-button"
+           @mouseover="setHint" hint="show drawing tools">
         <span class="icon-quill"></span>
       </div>
-      <div class="button" :class="{selected: params.showColor}" @click="toggleColor" key="stateui-color-button" title="show color">
+      <div class="button" :class="{selected: params.showColor}" @mousedown="toggleColor"
+           key="stateui-color-button"
+           @mouseover="setHint" hint="show color selection">
         <span class="icon-palette"></span>
       </div>
-      <div class="button" :class="{selected: params.showSymm}" @click="toggleSymm" key="stateui-symm-button" title="show symmetries">
+      <div class="button" :class="{selected: params.showSymm}" @mousedown="toggleSymm"
+           key="stateui-symm-button"
+           @mouseover="setHint" hint="show symmetry selection">
         <span class="icon-symmetries"></span>
       </div>
-      <div class="button" :class="{selected: params.showFile}" @click="toggleFile" key="stateui-file-button" title="save files">
+      <div class="button" :class="{selected: params.showFile}" @mousedown="toggleFile"
+           key="stateui-file-button"
+           @mouseover="setHint" hint="show save and share options">
         <span class="icon-folder-download"></span>
       </div>
     </template>
 
-    <div class="button"  @click="undo" title="undo" key="stateui-undo"><span class="icon-undo"></span></div>
-    <div class="button"  @click="redo" title="redo" key="stateui-redo"><span class="icon-redo"></span></div>
+    <div class="button" @mousedown="undo" key="stateui-undo"
+         @mouseover="setHint" hint="step back one drawing operation">
+      <span class="icon-undo"></span>
+    </div>
+    <div class="button" @mousedown="redo" key="stateui-redo"
+         @mouseover="setHint" hint="re-step forward one drawing operation">
+      <span class="icon-redo"></span>
+    </div>
 
-    <div class="button" :class="{armed: armed}" @click="reset" title="reset" key="stateui-reset">
+    <div class="button" :class="{armed: armed}" @mousedown="reset" key="stateui-reset"
+         @mouseover="setHint" hint="reset drawing (double click to confirm)">
       <template v-if="armed"><span class="icon-bin"></span>?</template>
       <template v-else><span class="icon-bin"></span></template>
     </div>
 
 
     <template v-if="!params.fullUI">
-      <div class="button" @click="toggleUI" key="stateui-enlarge-button" title="full UI">
+      <div class="button" @mousedown="toggleUI" key="stateui-enlarge-button"
+           @mouseover="setHint" hint="full UI mode">
         <span class="icon-enlarge2"></span>
       </div>
     </template>
@@ -116,7 +136,12 @@ export default {
     },
     help: function(){ gS.$emit('help'); },
     config: function(){ gS.$emit('config'); },
-    }
+    setHint: function(e) {
+      if(e.target.attributes.hint){
+        gS.$emit('setHint', e.target.attributes.hint.value);
+      }
+    },
+  },
 }
 </script>
 

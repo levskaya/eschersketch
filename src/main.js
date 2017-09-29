@@ -777,6 +777,7 @@ const initGUI = function() {
 // This "works" for both mouse and touch events, but
 // really the whole UI needs major rework for mobile...
 const initTouchEvents = function() {
+  gS.$emit('optionsUpdate', "showHints", false); //HACK: mouseover interferes with mousedown during hinting somehow
   // get a reference to top canvas element
   var stage = document.getElementById('sketchlive');
   // create a manager for that element

@@ -2,8 +2,8 @@
   <div id="symmetryUI" :style="panelStyle">
     <span class="UIheader">symmetries</span><br>
 
-    <es-button name="none" :selected="cursym" @bclick="changeSym"></es-button>
-    <es-button name="rosette" :selected="cursym" @bclick="changeSym"></es-button>
+    <es-button name="none" :selected="cursym" @bclick="changeSym" hint="NO symmetry"></es-button>
+    <es-button name="rosette" :selected="cursym" @bclick="changeSym" hint="rosette / flower symmetry"></es-button>
     <span :style="showPointParams">
       <es-numfield param="Nrot" :val="symmState.Nrot" size="2" @numchange="update"></es-numfield>
       <es-numfield param="Nref" :val="symmState.Nref" size="2" @numchange="update"></es-numfield>
@@ -34,7 +34,7 @@
     <es-button name="p3m1" :selected="cursym" @bclick="changeSym"></es-button>
     <es-button name="p6m" :selected="cursym" @bclick="changeSym"></es-button><br>
 
-    <es-button name="grid" :selected="curtool" @bclick="toggleGridTool">
+    <es-button name="grid" :selected="curtool" @bclick="toggleGridTool" hint="toggle symmetry grid adjustment tool">
       grid adjust
     </es-button>
 
@@ -50,8 +50,11 @@
         </template>
         <es-numfield param="d" label="&Delta;" :val="symmState.d" size="3" @numchange="update"></es-numfield>
       </template>
+      <es-button name="halvegrid" @bclick="halveD" hint="halve symmetry grid size">&#189;</es-button>
+      <es-button name="doublegrid" @bclick="doubleD" hint="double symmetry grid size">2x</es-button>
+      <!--
       <div class="button" @click="halveD">&#189;</div>
-      <div class="button" @click="doubleD">2x</div>
+      <div class="button" @click="doubleD">2x</div>-->
     </span><br>
 
   </div>

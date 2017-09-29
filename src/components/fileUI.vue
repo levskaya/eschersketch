@@ -8,17 +8,17 @@
     <br>
   </template>
 
-  <div id="saveSVG" class="button" @mousedown="saveSVG">
+  <es-button name="saveSVG" @bclick="saveSVG" hint="export drawing as SVG">
     <span class="icon-folder-download"></span> SVG
-  </div>
+  </es-button>
 
-  <div id="savePNG" class="button" @mousedown="savePNG">
+  <es-button name="savePNG" @bclick="savePNG" hint="export drawing as PNG">
     <span class="icon-folder-download"></span> Picture
-  </div>
+  </es-button>
 
-  <div id="savePNGtile" class="button" @mousedown="savePNGTile">
+  <es-button name="savePNGTile" @bclick="savePNGTile" hint="export symmetric tile as PNG">
     <span class="icon-folder-download"></span> Tile
-  </div>
+  </es-button>
 
   <template v-if="options.showJSONexport">
     <br>
@@ -27,11 +27,11 @@
     </span>
     <br>
 
-    <div id="save-json" class="button" @mousedown="saveJSON">
+    <es-button name="saveJSON" @bclick="saveJSON" hint="save drawing as JSON file">
       <span class="icon-folder-download"></span> JSON
-    </div>
+    </es-button>
 
-    <label class="fileContainer">
+    <label class="fileContainer" @mouseover="setHint" hint="reload previously saved JSON file">
       <span class="icon-folder-upload"></span> JSON
       <input id="the-file-input" type="file" @change="loadJSON">
     </label>
@@ -39,9 +39,9 @@
 
   <template v-if="params.showNetwork && !params.disableNetwork">
     <br>
-    <div id="save-online" class="button" @mousedown="uploadSketch">
+    <es-button name="saveOnline" @bclick="uploadSketch" hint="upload drawing to cloud and make social share links">
       <span class="icon-cloud-upload"></span> Share!
-    </div>
+    </es-button>
 
     <template v-if="params.showShareLinks">
       <div id="copy-button" class="button" v-if="params.copyText.length>0">
@@ -64,8 +64,8 @@
 </template>
 
 <script>
-import es_numfield from './es_numfield';
-import es_button from './es_button';
+import esNumfield from './es_numfield';
+import esButton from './es_button';
 import {gS, saveSVG, savePNG, savePNGTile, saveJSON, loadJSON} from '../main';
 import {networkConfig} from '../config';
 import {saveSketch} from '../network';
@@ -78,10 +78,7 @@ var clipboard = new Clipboard('#copy-button', {
 
 export default {
   props: ['params', 'options'],
-  components: {
-    'es-button': es_button,
-    'es-numfield': es_numfield
-  },
+  components: {esButton, esNumfield},
   computed: {
     panelStyle: function() {
       return {display: this.params.showFile ? "block" : "none"};
@@ -121,7 +118,12 @@ export default {
     },
     uploadSketch: function(){
       saveSketch();
-    }
+    },
+    setHint: function(e) {
+      if(e.target.attributes.hint){
+        gS.$emit('setHint', e.target.attributes.hint.value);
+      }
+    },
   }
 }
 </script>

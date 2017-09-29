@@ -19,17 +19,18 @@ export default {
 
 <style>
 #hintPanel {
-  foo_position: absolute;
+  /*position: absolute;*/
   position: fixed;
   left: 0;
-  right: 0;
+  /*right: 0;*/
   top:5px;
   z-index:10;
-  padding:0 2px 0 2px;
-  margin: auto;
-  width: 50%;
+  padding:0 5px 0px 5px;
+  margin: 0px 5px 0px 5px; /*auto;*/
+  /*width: 250px; */ /*width: 50%;*/
   background-color:rgba(245,245,245,0.95);
-  _border-radius: 5px;
+  border-radius: 5px;
+  border: 1px solid rgba(145,145,145,0.95);
   display: flex;
   flex-flow: row wrap;
   align-items: baseline;
@@ -44,6 +45,6 @@ export default {
   }
 }
 .hintText {
-  /*font-size:20px;*/
+  _font-size:20px;
 }
 </style>

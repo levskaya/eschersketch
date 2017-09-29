@@ -1,5 +1,5 @@
 <template>
-  <div class="button" :class="isSelected" @click="bclick" @mouseenter="setHint" @mouseleave="clearHint">
+  <div class="button" :class="isSelected" @mousedown="bclick" @mouseover="setHint">
     <template v-if="this.$slots.default">
       <slot></slot>
     </template>

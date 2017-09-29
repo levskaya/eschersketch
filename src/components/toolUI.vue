@@ -2,22 +2,22 @@
   <div id="toolUI" :style="panelStyle">
     <span class="UIheader">drawing</span><br>
 
-    <es-button name="pencil" :selected="curtool" @bclick="changeTool">
+    <es-button name="pencil" :selected="curtool" @bclick="changeTool" hint="pencil tool">
       <span class="icon-pencil"></span>
     </es-button>
-    <es-button name="line"   :selected="curtool" @bclick="changeTool">
+    <es-button name="line"   :selected="curtool" @bclick="changeTool" hint="line tool">
       <span class="icon-line"></span>
     </es-button>
-    <es-button name="polygon" :selected="curtool" @bclick="changeTool">
+    <es-button name="polygon" :selected="curtool" @bclick="changeTool" hint="regular polygon tool">
       <span class="icon-hexagon"></span>
     </es-button>
-    <es-button name="circle" :selected="curtool" @bclick="changeTool">
+    <es-button name="circle" :selected="curtool" @bclick="changeTool" hint="ellipse tool">
       <span class="icon-radio-unchecked"></span>
     </es-button>
-    <es-button name="poly"   :selected="curtool" @bclick="changeTool">
+    <es-button name="poly"   :selected="curtool" @bclick="changeTool" hint="polyline tool">
       <span class="icon-polyline"></span>
     </es-button>
-    <es-button name="path" :selected="curtool" @bclick="changeTool">
+    <es-button name="path" :selected="curtool" @bclick="changeTool" hint="bezier path tool">
       <span class="icon-pen"></span>
     </es-button>
     <!--

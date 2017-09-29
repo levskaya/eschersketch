@@ -9,33 +9,33 @@
                :step="options.deltaLineWidth"
                @numchange="changeThick"></es-slider>
 
-    <es-button name="normal" :selected="ctxStyle.drawOrder" @bclick="changeOrder">
+    <es-button name="normal" :selected="ctxStyle.drawOrder" @bclick="changeOrder" hint="mix strokes and fills">
      <span class="icon-draworder-normal"/>
     </es-button>
-    <es-button name="fillstroke" :selected="ctxStyle.drawOrder" @bclick="changeOrder">
+    <es-button name="fillstroke" :selected="ctxStyle.drawOrder" @bclick="changeOrder" hint="all fills then all strokes">
      <span class="icon-draworder-fillstroke"/>
     </es-button>
-    <es-button name="strokefill" :selected="ctxStyle.drawOrder" @bclick="changeOrder">
+    <es-button name="strokefill" :selected="ctxStyle.drawOrder" @bclick="changeOrder" hint="all strokes then all fills">
      <span class="icon-draworder-strokefill"/>
    </es-button>&nbsp;
 
-    <es-button name="butt" :selected="ctxStyle.lineCap" @bclick="changeCap">
+    <es-button name="butt" :selected="ctxStyle.lineCap" @bclick="changeCap" hint="butt line cap">
       <span class="icon-linecap-butt"/>
     </es-button>
-    <es-button name="round" :selected="ctxStyle.lineCap" @bclick="changeCap">
+    <es-button name="round" :selected="ctxStyle.lineCap" @bclick="changeCap" hint="round line cap">
       <span class="icon-linecap-round"/>
     </es-button>
-    <es-button name="square" :selected="ctxStyle.lineCap" @bclick="changeCap">
+    <es-button name="square" :selected="ctxStyle.lineCap" @bclick="changeCap" hint="square line cap">
       <span class="icon-linecap-square"/>
     </es-button>&nbsp;
 
-    <es-button name="round" :selected="ctxStyle.lineJoin" @bclick="changeJoin">
+    <es-button name="round" :selected="ctxStyle.lineJoin" @bclick="changeJoin" hint="line corners rounded">
       <span class="icon-linejoin-round"/>
     </es-button>
-    <es-button name="bevel" :selected="ctxStyle.lineJoin" @bclick="changeJoin">
+    <es-button name="bevel" :selected="ctxStyle.lineJoin" @bclick="changeJoin" hint="line corners beveled">
       <span class="icon-linejoin-bevel"/>
     </es-button>
-    <es-button name="miter" :selected="ctxStyle.lineJoin" @bclick="changeJoin">
+    <es-button name="miter" :selected="ctxStyle.lineJoin" @bclick="changeJoin" hint="line corners mitered">
       <span class="icon-linejoin-miter"/>
     </es-button>
 

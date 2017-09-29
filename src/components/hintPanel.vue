@@ -8,10 +8,10 @@
 import {gS} from '../main.js';
 
 export default {
-  props: ['params'],
+  props: ['params', 'options'],
   computed:{
     panelStyle: function() {
-      return (!this.params.showHints || this.params.hintText==="") ? {display: "none"} : {};
+      return (!this.options.showHints || this.params.hintText==="") ? {display: "none"} : {};
     }
   },
 }
@@ -19,16 +19,17 @@ export default {
 
 <style>
 #hintPanel {
-  position: absolute;
+  foo_position: absolute;
+  position: fixed;
   left: 0;
   right: 0;
   top:5px;
-  z-index:6;
+  z-index:10;
   padding:0 2px 0 2px;
   margin: auto;
   width: 50%;
   background-color:rgba(245,245,245,0.95);
-  border-radius: 5px;
+  _border-radius: 5px;
   display: flex;
   flex-flow: row wrap;
   align-items: baseline;
@@ -38,7 +39,7 @@ export default {
 
 @media (max-width: 768px) {
   #hintPanel {
-    top: 90%;
+    top: 95%;
     width:100%;
   }
 }

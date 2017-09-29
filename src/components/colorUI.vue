@@ -3,18 +3,18 @@
     <span class="UIheader">color</span><br>
 
     <!-- buttons to select which color to pick -->
-    <div class="colorbutton" :class="{selected: isStroke}" @mousedown="pickStroke">
+    <div class="colorbutton" :class="{selected: isStroke}" @mousedown="pickStroke" @mouseenter="setHint" hint="set stroke color">
       <span class="icon-stroke" :style="strokeStyle"></span>
     </div>
-    <div class="colorbutton" :class="{selected: !isStroke}" @mousedown="pickFill">
+    <div class="colorbutton" :class="{selected: !isStroke}" @mousedown="pickFill" @mouseenter="setHint" hint="set fill color">
       <span class="icon-fill" :style="fillStyle"></span>
     </div>
 
     <!-- buttons to kill (opacity->0) stroke or fill color -->
-    <div class="button" @mousedown="nukeStroke">
+    <div class="button" @mousedown="nukeStroke" @mouseenter="setHint" hint="make stroke invisible">
       <span class="icon-no-stroke"><span class="path1"></span><span class="path2"></span></span>
     </div>
-    <div class="button" @mousedown="nukeFill">
+    <div class="button" @mousedown="nukeFill" @mouseenter="setHint" hint="make fill invisible">
       <span class="icon-no-fill"><span class="path1"></span><span class="path2"></span></span>
     </div>
 
@@ -70,7 +70,13 @@ export default {
     pickStroke: function({type, target}){ this.isStroke = true;  },
     pickFill:   function({type, target}){ this.isStroke = false; },
     nukeStroke: function(x){ gS.$emit('colorUpdate', {target: "stroke", r:0, g:0, b:0, a:0.0}); },
-    nukeFill:   function(x){ gS.$emit('colorUpdate', {target: "fill",   r:0, g:0, b:0, a:0.0}); }
+    nukeFill:   function(x){ gS.$emit('colorUpdate', {target: "fill",   r:0, g:0, b:0, a:0.0}); },
+    setHint: function(e) {
+      if(e.target.attributes.hint){
+        //console.log("sethint", e.target.attributes.hint.value);
+        gS.$emit('setHint', e.target.attributes.hint.value);
+      }
+    },
   },
 }
 </script>

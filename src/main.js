@@ -72,7 +72,6 @@ export const gS = new Vue({
       showHelp: false,
       showConfig: false,
       showShareLinks: false,
-      showHints: false,           // contextual help, not fully implemented
       hintText: "",
       canvasHeight: 1200,
       canvasWidth:  1600,
@@ -87,6 +86,7 @@ export const gS = new Vue({
       showGridParameters: false,
       showFileName: false,
       showJSONexport: false,
+      showHints: false,           // contextual help
       minLineWidth: 0.1,          // linewidth bounds
       deltaLineWidth: 0.1,
       maxLineWidth: 10,
@@ -199,6 +199,7 @@ gS.$on('colorUpdate',
          drawTools[gS.params.curTool].liverender();
        });
 gS.$on('toolUpdate', function(tool){ changeTool(tool); });
+gS.$on('toolAction', function(actionName){ drawTools[gS.params.curTool][actionName](); });
 gS.$on('toolOptionUpdate',
       function(name, value){
         drawTools[gS.params.curTool].options[name].val = value;
@@ -239,8 +240,19 @@ gS.$on('toggleUI', function() {
   }});
 gS.$on('help', function(){ gS.params.showHelp = ! gS.params.showHelp;});
 gS.$on('config', function(){ gS.params.showConfig = ! gS.params.showConfig; });
+var hintCounter = 0; //XXX: global counter
 gS.$on('setHint', function(val){
-  if(gS.params.showHints) { gS.params.hintText = val; }
+  if(gS.options.showHints) {
+    gS.params.hintText = val;
+    // automatically disappear the hint, taking into account multiple
+    // hints could be displayed at any time, so only clear after last
+    if(val==""){ hintCounter  = 0; }
+    else {       hintCounter += 1; }
+    setTimeout(function() {
+                  if(hintCounter>0){ hintCounter-=1; }
+                  if(hintCounter==0){ gS.params.hintText = "" }
+                }, 1000);
+  }
 });
 window.gS=gS;  // HACK: for debugging
 
@@ -751,7 +763,7 @@ const initGUI = function() {
     _.assign(gS.options, savedOptions);
   }
 
-  //show help screen on first startup
+  //show help screen on first visit to eschersketch
   if(!lsGetJSON("alreadyVisited")) {
     gS.$emit("help");
     lsSaveJSON("alreadyVisited", true);

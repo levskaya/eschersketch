@@ -10,6 +10,8 @@
     <!-- Configuration UI -->
     <config-ui :params="params" :options="options"/>
 
+    <!--<hint-panel :params="params"/>-->
+
     <!-- Tool Selection -->
     <tool-ui :params="params"/>
     <nav-panel :params="params"/>
@@ -35,7 +37,7 @@
   </div><!-- /sketch-UI -->
 
   <help-panel :params="params"/>
-  <hint-panel :params="params"/>
+  <hint-panel :params="params" :options="options"/>
 </span>
 
 </template>

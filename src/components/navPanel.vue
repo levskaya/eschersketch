@@ -1,20 +1,15 @@
 <template>
   <div id="navPanel" :style="panelStyle">
     <template v-if="drawTools[params.curTool].actions">
-    <!--<div style="font-variant: small-caps;width:100%;">tool commands</div>-->
 
-      <!--<div class="toolname"><b>{{curtool}}</b></div>-->
-
+      <!--<div style="font-variant: small-caps;width:100%;">tool actions</div>-->
       <template v-for="action in drawTools[params.curTool].actions">
-        <!--<div class="action-name">{{action.desc}}</div>-->
-
         <div class="icon-w-keyhint">
           <es-button :name="action.name" selected="" :hint="action.desc" @bclick="takeAction">
             <span :class="action.icon" :title="action.desc"/>
           </es-button>
         <div class="keyhint" v-html="$options.filters.printableKeyCode(action.key)"></div>
         </div>
-
       </template>
 
     </template>
@@ -24,7 +19,6 @@
 <script>
 import esButton from './es_button';
 import {gS, drawTools} from '../main.js';
-
 
 export default {
   props: ['params'],
@@ -40,9 +34,7 @@ export default {
     }
   },
   methods: {
-    //changeTool: function(toolName){ gS.$emit('toolUpdate', toolName);  },
-    //log: function(e){console.log(e,e.target.attributes);},
-    takeAction: function(name){ drawTools[this.params.curTool][name](); } //HACK
+    takeAction: function(actionName){ gS.$emit('toolAction', actionName); }
   },
   filters: {
     printableKeyCode: function(keycode) {
@@ -117,6 +109,5 @@ export default {
     display: none;
   }
 }
-
 
 </style>

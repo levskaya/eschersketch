@@ -24,12 +24,12 @@ export default {
     setHint: function(e) {
       if(this.hint){
         gS.$emit('setHint', this.hint);
-        setTimeout(() => gS.$emit('setHint', ''), 1000);
+        //setTimeout(() => gS.$emit('setHint', ''), 2000);
       }
     },
     clearHint: function(e) {
       if(this.hint){
-        gS.$emit('setHint', '');
+        //gS.$emit('setHint', '');
       }
     },
   },

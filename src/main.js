@@ -35,7 +35,7 @@ require('./libs/modernizr-custom.js');
 
 // Local Imports
 //------------------------------------------------------------------------------
-import {deepClone} from './utils';
+import {deepClone, lsGetJSON, lsSaveJSON, lsDelJSON} from './utils';
 import {pixelFix, setCanvasPixelDensity, parseColor} from './canvas_utils';
 import {generateTiling, planarSymmetries, RosetteGroup, IdentitySet} from './symmetryGenerator';
 import {networkConfig} from './config';
@@ -740,6 +740,12 @@ const initGUI = function() {
 
   //start in minimized state on small mobile screens
   if(w <= 425) { gS.$emit("toggleUI"); }
+
+  //show help screen on first startup
+  if(!lsGetJSON("alreadyVisited")) {
+    gS.$emit("help");
+    lsSaveJSON("alreadyVisited", true);
+  }
 
   //parse URL for get params and load from backend
   loadGivenSketch();

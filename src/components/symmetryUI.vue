@@ -38,12 +38,12 @@
       grid adjust
     </es-button>
 
-    <template v-if="params.showGridParameters">
+    <template v-if="options.showGridParameters">
       <es-numfield param="X" :val="symmState.x" size="4" @numchange="update"></es-numfield>
       <es-numfield param="Y" :val="symmState.y" size="4" @numchange="update"></es-numfield>
     </template>
     <span :style="showGridParams">
-      <template v-if="params.showGridParameters">
+      <template v-if="options.showGridParameters">
         <template v-if="!options.dynamicGridSize">
           <es-numfield param="Nx" :val="symmState.Nx" @numchange="update" size="2"></es-numfield>
           <es-numfield param="Ny" :val="symmState.Ny" @numchange="update" size="2"></es-numfield><br>

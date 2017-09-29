@@ -3,10 +3,10 @@
     <br><span class="UIheader">Options</span><br>
 
     <b>UI options</b><br>
-    <es-checkbox param="showColorInputs" :val="params.showColorInputs" @checked="updateParam">Show Manual Color Inputs?</es-checkbox><br>
-    <es-checkbox param="showGridParameters" :val="params.showGridParameters" @checked="updateParam">Show Grid Parameters?</es-checkbox><br>
-    <es-checkbox param="showFileName" :val="params.showFileName" @checked="updateParam">Show Filename?</es-checkbox><br>
-    <es-checkbox param="showJSONexport" :val="params.showJSONexport" @checked="updateParam">Show JSON Export Links?</es-checkbox><br>
+    <es-checkbox param="showColorInputs" :val="options.showColorInputs" @checked="update">Show Manual Color Inputs?</es-checkbox><br>
+    <es-checkbox param="showGridParameters" :val="options.showGridParameters" @checked="update">Show Grid Parameters?</es-checkbox><br>
+    <es-checkbox param="showFileName" :val="options.showFileName" @checked="update">Show Filename?</es-checkbox><br>
+    <es-checkbox param="showJSONexport" :val="options.showJSONexport" @checked="update">Show JSON Save/Load?</es-checkbox><br>
 
     <b>draw options</b><br>
     <es-numfield param="maxLineWidth" :val="options.maxLineWidth" size="2" @numchange="update">Max line width</es-numfield><br>

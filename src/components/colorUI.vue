@@ -25,7 +25,7 @@
                     :g="strokeColor.g"
                     :b="strokeColor.b"
                     :a="strokeColor.a"
-                    :fullUI = "params.showColorInputs"/>
+                    :fullUI = "options.showColorInputs"/>
     </div>
     <div id="fillcolor" :style="{display: isStroke ? 'none' : 'block' }">
       <color-picker target="fill"
@@ -33,7 +33,7 @@
                     :g="fillColor.g"
                     :b="fillColor.b"
                     :a="fillColor.a"
-                    :fullUI = "params.showColorInputs"/>
+                    :fullUI = "options.showColorInputs"/>
     </div>
 
   </div>
@@ -45,7 +45,7 @@ import colorPicker from './colorPicker';
 
 export default {
   components: {colorPicker},
-  props: ['params', 'strokeColor', 'fillColor'],
+  props: ['params', 'options', 'strokeColor', 'fillColor'],
   data: function() {return {isStroke: true}; },
   computed: {
     panelStyle: function() {

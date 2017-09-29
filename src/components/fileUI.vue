@@ -2,7 +2,7 @@
 <div id="fileUI" :style="panelStyle">
   <span class="UIheader">export</span><br>
 
-  <template v-if="params.showFileName">
+  <template v-if="options.showFileName">
     <es-numfield param="filename" label="filename"
       :val="fname" size="20" @numchange="changeFilename" key="fileui-fname"/>
     <br>
@@ -20,7 +20,7 @@
     <span class="icon-folder-download"></span> Tile
   </div>
 
-  <template v-if="params.showJSONexport">
+  <template v-if="options.showJSONexport">
     <br>
     <span style="font-variant: small-caps;">
       save&load <span style="color:red">experimental</span>
@@ -77,7 +77,7 @@ var clipboard = new Clipboard('#copy-button', {
 });
 
 export default {
-  props: ['params'],
+  props: ['params', 'options'],
   components: {
     'es-button': es_button,
     'es-numfield': es_numfield

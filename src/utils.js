@@ -31,4 +31,7 @@ export const lsSaveJSON = function (keyname, obj){
   let jsonstr = JSON.stringify(obj);
   localStorage.setItem(keyname, jsonstr);
 }
+export const lsDelJSON = function (keyname){
+  localStorage.removeItem(keyname);
+}
 //window.lsGetJSON=lsGetJSON; // HACK for development

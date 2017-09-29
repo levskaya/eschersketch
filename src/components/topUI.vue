@@ -8,14 +8,14 @@
     <state-ui :params="params"/>
 
     <!-- Configuration UI -->
-    <config-ui :options="options" :params="params"/>
+    <config-ui :params="params" :options="options"/>
 
     <!-- Tool Selection -->
     <tool-ui :params="params"/>
     <nav-panel :params="params"/>
 
     <!-- Color UI -->
-    <color-ui :params="params" :stroke-color="strokeColor" :fill-color="fillColor"/>
+    <color-ui :params="params" :options="options" :stroke-color="strokeColor" :fill-color="fillColor"/>
 
     <!-- Line Style UI -->
     <style-ui :ctx-style="ctxStyle" :params="params" :options="options"/>
@@ -24,7 +24,7 @@
     <symmetry-ui :symm-state="symmState" :params="params" :options="options"/>
 
     <!-- Loading and Saving -->
-    <file-ui :params="params"/>
+    <file-ui :params="params" :options="options"/>
 
     <!-- Footnote -->
     <div :style="{display: params.fullUI ? 'block' : 'none'}">

@@ -79,15 +79,15 @@ export const gS = new Vue({
       filename: "eschersketch",
       versionString: "v0.3.1",    // repo version, updated to match git-describe --tags
       copyText:"",
-      showColorInputs: false,     // UI "expert mode" options
-      showFileName: false,
-      showJSONexport: false,
-      showGridParameters: false,
       disableNetwork: !networkConfig.networkEnabled, // enabled for online version, not useful for local install
     },
     // global UI options
     options: {
-      minLineWidth: 0.1,
+      showColorInputs: false,     // UI "expert mode" options
+      showGridParameters: false,
+      showFileName: false,
+      showJSONexport: false,
+      minLineWidth: 0.1,          // linewidth bounds
       deltaLineWidth: 0.1,
       maxLineWidth: 10,
       dynamicGridSize: true,      // recalculate grid Nx,Ny on grid delta change
@@ -204,7 +204,12 @@ gS.$on('toolOptionUpdate',
         drawTools[gS.params.curTool].options[name].val = value;
         drawTools[gS.params.curTool].liverender();
       });
-gS.$on('optionsUpdate', function(name, val){ gS.options[name] = val; });
+gS.$on('optionsUpdate', function(name, val){
+  gS.options[name] = val;
+  lsSaveJSON("options", gS.options);
+});
+gS.$on('paramsUpdate', function(name, val){ gS.params[name] = val;});
+gS.$on('toggleParam', function(paramName) { gS.params[paramName] = ! gS.params[paramName] });
 gS.$on('undo', function(){ undo(); });
 gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){
@@ -234,8 +239,6 @@ gS.$on('toggleUI', function() {
   }});
 gS.$on('help', function(){ gS.params.showHelp = ! gS.params.showHelp;});
 gS.$on('config', function(){ gS.params.showConfig = ! gS.params.showConfig; });
-gS.$on('paramsUpdate', function(name, val){ gS.params[name] = val;});
-gS.$on('toggleParam', function(paramName) { gS.params[paramName] = ! gS.params[paramName] });
 gS.$on('setHint', function(val){
   if(gS.params.showHints) { gS.params.hintText = val; }
 });
@@ -740,6 +743,13 @@ const initGUI = function() {
 
   //start in minimized state on small mobile screens
   if(w <= 425) { gS.$emit("toggleUI"); }
+
+  //load any previously cached configuration options
+  const savedOptions = lsGetJSON("options");
+  //update only if eschersketch hasn't been updated with a new configuration setup
+  if(savedOptions && _.isEqual(Object.keys(savedOptions), Object.keys(gS.options))){
+    _.assign(gS.options, savedOptions);
+  }
 
   //show help screen on first startup
   if(!lsGetJSON("alreadyVisited")) {

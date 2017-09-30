@@ -123,7 +123,7 @@ export class LineTool {
         this.commit();
       }
       this.state = _ON_;
-      this.points[0] = pt;
+      this.points = [pt, pt];
     }
   }
 

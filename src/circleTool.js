@@ -165,7 +165,7 @@ export class CircleTool {
         this.commit();
       }
       this.state = _ON_;
-      this.points[0] = pt;
+      this.points = [pt, pt, pt];
     }
   }
 

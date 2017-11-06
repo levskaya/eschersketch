@@ -1,11 +1,49 @@
 <template>
 <div id="fileUI" :style="panelStyle">
-  <span class="UIheader">export</span><br>
+  <span class="UIheader">print.share.export</span><br>
 
   <template v-if="options.showFileName">
     <es-numfield param="filename" label="filename"
       :val="fname" size="20" @numchange="changeFilename" key="fileui-fname"/>
     <br>
+  </template>
+
+  <template v-if="params.showNetwork && !params.disableNetwork">
+
+    <es-button name="saveOnline" @bclick="uploadSketch" hint="upload drawing to cloud and make social share links">
+      <span class="icon-cloud-upload"></span> Share!
+    </es-button>
+
+    <template v-if="params.showShareLinks">
+      <div id="copy-button" class="button" v-if="params.copyText.length>0">
+        <span class="icon-link"/>
+      </div>
+      <div id="fb-button" class="button">
+        <a :href="fbLink"><span class="icon-facebook-square"/></a>
+      </div>
+      <div id="twitter-button" class="button">
+        <a :href="twitterLink"><span class="icon-twitter-square"/></a>
+      </div>
+      <div id="pinterest-button" class="button">
+        <a :href="pinLink"><span class="icon-pinterest"/></a>
+      </div>
+    </template>
+    <br>
+
+    <es-button name="printOnline" @bclick="printTile" hint="upload tile pattern for printing wrapping paper, fabric, etc">
+      <template v-if="params.showPrintLinks">Upload New Print</template>
+      <template v-else>Order Prints!</template>
+    </es-button>
+
+    <template v-if="params.printLink == 'UPLOADING'"> UPLOADING </template>
+
+    <template v-if="params.showPrintLinks">
+      <es-button name="printZazzle" @bclick="gotoZazzle" hint="go to Zazzle to print wrapping paper, fabric, etc">
+        <b>Go to Zazzle</b>
+      </es-button>
+    </template>
+    <br>
+
   </template>
 
   <es-button name="saveSVG" @bclick="saveSVG" hint="export drawing as SVG">
@@ -37,29 +75,6 @@
     </label>
   </template>
 
-  <template v-if="params.showNetwork && !params.disableNetwork">
-    <br>
-    <es-button name="saveOnline" @bclick="uploadSketch" hint="upload drawing to cloud and make social share links">
-      <span class="icon-cloud-upload"></span> Share!
-    </es-button>
-
-    <template v-if="params.showShareLinks">
-      <div id="copy-button" class="button" v-if="params.copyText.length>0">
-        <span class="icon-link"/>
-      </div>
-      <div id="fb-button" class="button">
-        <a :href="fbLink"><span class="icon-facebook-square"/></a>
-      </div>
-      <div id="twitter-button" class="button">
-        <a :href="twitterLink"><span class="icon-twitter-square"/></a>
-      </div>
-      <div id="pinterest-button" class="button">
-        <a :href="pinLink"><span class="icon-pinterest"/></a>
-      </div>
-    </template>
-
-  </template>
-
 </div>
 </template>
 
@@ -68,7 +83,7 @@ import esNumfield from './es_numfield';
 import esButton from './es_button';
 import {gS, saveSVG, savePNG, savePNGTile, saveJSON, loadJSON} from '../main';
 import {networkConfig} from '../config';
-import {saveSketch} from '../network';
+import {saveSketch, saveTileforPrint} from '../network';
 import {_} from 'underscore';
 import Clipboard from 'clipboard';
 
@@ -118,6 +133,13 @@ export default {
     },
     uploadSketch: function(){
       saveSketch();
+    },
+    printTile: function(){
+      saveTileforPrint();
+    },
+    gotoZazzle: function(){
+      console.log("opening link ", gS.params.printLink);
+      window.open(gS.params.printLink, "_blank");
     },
     setHint: function(e) {
       if(e.target.attributes.hint){

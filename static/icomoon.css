@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?tsu5bp');
-  src:  url('fonts/icomoon.eot?tsu5bp#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?tsu5bp') format('truetype'),
-    url('fonts/icomoon.woff?tsu5bp') format('woff'),
-    url('fonts/icomoon.svg?tsu5bp#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?w9uyql');
+  src:  url('fonts/icomoon.eot?w9uyql#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?w9uyql') format('truetype'),
+    url('fonts/icomoon.woff?w9uyql') format('woff'),
+    url('fonts/icomoon.svg?w9uyql#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -89,6 +89,9 @@
 }
 .icon-hexagon:before {
   content: "\e903";
+}
+.icon-print:before {
+  content: "\f02f";
 }
 .icon-question-circle:before {
   content: "\f059";

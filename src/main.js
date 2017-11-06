@@ -72,6 +72,8 @@ export const gS = new Vue({
       showHelp: false,
       showConfig: false,
       showShareLinks: false,
+      showPrintLinks: false,
+      printLink: "",
       hintText: "",
       canvasHeight: 1200,
       canvasWidth:  1600,
@@ -216,6 +218,7 @@ gS.$on('redo', function(){ redo(); });
 gS.$on('reset', function(){
   reset();
   gS.params.showShareLinks=false;
+  gS.params.showPrintLinks=false;
 });
 
 // Pure UI Events
@@ -539,6 +542,36 @@ export const getJPGdata = function(){
   tmpCanvas.remove();
   return jpegData;
 };
+
+// Get base64 encoded PNG of current tile (for tile upload)
+export const getPNGTiledata = function(){
+  const pixelScale = gS.options.pngTileUpsample; // pixel density scaling factor
+
+  // get square tile dimensions
+  let [dX, dY] = planarSymmetries[gS.symmState.sym].tile;
+  dX *= gS.symmState.d * pixelScale;
+  dY *= gS.symmState.d * pixelScale;
+
+  // Render into tile-sized canvas for blob conversion and export
+  let tileCanvas = document.createElement('canvas');
+  tileCanvas.width = dX;
+  tileCanvas.height = dY;
+  let tctx = tileCanvas.getContext("2d");
+  tctx.save();
+  tctx.fillStyle="rgba(255,255,255,1.0)";
+  tctx.fillRect(0, 0, tileCanvas.width, tileCanvas.height);
+  tctx.restore();
+  //correct for center off-set and pixel-scaling
+  tctx.scale(pixelScale, pixelScale);
+  tctx.translate(-1*gS.symmState.x, -1*gS.symmState.y);
+  //rerender scene and export bitmap
+  rerender(tctx);
+  let pngData = tileCanvas.toDataURL();
+  tileCanvas.remove();
+  return pngData;
+};
+//window.getPNGTiledata = getPNGTiledata; //HACK
+
 
 export const savePNG = function() {
   const pixelScale = gS.options.pngUpsample; // pixel density scaling factor

@@ -9,9 +9,10 @@
 //
 //------------------------------------------------------------------------------
 
-import {gS, prepForUpload, fetchFromCloud, getJPGdata} from './main.js'
+import {gS, prepForUpload, fetchFromCloud, getJPGdata, getPNGTiledata} from './main.js'
 import {lsGetJSON, lsSaveJSON} from './utils.js';
 import {networkConfig} from './config';
+import {md5} from './libs/md5.js';
 
 const HttpClient = function() {
     this.get = function(url, callback) {
@@ -62,7 +63,7 @@ export const saveSketch = function(){
                   });
     imgclient.post(networkConfig.PostImageEndpoint, imgdata, function(str){
       let jsonObj = JSON.parse(str);
-      console.log("Image post", jsonObj['status'] ? "suceeded" : "failed");
+      console.log("Image post", jsonObj['status'] ? "succeeded" : "failed");
     });
   });
 }
@@ -72,5 +73,32 @@ export const loadSketch = function(sketchID){
   let client = new HttpClient();
   client.get(resturl, function(str){
     fetchFromCloud(str);
+  });
+}
+
+export const saveTileforPrint = function(){
+  let datastr = prepForUpload();
+  let dataHash = md5(datastr);
+  console.log("Posting tile image for printing, id ", dataHash);
+  let imgclient = new HttpClient();
+  let imgdata = JSON.stringify({
+                  hash:   dataHash,
+                  b64img: getPNGTiledata().replace("data:image/png;base64,","")
+                });
+  gS.params.printLink = "UPLOADING"; //HACK to temp update UI
+  imgclient.post(networkConfig.PostZazzleEndpoint, imgdata, function(str){
+    let jsonObj = JSON.parse(str);
+    console.log("Image post", jsonObj['status'] ? "succeeded" : "failed");
+    if(jsonObj['status']){
+      let myuri = encodeURI("https://eschersket.ch/zazzle/"+dataHash+".png");
+      let zazzleHref = networkConfig.zazzleHref.replace(/_TILEIMGURI_/g, myuri);
+      gS.params.printLink = zazzleHref;
+      gS.params.showPrintLinks = true;
+      //almost always blocked by popup blocker, async not a trusted event...
+      //console.log("opening link ", zazzleHref);
+      //window.open(zazzleHref, "_blank");
+    } else {
+      gS.params.printLink = "";
+    }
   });
 }

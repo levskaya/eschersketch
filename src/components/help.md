@@ -106,6 +106,7 @@ __SVG__ Saves all drawn objects into an SVG file for use in a proper vector grap
 ## Et Cetera
 
 For further reading I highly recommend:
+ - Check out Mahdi Bahrami's game [Engare][engare] based on motion and geometry, inspired by the Persian design tradition.
  - The compilation [Designa][designa] from Wooden Books, especially it's book by Daud Sutton on Islamic Design.
  - David Wade's [Pattern in Islamic Art][patislart]
  - Craig Kaplan's [thesis][cskthesis] and [lecture][csktalk] on the math behind some Islamic geometric patterns.
@@ -124,6 +125,7 @@ Questions and comments can be directed to [info@eschersket.ch][mail] or twitter 
 [spoon]: https://www.spoonflower.com/designs/new
 [contrado]: https://www.contrado.com/
 [zazzle]: https://www.zazzle.com/
+[engare]: http://www.engare.design/
 [designa]: https://www.amazon.com/Designa-Wooden-Books/dp/1620406594
 [gh]: https://github.com/levskaya/eschersketch
 [mail]: mailto:info@eschersket.ch

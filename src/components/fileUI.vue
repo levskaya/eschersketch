@@ -18,15 +18,15 @@
       <div id="copy-button" class="button" v-if="params.copyText.length>0">
         <span class="icon-link"/>
       </div>
-      <div id="fb-button" class="button">
-        <a :href="fbLink"><span class="icon-facebook-square"/></a>
-      </div>
-      <div id="twitter-button" class="button">
-        <a :href="twitterLink"><span class="icon-twitter-square"/></a>
-      </div>
-      <div id="pinterest-button" class="button">
-        <a :href="pinLink"><span class="icon-pinterest"/></a>
-      </div>
+      <es-button name="gotoFB" @bclick="gotoFB" hint="share on facebook">
+        <span class="icon-facebook-square"/>
+      </es-button>
+      <es-button name="gotoTwitter" @bclick="gotoTwitter" hint="share on twitter">
+        <span class="icon-twitter-square"/>
+      </es-button>
+      <es-button name="gotoPB" @bclick="gotoPB" hint="share on pinterest">
+        <span class="icon-pinterest"/>
+      </es-button>
     </template>
     <br>
 
@@ -81,7 +81,7 @@
 <script>
 import esNumfield from './es_numfield';
 import esButton from './es_button';
-import {gS, saveSVG, savePNG, savePNGTile, saveJSON, loadJSON} from '../main';
+import {gS, forceCommit, saveSVG, savePNG, savePNGTile, saveJSON, loadJSON} from '../main';
 import {networkConfig} from '../config';
 import {saveSketch, saveTileforPrint} from '../network';
 import {_} from 'underscore';
@@ -99,28 +99,12 @@ export default {
       return {display: this.params.showFile ? "block" : "none"};
     },
     fname: function() {return this.params.filename;},
-    fbLink: function() {
-      let myuri = encodeURI(gS.params.copyText);
-      let fbHref = networkConfig.fbHref.replace(/_MYURI_/g, myuri);
-      return fbHref;
-    },
-    twitterLink: function() {
-      let myuri = encodeURI(gS.params.copyText);
-      let twitterHref = networkConfig.twitterHref.replace(/_MYURI_/g, myuri);
-      return twitterHref;
-    },
-    pinLink: function() {
-      let myuri = encodeURI(gS.params.copyText);
-      let jpguri = myuri.replace("/s/","/social/")+".jpg";
-      let pinHref = networkConfig.pinHref.replace(/_MYURI_/g, myuri).replace(/_JPGURI_/g, jpguri);
-      return pinHref;
-    },
   },
   methods:{  //XXX: dirty, need to move all of these to top-level "$emit" calls
-    savePNG: function() { savePNG(); },
-    savePNGTile: function() { savePNGTile(); },
-    saveSVG: function() { saveSVG(); },
-    saveJSON: function() { saveJSON(); },
+    savePNG: function() { forceCommit();  savePNG(); },
+    savePNGTile: function() { forceCommit();  savePNGTile(); },
+    saveSVG: function() { forceCommit();  saveSVG(); },
+    saveJSON: function() { forceCommit();  saveJSON(); },
     loadJSON: function({type, target}){
       loadJSON(target.files[0]);
     },
@@ -132,10 +116,28 @@ export default {
       }
     },
     uploadSketch: function(){
+      forceCommit();
       saveSketch();
     },
     printTile: function(){
+      forceCommit();
       saveTileforPrint();
+    },
+    gotoFB: function() {
+      let myuri = encodeURI(gS.params.copyText);
+      let fbHref = networkConfig.fbHref.replace(/_MYURI_/g, myuri);
+      window.open(fbHref, "_blank");
+    },
+    gotoTwitter: function() {
+      let myuri = encodeURI(gS.params.copyText);
+      let twitterHref = networkConfig.twitterHref.replace(/_MYURI_/g, myuri);
+      window.open(twitterHref, "_blank");
+    },
+    gotoPB: function() {
+      let myuri = encodeURI(gS.params.copyText);
+      let jpguri = myuri.replace("/s/","/social/")+".jpg";
+      let pinHref = networkConfig.pinHref.replace(/_MYURI_/g, myuri).replace(/_JPGURI_/g, jpguri);
+      window.open(pinHref, "_blank");
     },
     gotoZazzle: function(){
       console.log("opening link ", gS.params.printLink);

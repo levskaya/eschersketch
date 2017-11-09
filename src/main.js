@@ -397,6 +397,12 @@ export const commitOp = function(op){
   op.render(ctx);
 };
 
+//used before uploading for share/print and exporting files
+export const forceCommit = function() {
+  let curTool = drawTools[gS.params.curTool];
+  curTool.commit();
+};
+
 //only used for undo/redo
 const switchTool = function(toolName, op){
   drawTools[gS.params.curTool].exit();

@@ -9,30 +9,32 @@
 
 An imperfect tool for drawing and exploring symmetrical patterns and designs.  It can export pictures, pattern tiles for fabric and wallpaper design, and SVG for further editing.  You can also publish your drawings and share them on Facebook and Twitter, or even have them printed onto custom wrapping paper or fabrics via [Zazzle][zazzle].
 
-## Commands
+#### Commands
+
 
 Icon   | Tool | Description
 -------|------|-------------------
-<span class="icon-shrink2"></span> | minimize | for small screens this puts the UI into a minimal mode
-<span class="icon-enlarge2"></span> | maximize | this reveals all of the major UI controls at once
-<span class="icon-undo"/>| undo | steps back a drawing step, re-entering interactive editing for previous draw tool
-<span class="icon-redo"/>| redo | reapplies a previously undone tool - note that the redo stack is not automatically emptied
-<span class="icon-bin"/>| reset | __erases everything__ - requires a double-click to activate
-<span class="icon-cog"/>| settings | expert mode options and configuration (e.g. disable hint messages, manual grid control)
-<span class="icon-question-circle"></span>| this help | is trying it's best to be of use
+<span class="icon-shrink2"></span> | __minimize__ | puts the UI into a minimal mode
+<span class="icon-enlarge2"></span> | __maximize__ | restores UI to full mode
+<span class="icon-undo"/>| __undo__ | steps back a drawing step to edit previous graphical element
+<span class="icon-redo"/>| __redo__ | reapplies a previously undone tool
+<span class="icon-bin"/>| __reset__ | _erases everything_ requires a double-click to activate
+<span class="icon-cog"/>| __settings__ | expert options and configuration
+<span class="icon-question-circle"></span>| __help__ | is trying it's best to be of use
 
-## Drawing Tools
+#### Drawing Tools
 
 Icon   | Tool | Description
 -------|------|-------------------
-<span class="icon-pencil"/>  | __pencil__ tool | freehand drawing tool, stroke-only, variable smoothing factor
-<span class="icon-line"/> | __line__ tool | draws single line segments between two _adjustable_ points
-<span class="icon-hexagon"/>| __polygon__ tool | draws a straight-sided __regular__ polygon _or_ star, _adjustable_ points
-<span class="icon-radio-unchecked"/> | __circle__ tool | draws circles, ellipses, and arcs,  from three _adjustable_ points
-<span class="icon-polyline"/> | __polyline__ tool | draws a straight-sided freehand polygon, _adjustable_ points
-<span class="icon-pen"/>| __path__ tool | draws bezier curves and straight lines, both vertices and control points are _adjustable_
+<span class="icon-pencil"/>  | __pencil__  | freehand drawing tool, stroke-only, variable smoothing factor
+<span class="icon-line"/> | __line__  | draws single line segments between two points
+<span class="icon-hexagon"/>| __polygon__  | draws a straight-sided _regular_ polygon _or_ star
+<span class="icon-radio-unchecked"/> | __circle__  | draws circles, ellipses, and arcs from three points
+<span class="icon-polyline"/> | __polyline__  | draws a straight-sided freehand polygon
+<span class="icon-pen"/>| __path__  | draws bezier curves and straight lines
 
-For the adjustable tools, a few more buttons/commands are present for saving, cancelling, and undoing points:
+Commands for saving, cancelling, and undoing points:
+
 Icon   | Tool | Description
 -------|------|-------------------
 <span class="icon-cross"/>  | __cancel__ | undoes the current drawn object and resets
@@ -41,22 +43,17 @@ Icon   | Tool | Description
 <span class="icon-stroke"/> | __close path__ | for polyline and path tool, closes path
 <span class="icon-radio-unchecked"/> | __smooth close__ | for path tool, closes path smoothly at beginning/end
 
-Additional options controlling the tool are displayed upon selection.
 
- ## Color
+#### Color and Styling
 
- Icon   | Tool | Description
- -------|------|-------------------
- <span class="icon-fill"/>| set fill color | color palette chooses fill color
- <span class="icon-stroke"/>| set stroke color | color palette chooses stroke color
- <span class="icon-no-stroke"> <span class="path1"></span><span class="path2"></span></span>| no stroke | sets stroke color to fully transparent
- <span class="icon-no-fill"> <span class="path1"></span><span class="path2"></span></span>| no fill | sets fill color to fully transparent
+Icon   | Tool | Description
+-------|------|-------------------
+<span class="icon-fill"/>| set fill color | color palette chooses fill color
+<span class="icon-stroke"/>| set stroke color | color palette chooses stroke color
+<span class="icon-no-stroke"> <span class="path1"></span><span class="path2"></span></span>| no stroke | sets stroke color to fully transparent
+<span class="icon-no-fill"> <span class="path1"></span><span class="path2"></span></span>| no fill | sets fill color to fully transparent
 
 Color can be set by clicking within the saturation panel, the hue slider, and the transparency slider.
-
-## Line Styling
-
-Line width can be set, as well as the _line-cap_, the shape at the end of the line, noticeable for thicker lines, and the _line-join_, which dictates how two line segments are connected together, round, beveled, or in a pointy "miter".
 
 Icon   | Description
 -------|-------------------------
@@ -64,9 +61,7 @@ Icon   | Description
 <span class="icon-linejoin-round"/><span class="icon-linejoin-bevel"/><span class="icon-linejoin-miter"/> | set line joins to round, beveled, or mitered
 <span class="icon-draworder-normal"/> <span class="icon-draworder-fillstroke"/> <span class="icon-draworder-strokefill"/> | draw stroke and fill simultaneously, or draw fills _then_ strokes, or vice versa
 
-For the miter join, a "miter limit" is set, which cuts off how far the pointy bits can go for lines joining at very narrow angles.
-
-## Symmetries
+#### Symmetries
 
 The heart of this program.  You can choose to draw with no symmetry.  You can draw with a "rosette" or [Point Group][1] that makes little flower- or mandala- like patterns about a single point.  The parameters __Nrot__ and __Nref__ control the number of rotations and reflections.
 
@@ -79,7 +74,7 @@ __180&deg; Containing Patterns__ : pmg, pgg, pmm, p2, cmm
 __Square Symmetric Patterns__ : p4, p4g, p4m
 __Hexagonally Symmetric Patterns__ : p3, p6, p31m, p3m1, p6m
 
-## Grid Adjustment
+#### Grid Adjustment
 
 The __grid adjustment__ tool allows to you move the "center" of the point-symmetry or wallpaper symmetry as well as scale the grid-spacing used in wallpaper symmetries.  Most commonly, one wants a grid-spacing exactly __½__ or __2x__ the current one - buttons are provided to do just that.
 

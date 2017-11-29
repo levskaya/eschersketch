@@ -1,6 +1,9 @@
 <template>
 <div id="helppanel" :style="helpDisplay">
-  <div class="button" @click="help" key="helpback1"><b>BACK TO ESCHERSKETCH</b></div>
+  <div id="buttoncontainer">
+  <div id="topbutton" class="button" @click="help" key="helpback1"><b>EXIT HELP</b></div>
+  <div id="xbutton" class="button" @click="help" key="helpback1b"><b>X</b></div>
+</div>
   <help-text>
     <div slot="header">
       <div id="logocontainer">
@@ -17,7 +20,7 @@
   </div>
   </help-text>
 
-  <div class="button" @click="help" key="helpback2"><b>BACK TO ESCHERSKETCH</b></div>
+  <div class="button" @click="help" key="helpback2"><b>EXIT HELP</b></div>
 </div>
 </template>
 
@@ -65,6 +68,30 @@ export default {
   display: block; /* wide button */
   align-self: flex-start;
   flex: 1 1 auto;
+  background-color: #ff5555;
+  color: white;
+}
+
+#buttoncontainer {
+  margin: auto;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  width:100%;
+}
+#buttoncontainer > #topbutton {
+  align-self: flex-start;
+  flex: 1 1 90%;
+  background-color: #ff5555;
+  color: white;
+}
+#buttoncontainer > #xbutton {
+  align-self: flex-start;
+  flex: 1 1 2%;
+  background-color: red;
+  color: white;
+  border-radius: 4px;
 }
 
 #logocontainer {
@@ -82,6 +109,10 @@ export default {
 #logocontainer .spacer{
   align-self: flex-start;
   flex: 1 1 1rem;
+}
+
+th {
+  display: none;
 }
 
 </style>

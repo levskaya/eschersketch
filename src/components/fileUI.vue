@@ -32,7 +32,7 @@
 
     <es-button name="printOnline" @bclick="printTile" hint="upload tile pattern for printing wrapping paper, fabric, etc">
       <template v-if="params.showPrintLinks">Upload New Print</template>
-      <template v-else>Order Prints!</template>
+      <template v-else>Order Wrapping Paper!</template>
     </es-button>
 
     <template v-if="params.printLink == 'UPLOADING'"> UPLOADING </template>

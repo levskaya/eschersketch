@@ -16,7 +16,7 @@
 
 // import core math to local namespace
 //--------------------------------------------------------------------------------------------------
-import { _ } from 'underscore';
+import _ from 'underscore';
 
 const { min, max, abs, sqrt, floor, round, sin, cos, tan, acos, asin, atan, pow, PI } = Math;
 const sign = // sign func -> -1, 1

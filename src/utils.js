@@ -9,7 +9,7 @@
 //
 //------------------------------------------------------------------------------
 
-import { _ } from 'underscore';
+import _ from 'underscore';
 
 // extracted from GH mateusmaso/underscore.deepclone
 export const deepClone = function(object) {

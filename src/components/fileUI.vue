@@ -84,7 +84,7 @@ import esButton from './es_button';
 import {gS, forceCommit, saveSVG, savePNG, savePNGTile, saveJSON, loadJSON} from '../main';
 import {networkConfig} from '../config';
 import {saveSketch, saveTileforPrint} from '../network';
-import {_} from 'underscore';
+import _ from 'underscore';
 import Clipboard from 'clipboard';
 
 var clipboard = new Clipboard('#copy-button', {

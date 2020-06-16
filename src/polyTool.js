@@ -17,7 +17,7 @@ import {gS,
        } from './main';
 
 import {l2dist, EPS} from './math_utils';
-import { _ } from 'underscore';
+import _ from 'underscore';
 
 import {drawHitCircle} from './canvas_utils';
 

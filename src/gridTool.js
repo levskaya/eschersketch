@@ -17,7 +17,7 @@ import {gS,
         drawTools,
        } from './main';
 
-import { _ } from 'underscore';
+import _ from 'underscore';
 import {add2, sub2, scalar2, normalize, l2norm, l2dist, reflectPoint} from './math_utils';
 import {generateLattice, planarSymmetries} from './symmetryGenerator';
 

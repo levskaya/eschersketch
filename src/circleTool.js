@@ -15,7 +15,7 @@ import {gS,
         affineset, updateSymmetry, updateStyle, drawKeyToOrderMap,
         commitOp
        } from './main';
-import { _ } from 'underscore';
+import _ from 'underscore';
 import {add2, sub2, scalar2, normalize, l2norm, l2dist,
         reflectPoint, angleBetween, orthoproject2, pointToAngle} from './math_utils';
 

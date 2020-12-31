@@ -18,7 +18,7 @@ require('./assets/eschersketch.css'); //global css
 
 // Library Imports
 //------------------------------------------------------------------------------
-import { _ } from 'underscore';
+import _ from 'underscore';
 import Vue from 'vue';
 import Hammer from 'hammerjs'; // touch-event support
 

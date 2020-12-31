@@ -15,7 +15,7 @@ import {gS,
         affineset, updateSymmetry, updateStyle, drawKeyToOrderMap,
         commitOp
        } from './main';
-import { _ } from 'underscore';
+import _ from 'underscore';
 import {l2dist} from './math_utils';
 
 import {drawHitCircle} from './canvas_utils';

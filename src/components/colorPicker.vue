@@ -5,7 +5,7 @@
 </template>
 <script>
 import { Chrome } from './vueColor/index.js';
-import { _ } from 'underscore';
+import _ from 'underscore';
 import {gS} from '../main.js';
 
 // the vue-color picker only updates on hex changes...

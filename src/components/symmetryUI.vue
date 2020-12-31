@@ -66,7 +66,7 @@ import es_button from './es_button';
 import {gS} from '../main.js';
 import {planarSymmetries} from '../symmetryGenerator';
 
-import {_} from 'underscore';
+import _ from 'underscore';
 
 export default {
   props: ['symmState','params', 'options'],

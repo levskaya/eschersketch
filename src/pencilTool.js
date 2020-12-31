@@ -16,7 +16,7 @@ import {gS,
         //pressure,
         commitOp
        } from './main';
-import { _ } from 'underscore';
+import _ from 'underscore';
 //import {l2dist} from './math_utils';
 import {parseColor} from './canvas_utils';
 

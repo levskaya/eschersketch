@@ -23,7 +23,7 @@
     "sshpk": "^1.16.0",
     "stringstream": "^1.0.0",
     "tinycolor2": "^1.4.1",
-    "underscore": "^1.9.1",
+    "underscore": "^1.12.1",
     "vue": "^2.5.22",
     "vue-touch": "^2.0.0-beta.4"
   },

@@ -9,96 +9,139 @@
 //
 //------------------------------------------------------------------------------
 
-import {gS, prepForUpload, fetchFromCloud, getJPGdata, getPNGTiledata} from './main.js'
-import {lsGetJSON, lsSaveJSON} from './utils.js';
-import {networkConfig} from './config';
-import {md5} from './libs/md5.js';
+import { gS, prepForUpload, fetchFromCloud, getJPGdata, getPNGTiledata } from './main.js';
+import { lsGetJSON, lsSaveJSON } from './utils.js';
+import { networkConfig } from './config.js';
+import { md5 } from './libs/md5.js';
+import { getSessionToken, invalidateSessionToken } from './libs/session.js';
 
-const HttpClient = function() {
-    this.get = function(url, callback) {
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function() {
-            if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
-                callback(xmlhttp.responseText);
-        }
-        xmlhttp.open( "GET", url, true );
-        xmlhttp.send( null );
-    }
-    this.post = function(url, jsonStr, callback) {
-      let xmlhttp = new XMLHttpRequest();
-      xmlhttp.open("POST", url, true);
-      xmlhttp.setRequestHeader("Content-type", "application/json");
-      xmlhttp.onreadystatechange = function () {
-          if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-              callback(xmlhttp.responseText);
-          }
-        }
-      xmlhttp.send(jsonStr);
-    }
+/**
+ * Authenticated POST helper with automatic session token attachment and retry on expiry
+ */
+async function postWithSession(url, dataObj, retryCount = 1) {
+  const token = await getSessionToken();
+  const payload = typeof dataObj === 'string' ? JSON.parse(dataObj) : { ...dataObj };
+
+  // Attach session token in payload and in request header
+  if (token) {
+    payload.sessionToken = token;
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(token ? { 'X-Escher-Session': token } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  // If session expired / invalid and we have retries left, refresh token and retry
+  if ((res.status === 401 || res.status === 403) && retryCount > 0) {
+    console.warn('Session token rejected by server, refreshing...');
+    invalidateSessionToken();
+    await getSessionToken(true);
+    return postWithSession(url, dataObj, retryCount - 1);
+  }
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(errorBody.error || `HTTP ${res.status}: Request failed`);
+  }
+
+  return res.json();
 }
 
-// record list of shared sketches in localstorage, not used now and questionably useful
-// given the ephemerality of localstorage data in many browsers
-const rememberSketch = function(id){
-    let memory = lsGetJSON("sketches") || [];
-    let dateStr = (new Date()).toLocaleString();
-    memory.push({sketchID:id, name:gS.params.filename, date:dateStr})
-    lsSaveJSON("sketches", memory);
+/**
+ * GET helper
+ */
+async function fetchGet(url) {
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: Failed to load`);
+  }
+
+  return res.text();
 }
 
-export const saveSketch = function(){
+// Record list of shared sketches in localStorage
+const rememberSketch = function (id) {
+  let memory = lsGetJSON('sketches') || [];
+  let dateStr = new Date().toLocaleString();
+  memory.push({ sketchID: id, name: gS.params.filename, date: dateStr });
+  lsSaveJSON('sketches', memory);
+};
+
+export const saveSketch = async function () {
   let resturl = networkConfig.SketchEndpoint;
-  let client = new HttpClient();
-  client.post(resturl, prepForUpload(), function(str){
-    let jsonObj = JSON.parse(str);
-    console.log("new sketchID", jsonObj.sketchID);
+  try {
+    const rawData = prepForUpload();
+    const dataObj = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+
+    const jsonObj = await postWithSession(resturl, dataObj);
+    console.log('new sketchID', jsonObj.sketchID);
     rememberSketch(jsonObj.sketchID);
+
     gS.params.copyText = networkConfig.shareURLPrefix + jsonObj.sketchID;
     gS.params.showShareLinks = true;
-    console.log("Posting image for share links");
-    let imgclient = new HttpClient();
-    let imgdata = JSON.stringify({
-                    hash:   jsonObj.sketchID,
-                    b64img: getJPGdata().replace("data:image/jpeg;base64,","")
-                  });
-    imgclient.post(networkConfig.PostImageEndpoint, imgdata, function(str){
-      let jsonObj = JSON.parse(str);
-      console.log("Image post", jsonObj['status'] ? "succeeded" : "failed");
-    });
-  });
-}
 
-export const loadSketch = function(sketchID){
+    console.log('Posting preview image for share links');
+    const imgPayload = {
+      hash: jsonObj.sketchID,
+      b64img: getJPGdata().replace('data:image/jpeg;base64,', ''),
+    };
+
+    const imgResult = await postWithSession(networkConfig.PostImageEndpoint, imgPayload);
+    console.log('Image post', imgResult.status ? 'succeeded' : 'failed');
+  } catch (err) {
+    console.error('Error saving sketch:', err);
+    alert(`Could not save sketch: ${err.message}`);
+  }
+};
+
+export const loadSketch = async function (sketchID) {
   let resturl = networkConfig.SketchEndpoint + sketchID;
-  let client = new HttpClient();
-  client.get(resturl, function(str){
-    fetchFromCloud(str);
-  });
-}
+  try {
+    const textData = await fetchGet(resturl);
+    fetchFromCloud(textData);
+  } catch (err) {
+    console.error('Error loading sketch from cloud:', err);
+  }
+};
 
-export const saveTileforPrint = function(){
+export const saveTileforPrint = async function () {
   let datastr = prepForUpload();
   let dataHash = md5(datastr);
-  console.log("Posting tile image for printing, id ", dataHash);
-  let imgclient = new HttpClient();
-  let imgdata = JSON.stringify({
-                  hash:   dataHash,
-                  b64img: getPNGTiledata().replace("data:image/png;base64,","")
-                });
-  gS.params.printLink = "UPLOADING"; //HACK to temp update UI
-  imgclient.post(networkConfig.PostZazzleEndpoint, imgdata, function(str){
-    let jsonObj = JSON.parse(str);
-    console.log("Image post", jsonObj['status'] ? "succeeded" : "failed");
-    if(jsonObj['status']){
-      let myuri = encodeURI("https://eschersket.ch/zazzle/"+dataHash+".png");
+  console.log('Posting tile image for printing, id ', dataHash);
+
+  gS.params.printLink = 'UPLOADING'; // UI feedback
+  try {
+    const imgPayload = {
+      hash: dataHash,
+      prefix: 'zazzle/',
+      b64img: getPNGTiledata().replace('data:image/png;base64,', ''),
+    };
+
+    const imgResult = await postWithSession(networkConfig.PostZazzleEndpoint, imgPayload);
+    console.log('Image post', imgResult.status ? 'succeeded' : 'failed');
+
+    if (imgResult.status) {
+      let myuri = encodeURI('https://eschersket.ch/zazzle/' + dataHash + '.png');
       let zazzleHref = networkConfig.zazzleHref.replace(/_TILEIMGURI_/g, myuri);
       gS.params.printLink = zazzleHref;
       gS.params.showPrintLinks = true;
-      //almost always blocked by popup blocker, async not a trusted event...
-      //console.log("opening link ", zazzleHref);
-      //window.open(zazzleHref, "_blank");
     } else {
-      gS.params.printLink = "";
+      gS.params.printLink = '';
     }
-  });
-}
+  } catch (err) {
+    console.error('Error uploading tile for print:', err);
+    gS.params.printLink = '';
+  }
+};

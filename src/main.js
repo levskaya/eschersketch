@@ -799,11 +799,6 @@ const initGUI = function() {
     _.assign(gS.options, savedOptions);
   }
 
-  //show help screen on first visit to eschersketch
-  if(!lsGetJSON("alreadyVisited")) {
-    gS.$emit("help");
-    lsSaveJSON("alreadyVisited", true);
-  }
 
   //parse URL for get params and load from backend
   loadGivenSketch();

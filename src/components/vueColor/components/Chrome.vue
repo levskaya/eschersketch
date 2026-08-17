@@ -153,13 +153,13 @@ export default {
 
 <style scoped>
 .c-chrome {
-  //background: #fff;
-  //border-radius: 2px;
-  //box-shadow: 0 0 2px rgba(0,0,0,.3), 0 4px 8px rgba(0,0,0,.3);
+  /* background: #fff; */
+  /* border-radius: 2px; */
+  /* box-shadow: 0 0 2px rgba(0,0,0,.3), 0 4px 8px rgba(0,0,0,.3); */
   box-sizing: initial;
   width: 225px;
   font-family: Menlo;
-  //background-color: rgba(0,0,0,0.0);
+  /* background-color: rgba(0,0,0,0.0); */
 }
 .controls {
   display: flex;
@@ -234,7 +234,7 @@ export default {
 }
 .chrome-body {
   padding: 16px 16px 12px;
-  //background-color: #fff;
+  /* background-color: #fff; */
 }
 .saturation-wrap {
   width: 100%;

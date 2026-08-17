@@ -87,13 +87,24 @@ import {saveSketch, saveTileforPrint} from '../network';
 import _ from 'underscore';
 import Clipboard from 'clipboard';
 
-var clipboard = new Clipboard('#copy-button', {
-    text: function() { return gS.params.copyText; }
-});
-
 export default {
   props: ['params', 'options'],
   components: {esButton, esNumfield},
+  data: function() {
+    return {
+      clipboard: null
+    };
+  },
+  mounted: function() {
+    this.clipboard = new Clipboard('#copy-button', {
+      text: function() { return gS.params.copyText; }
+    });
+  },
+  beforeDestroy: function() {
+    if (this.clipboard) {
+      this.clipboard.destroy();
+    }
+  },
   computed: {
     panelStyle: function() {
       return {display: this.params.showFile ? "block" : "none"};

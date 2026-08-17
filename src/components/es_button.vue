@@ -10,6 +10,8 @@
 </template>
 
 <script>
+import {gS} from '../main.js';
+
 export default {
   name: 'es-button',
   props: ['name', 'selected', 'hint'],

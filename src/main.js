@@ -12,9 +12,7 @@
 
 // Global Assets
 //------------------------------------------------------------------------------
-require('./assets/eschersketch.css'); //global css
-//fonts still in static due to subtle webpack issues:
-//require('./assets/icomoon.css');    //icon fonts
+import './assets/eschersketch.css'; //global css
 
 // Library Imports
 //------------------------------------------------------------------------------
@@ -22,16 +20,9 @@ import _ from 'underscore';
 import Vue from 'vue';
 import Hammer from 'hammerjs'; // touch-event support
 
-// polyfills for saving files
-import {saveAs} from './libs/FileSaver.js';
-require('./libs/Blob.js');
-// modifies global canvas object to allow blob export
-require('./libs/canvas-toBlob.js');
-// using a tweaked version of canvas2svg to avoid regex recursion limit
-// and to draw ellipses
-require('./libs/canvas2svg.js');
-// touch detection
-require('./libs/modernizr-custom.js');
+// File saving and SVG canvas
+import {saveAs} from 'file-saver';
+import './libs/canvas2svg.js';
 
 // Local Imports
 //------------------------------------------------------------------------------
@@ -588,7 +579,7 @@ export const savePNG = function() {
   setCanvasPixelDensity(tmpCanvas, pixelScale);
   let tctx = tmpCanvas.getContext("2d");
   rerender(tctx);
-  tmpCanvas.toBlobHD(blob => saveAs(blob, gS.params.filename + ".png"));
+  tmpCanvas.toBlob(blob => saveAs(blob, gS.params.filename + ".png"));
   tmpCanvas.remove();
 };
 
@@ -613,7 +604,7 @@ export const savePNGTile = function(){
   //rerender(tctx, {modifier: cleanLinesModifier}); //XXX: very clean effect!
   //rerender(tctx, {modifier: cleanFillsModifier}); //XXX: very clean effect!
   rerender(tctx);
-  tileCanvas.toBlobHD(blob => saveAs(blob, gS.params.filename + "_tile.png"));
+  tileCanvas.toBlob(blob => saveAs(blob, gS.params.filename + "_tile.png"));
   tileCanvas.remove();
 };
 
@@ -757,7 +748,13 @@ const initState = function() {
 
 // get version string
 export const getESVersion = function() {
-  if(window.ES_VERSION){ return ES_VERSION; } else { return "v0.3.3"; }
+  if (typeof ES_VERSION !== 'undefined') {
+    return ES_VERSION;
+  }
+  if (typeof window !== 'undefined' && window.ES_VERSION) {
+    return window.ES_VERSION;
+  }
+  return "v0.3.3";
 }
 
 const initGUI = function() {
@@ -878,8 +875,8 @@ Pressure.set('#sketchlive', {
 //------------------------------------------------------------------------------
 initGUI();
 
-// Crappy Mobile Detection
+// Mobile / Touch Detection
 //------------------------------------------------------------------------------
-if (Modernizr.touchevents) {
+if (('ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 1)) && window.innerWidth <= 1024) {
   initTouchEvents();
 }

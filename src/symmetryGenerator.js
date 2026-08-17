@@ -36,15 +36,15 @@ class Point2d {
   }
 
   fromArray(ar) {
-    return new Point2(ar[0], ar[1]);
+    return new Point2d(ar[0], ar[1]);
   }
 
   toArray() {
-    return [ x, y ];
+    return [ this.x, this.y ];
   }
 
   plus(pIn) {
-    const pOut = new Point2();
+    const pOut = new Point2d();
     pOut.x = this.x + pIn.x;
     pOut.y = this.y + pIn.y;
     return pOut;
@@ -57,7 +57,7 @@ class Point2d {
   }
 
   minus(pIn) {
-    const pOut = new Point2();
+    const pOut = new Point2d();
     pOut.x = this.x - pIn.x;
     pOut.y = this.y - pIn.y;
     return pOut;
@@ -70,13 +70,13 @@ class Point2d {
   }
 
   times(a) {
-    const pOut = new Point2();
+    const pOut = new Point2d();
     pOut.x = a * this.x;
     pOut.y = a * this.y;
     return pOut;
   }
 
-  _times(pIn) {
+  _times(a) {
     this.x = a * this.x;
     this.y = a * this.y;
     return this;

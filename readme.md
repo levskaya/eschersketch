@@ -13,15 +13,20 @@ like Photoshop pattern fill, graphics textures, or upload to services such as [S
 
 ### Local Install / Build Setup
 
-Built with ES6, webpack, babel, [Vue][vue] 2.0. Project Structure derives from the vuejs es6 webpack template.
-([repo][tmplrepo], [docs][tmpldocs])  Running locally requires npm and should be as easy as running the following:
+Built with modern ES modules, [Vite][vite], [esbuild][esbuild], and [Vue][vue]. Running locally requires Node.js and npm:
 
 ``` bash
 # install dependencies
 npm install
 
-# serve with hot reload at localhost:8080
+# start local dev server with instant HMR
 npm run dev
+
+# build optimized production bundle
+npm run build
+
+# preview production build locally
+npm run preview
 ```
 
 ### Code Comments
@@ -49,12 +54,10 @@ Vuex but this would not be difficult.
 [2]: https://en.wikipedia.org/wiki/Point_group
 [spoon]: https://www.spoonflower.com/designs/new
 [contrado]: https://www.contrado.com/
-[vue]:https://vuejs.org/
+[vue]: https://vuejs.org/
+[vite]: https://vite.dev/
+[esbuild]: https://esbuild.github.io/
 [vc]: https://github.com/xiaokaike/vue-color
-[tmplrepo]:https://github.com/vuejs-templates/webpack
-[tmpldocs]:https://vuejs-templates.github.io/webpack/
 [hammer]: https://hammerjs.github.io/
-[fs]:https://github.com/eligrey/FileSaver.js
-[ctb]:https://github.com/eligrey/canvas-toBlob.js
 [c2s]: https://github.com/gliffy/canvas2svg
 [icomoon]: https://icomoon.io/

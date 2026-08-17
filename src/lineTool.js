@@ -3,7 +3,7 @@
 // Eschersketch - A drawing program for exploring symmetrical designs
 //
 //
-// Copyright (c) 2017 Anselm Levskaya (http://anselmlevskaya.com)
+// Copyright (c) 2026 Anselm Levskaya (http://anselmlevskaya.com)
 // Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
 // license.
 //

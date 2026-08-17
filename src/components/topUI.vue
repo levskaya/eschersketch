@@ -31,7 +31,7 @@
     <!-- Footnote -->
     <div :style="{display: params.fullUI ? 'block' : 'none'}">
       <br>
-      <div style="font-size:10px;color:#888888;text-align:left;">Anselm Levskaya &copy; 2017</div>
+      <div style="font-size:10px;color:#888888;text-align:left;">Anselm Levskaya &copy; 2026</div>
     </div>
 
   </div><!-- /sketch-UI -->
